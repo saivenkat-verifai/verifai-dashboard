@@ -1,0 +1,51 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# dependencies
+/node_modules
+
+# IDEs and editors
+/.idea
+/.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
+
+# Angular specific
+.angular/cache
+.angular/cache/*
+.angular/tsconfig.tsbuildinfo
+
+# environment files (keep them private!)
+src/environments/environment*.ts
+
+# Optional npm/yarn/pnpm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Optional: coverage reports
+/coverage
+
+# Optional: build output from tests
+/test-output
+
+# Optional: VSCode build configs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

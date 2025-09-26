@@ -1,0 +1,384 @@
+/* === FONT FACES === */
+@font-face {
+    font-family: 'Neometric Bold';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Neometric'),
+        url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Neometric Medium';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Neometric'),
+        url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
+}
+
+.createbutton {
+       height: 30px;
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    border-radius: 3px;
+}
+
+/* === DASHBOARD CONTAINER === */
+.dashboard-container {
+    font-family: 'Neometric Regular';
+    background-color: #f6f6f6;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === DASHBOARD GRID === */
+.dashboard-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: 16px;
+    padding: 20px;
+    height: calc(100vh - 100px);
+    overflow: hidden;
+}
+
+/* === LEFT SECTION === */
+.left-section {
+    display: flex;
+    flex-direction: column;
+    /* gap: 16px; */
+    overflow: hidden;
+}
+
+.section-header {
+    font-family: 'Neometric Bold';
+    display: flex;
+    justify-content: space-between;
+}
+
+.navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nomargin {
+    margin: 0;
+}
+
+.arrow {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background-color: white;
+    color: #ED3237;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.arrow:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.section-header h2 {
+    opacity: 0.15;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+.escalated-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    align-items: center;
+}
+
+
+.calender-escalated-card {
+    grid-column: span 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fff;
+    font-family: 'Neometric Medium';
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.calender-escalated-card:hover {
+    transform: scale(1.02);
+}
+
+.calender-escalated-card .label {
+    font-weight: 600;
+    color: #333;
+}
+
+.calender-escalated-card .value {
+    font-weight: bold;
+    color: inherit;
+}
+
+.hidden-card {
+    display: none;
+}
+
+.blank-space {
+    grid-column: span 2;
+}
+
+.calender-search {
+    grid-column: span 4;
+}
+
+.calender-search input {
+    width: 90%;
+    padding: 8px 12px;
+    border-radius: 25px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.right-section.add-section .popup-header {
+    padding: 16px;
+    background: #000000;
+    color: #fff;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.right-section.add-section .right-arrow {
+  background-color: transparent;  /* no background */
+  border: none;                   /* remove border */
+  color: white;                   /* white arrow */
+  font-size: 20px;                /* adjust size */
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 10px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.right-section.add-section .right-arrow:hover {
+  background-color: rgba(0, 0, 0, 0.2); /* subtle hover effect */
+}
+
+/* Form inside ADD section */
+.right-section.add-section .add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 10px 0;
+}
+
+.right-section.add-section .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.right-section.add-section .form-group label {
+  font-weight: 600;
+  color: #333;
+}
+
+.escalated-card-content{
+        display: flex
+;
+    flex-direction: row;
+}
+
+.usercheckbox{
+        font-size: 30px;
+    width: 18px;
+    margin-right: 10px;
+}
+
+.imground{
+        height: 45px;
+    border-radius: 20px;
+}
+
+.nameemail{
+    display: flex
+;
+    flex-direction: column;
+    margin: 0px 0px 0px 10px;
+}
+
+.labelmargin{
+     margin: 0px;
+}
+.labelmail{
+     margin: 0px;
+}
+
+/* 
+.p-dropdown .p-component .p-inputwrapper{
+
+  width: -webkit-fill-available;
+}
+
+.p-dropdown .p-dropdown-label.p-placeholder {
+    
+      width: -webkit-fill-available;
+}
+
+.form-group{
+width: -webkit-fill-available;
+} */
+
+
+.right-section.add-section .form-control {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.right-section.add-section .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.right-section.add-section .btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.right-section.add-section .cancel-btn {
+  background-color: #ccc;
+  color: #333;
+}
+
+.right-section.add-section .cancel-btn:hover {
+  background-color: #b3b3b3;
+}
+
+.right-section.add-section .add-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.right-section.add-section .add-btn:hover {
+  background-color: #0069d9;
+}
+
+/* === RIGHT SECTION === */
+.right-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+    height: calc(100vh - 100px);
+}
+
+.right-section .popup-header {
+    padding: 16px;
+    background: #ED3237;
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.popup-header-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Neometric Bold';
+    font-size: 14px;
+}
+
+.statusbutton {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #ffffff;
+    color: #000000;
+    font-size: 12px;
+    font-family: 'Neometric Medium';
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+}
+
+/* Scrollable popup body */
+.popup-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* Optional: scrollbar style */
+.popup-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+/* === AG GRID CUSTOM FONTS === */
+:host ::ng-deep .custom-header,
+:host ::ng-deep .custom-cell,
+:host ::ng-deep .ag-paging-panel {
+    font-family: 'Neometric Medium' !important;
+    font-size: 12px !important;
+}
+
+/* === UTILITY CLASSES === */
+.m-t-20 {
+    margin-top: 20px;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1024px) {
+    .dashboard-content {
+        grid-template-columns: 1fr;
+    }
+
+    .right-section {
+        height: auto;
+    }
+}

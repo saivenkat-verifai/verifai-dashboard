@@ -1,0 +1,405 @@
+@font-face {
+    font-family: 'Neometric Bold';
+    font-style: normal;
+    font-weight: 600;
+    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Neometric Medium';
+    font-style: normal;
+    font-weight: 500;
+    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Nasalization';
+    /* font-style: normal; */
+    /* font-weight: 400; */
+    src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    /* font-weight: 400; */
+    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
+}
+
+.m-b-30{
+  margin-bottom: 30px;
+}
+
+.popup-container {
+  max-width: 1200px;
+  margin: auto;
+  background: #fff;
+  border-radius: 12px;
+  
+}
+
+h2 {
+  font-size: 12px;
+  margin: 0 0 10px;
+   font-family: 'Neometric Bold';
+
+}
+.nav-icon{
+    width: 12px;
+    height: 12px;
+    margin-right: 10px;
+     color: black;
+      font-size: 12px;
+    font-family: 'Neometric Medium';
+}
+
+.filters-title {
+    margin: 0;
+    font-weight: bold;
+    font-size: 12px;
+    font-family: 'Neometric Medium';
+
+}
+
+.filter-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative; /* so popup can be positioned */
+}
+
+.plus-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: white;
+  border: 1px solid #ccc;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.plus-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.popup-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+ box-shadow: -5px 4px 9px 3px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+}
+
+.popup-item {
+ background: none;
+    border: none;
+    color: black;
+    display: flex;
+    padding: 6px 6px 6px 6px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    align-items: center;
+     font-size: 12px;
+    font-family: 'Neometric Medium';
+}
+
+.popup-item:hover {
+  background-color: #f5f5f5;
+}
+
+.status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filters {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.filter {
+    display: flex;
+    gap: 50px;
+    align-items: center;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Toggle switch CSS */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    transition: 0.3s;
+    border: 0.5px solid black;
+    border-radius: 24px;
+    height: 20px;
+}
+
+input:checked+.slider {
+    /* background-color: #4caf50; */
+     background-color: white;
+    
+
+}
+
+input:checked+.slider:before {
+    transform: translateX(18px);
+        background-color: #ED3237;
+}
+
+
+.slider:before {
+    position: absolute;
+    content: "";
+  height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+:host ::ng-deep .custom-header {
+  font-family: 'Neometric Medium' !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .custom-cell {
+  font-family: 'Neometric Medium' !important;
+  font-size: 12px !important;
+}
+
+:host ::ng-deep .ag-paging-panel {
+  font-family: 'Neometric Medium' !important;
+  font-size: 12px !important;
+}
+
+.basic-info,
+.alarm-events {
+  flex: 1;
+  min-width: 350px;
+}
+
+.basic-info p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.basic-info p span {
+  font-weight: bold;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+   
+}
+
+table th,
+table td {
+  border-bottom: 1px solid #ddd;
+  padding: 10px;
+  font-size: 12px;
+     font-family: 'Neometric Regular';
+  text-align: left;
+}
+
+table th {
+  background: #fafafa;
+  font-weight: 600;
+     font-family: 'Neometric Regular';
+}
+
+.alarm-table td {
+  vertical-align: middle;
+}
+
+.user-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 8px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+.tag-red {
+  color: red;
+  font-size: 18px;
+}
+
+.status-success {
+  color: green;
+  font-weight: 600;
+}
+
+.total-duration {
+  display: flex;
+  justify-content: space-between;
+  margin: 40px 0;
+
+  font-weight: bold;
+    font-size: 12px;
+
+   font-family: 'Neometric Bold';
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-header h2 {
+  margin: 0;
+}
+
+.timezone {
+  display: flex;
+  gap: 15px;
+  font-size: 14px;
+  align-items: center;
+}
+
+
+.timezone {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.timezone label {
+  font-size: 10px;
+
+}
+
+.escalation-report h2 {
+  margin-top: 20px;
+}
+
+.note {
+  font-size: 12px;
+  color: #555;
+  margin-top: 5px;
+}
+
+.edit-icon {
+  cursor: pointer;
+}
+
+.add-btn {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.add-btn button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #eee;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.info-table {
+  display: table;
+  font-size: 14px;
+  width: 100%;
+}
+
+.row {
+  display: table-row;
+}
+.row1 {
+  display: table-row;
+}
+
+.label, .colon, .value {
+  display: table-cell;
+  padding: 4px 6px;
+}
+
+.label {
+  /* font-weight: 600; */
+  width: 200px; /* controls alignment */
+   font-family: 'Neometric Medium';
+     font-size: 10px;
+
+ opacity: 40%;
+}
+
+.colon {
+  width: 10px;
+  text-align: center;
+}
+
+.value {
+  color: #333;
+     font-family: 'Neometric Medium';
+     font-size: 10px;
+}
+
+
+.report-grid {
+  width: 100%;
+  height: 300px;
+}
+
+.ag-theme-alpine {
+  --ag-header-background-color: #fafafa;
+  --ag-odd-row-background-color: #fcfcfc;
+  border-radius: 8px;
+  overflow: hidden;
+}

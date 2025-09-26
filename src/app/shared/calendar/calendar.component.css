@@ -1,0 +1,288 @@
+/* Import PrimeNG theme (if not already in angular.json) */
+@import 'primeng/resources/themes/lara-light-blue/theme.css';
+@import 'primeng/resources/primeng.min.css';
+@import 'primeicons/primeicons.css';
+
+@font-face {
+  font-family: 'Neometric Bold';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+}
+@font-face {
+  font-family: 'Neometric Medium';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+}
+@font-face {
+  font-family: 'Nasalization';
+  src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
+}
+@font-face {
+  font-family: 'NasalizationLight';
+  font-style: normal;
+  src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Neometric Regular';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/assets/fonts/Neometric-Regular.woff') format('woff');
+  font-display: swap;
+}
+
+/* PrimeNG Overrides for Design Match */
+.view-select ::ng-deep .p-dropdown {
+background: #e53935 !important;
+    color: #ffffff !important;
+    height: 30px !important;
+    display: flex
+;
+    padding: 0 6px !important;
+    align-items: center;
+}
+
+:host ::ng-deep  p-dropdown-trigger-icon {
+  color: white !important;
+}
+
+/* Existing today-btn style (keep or adjust as needed) */
+.today-btn ::ng-deep .p-button {
+  background: #fff !important;
+  border: 1px solid #000 !important;
+  height: 30px !important;
+  width: 60px !important;
+  padding: 0 6px !important;
+}
+
+.today-btn ::ng-deep .p-button:hover {
+  background: #f5f5f5 !important;
+}
+
+/* Existing today-btn style (optional, can be removed if not needed) */
+.today-btn ::ng-deep .p-button {
+  background: #fff !important;
+  border: 1px solid #000 !important;
+  height: 30px !important;
+  width: 60px !important;
+  padding: 0 6px !important;
+}
+
+.today-btn ::ng-deep .p-button:hover {
+  background: #f5f5f5 !important;
+}
+
+.calenderimage {
+    height: 16px;
+}
+
+.input-group{
+  display: flex;
+    flex-direction: column;
+}
+
+.date-time-inputs {
+      display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-items: flex-end;
+    gap: 25px;
+}
+
+
+/* Month card container */
+.month-cards {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Individual month cards */
+.month-card {
+  padding: 5px 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  color: #333;
+  text-align: center;
+  min-width: 80px;
+  font-family: 'Neometric Regular';
+  font-size: 14px;
+}
+
+/* Active month highlight */
+.month-card.active {
+  background-color: #e53a36; /* Same as week-card.active */
+  color: #fff;
+  border-color: #e53a36;
+}
+
+/* Hover effect for month cards */
+.month-card:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+
+/* Navigation circle buttons (prev/next) */
+.month-cards .circle-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: none;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+
+
+
+/* New custom style for round red button with SVG */
+.custom-today-btn ::ng-deep .p-button {
+  background: #e53935 !important; /* Red color */
+  border: none !important;
+  border-radius: 50% !important; /* Make it round */
+  width: 30px !important; /* Size of the button */
+  height: 30px !important; /* Size of the button */
+  padding: 0 !important; /* Remove padding */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important; /* Ensure SVG fits */
+}
+
+.popup-header{
+      padding-bottom: 25px;
+}
+
+.p-b-10{
+  padding-bottom: 10px;
+}
+
+
+
+.custom-today-btn ::ng-deep .p-button .p-button-icon {
+  font-size: 20px !important; /* Adjust if needed */
+  line-height: 1 !important;
+}
+
+/* Ensure the trigger background doesn't interfere */
+.view-select ::ng-deep .p-dropdown-trigger {
+  background: #e53935 !important; /* Match the red background */
+  color: white !important;
+  gap: 0 !important;
+width: 2rem;
+}
+
+.view-select ::ng-deep .p-dropdown-label {
+  text-transform: uppercase;
+  padding: 0 !important;
+  font-family: 'Neometric Regular';
+  font-size: 14px !important;
+  color: #ffffff !important;
+}
+
+.today-btn ::ng-deep .p-button {
+  background: #fff !important;
+  color: #000;
+  font-family: 'Neometric Regular';
+  font-size: 14px !important;
+  border: 1px solid #000 !important;
+  height: 30px !important;
+  padding: 0 6px !important;
+}
+
+.today-btn ::ng-deep .p-button:hover {
+  background: #f5f5f5 !important;
+}
+
+::ng-deep .p-radiobutton .p-radiobutton-box {
+  width: 20px !important;
+  height: 20px !important;
+  border: 2px solid #000 !important;
+  background: #fff !important;
+}
+.p-field-checkbox {
+  padding-bottom: 20px;
+  padding-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.week-cards {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.week-card {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.week-card.active {
+  background-color: #e53a36;
+  color: #fff;
+}
+
+.week-card:hover {
+  background-color: #e0e0e0;
+}
+
+::ng-deep .p-radiobutton .p-radiobutton-box.p-highlight {
+  background: #e53935 !important; /* Match your theme */
+}
+
+.circle-btn {
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+}
+
+.selected-range {
+  font-weight: bold !important;
+  font-size: 14px !important;
+  color: #000 !important;
+  margin: 0 10px !important;
+}
+
+.calendar-icon-btn ::ng-deep .p-button {
+  background: #e53935 !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+}
+
+.calendar-icon-btn ::ng-deep .p-button .pi-calendar {
+  font-size: 16px !important;
+  color: white !important;
+}
+
+/* Ensure compact layout */
+.calendar-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 5px 10px !important;
+}
