@@ -1,19 +1,17 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import * as Highcharts from 'highcharts';
-import { HighchartsChartModule } from 'highcharts-angular';
-
-
-
+import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+import * as Highcharts from "highcharts";
+import { HighchartsChartModule } from "highcharts-angular";
 
 @Component({
-  selector: 'app-line-chart',
-  templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.css'],
+  selector: "app-line-chart",
+  templateUrl: "./line-chart.component.html",
+  styleUrls: ["./line-chart.component.css"],
   standalone: true,
   imports: [HighchartsChartModule],
 })
 export class LineChartComponent implements OnChanges {
-  @Input() chartMode: 'suspiciousHourlyData' | 'otherMode' = 'suspiciousHourlyData';
+  @Input() chartMode: "suspiciousHourlyData" | "otherMode" =
+    "suspiciousHourlyData";
   @Input() hourlyData: Highcharts.SeriesOptionsType[] = [];
 
   Highcharts: typeof Highcharts = Highcharts;
@@ -33,39 +31,43 @@ export class LineChartComponent implements OnChanges {
   private updateChartWithHourlyData() {
     this.chartOptions = {
       chart: {
-        type: 'line',
+        type: "line",
         panning: { enabled: false }, // disable panning
         events: {
           load() {
             // Prevent scroll-blocking touch events
             if (this.container) {
-              this.container.style.touchAction = 'none';
+              this.container.style.touchAction = "none";
             }
           },
         },
       },
-    
-    accessibility: { enabled: true },
 
-      title: { text: 'Suspicious Events Hourly Breakdown', align: 'center' },
+      accessibility: { enabled: true },
+
+      title: { text: "Suspicious Events Hourly Breakdown", align: "center" },
       xAxis: { categories: this.categories },
-      yAxis: { title: { text: 'Count' } },
-      legend: { layout: 'vertical', align: 'right', verticalAlign: 'middle' },
+      yAxis: { title: { text: "Count" } },
+      legend: { layout: "vertical", align: "right", verticalAlign: "middle" },
       plotOptions: {
         series: {
-          label: { connectorAllowed: false },
+          label: { connectorAllowed: true },
           pointStart: 0,
-          enableMouseTracking: false, // disables internal Highcharts mouse/touch events
+          enableMouseTracking: true, // disables internal Highcharts mouse/touch events
         },
       },
       series: this.hourlyData,
-      tooltip: { enabled: false }, // optional: disables tooltips to reduce passive listener warnings
+      tooltip: { enabled: true }, // optional: disables tooltips to reduce passive listener warnings
       responsive: {
         rules: [
           {
             condition: { maxWidth: 500 },
             chartOptions: {
-              legend: { layout: 'horizontal', align: 'center', verticalAlign: 'bottom' },
+              legend: {
+                layout: "horizontal",
+                align: "center",
+                verticalAlign: "bottom",
+              },
             },
           },
         ],
@@ -76,25 +78,25 @@ export class LineChartComponent implements OnChanges {
   private setDefaultChart() {
     this.chartOptions = {
       chart: {
-        type: 'line',
+        type: "line",
         panning: { enabled: false },
         events: {
           load() {
             if (this.container) {
-              this.container.style.touchAction = 'none';
+              this.container.style.touchAction = "none";
             }
           },
         },
       },
-    accessibility: { enabled: true },
-      title: { text: 'No Data', align: 'left' },
+      accessibility: { enabled: true },
+      title: { text: "No Data", align: "left" },
       xAxis: { categories: this.categories },
-      yAxis: { title: { text: 'Count' } },
+      yAxis: { title: { text: "Count" } },
       series: [],
       plotOptions: {
-        series: { enableMouseTracking: false },
+        series: { enableMouseTracking: true },
       },
-      tooltip: { enabled: false },
+      tooltip: { enabled: true },
     };
   }
 }

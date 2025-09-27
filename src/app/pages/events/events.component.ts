@@ -21,14 +21,17 @@ import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
 
+/** -------------------- Interfaces -------------------- */
 interface IconData {
   iconPath: string;
   count: number;
 }
+
 interface CardDot {
   iconcolor: string;
   count: number;
 }
+
 interface EscalatedDetail {
   label: string;
   value: number;
@@ -36,6 +39,7 @@ interface EscalatedDetail {
   icons?: IconData[];
   colordot?: CardDot[];
 }
+
 interface SecondEscalatedDetail {
   label?: string;
   value?: number;
@@ -66,6 +70,9 @@ export class EventsComponent implements OnInit {
 
   /** -------------------- Filters & toggles -------------------- */
   selectedFilter: "CLOSED" | "PENDING" = "PENDING";
+  selectedpendingFilter: "CONSOLES" | "QUEUES" = "CONSOLES";
+  consolesChecked: boolean = true;
+  queuesChecked: boolean = false;
   suspiciousChecked: boolean = true;
   falseChecked: boolean = false;
   searchTerm: string = "";
@@ -92,7 +99,7 @@ export class EventsComponent implements OnInit {
   pendingRowData: any[] = [];
   secondEscalatedDetails: SecondEscalatedDetail[] = [];
 
-  /** -------------------- Column defs -------------------- */
+  /** -------------------- Column definitions -------------------- */
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
   defaultColDef: ColDef = { resizable: true };
@@ -107,21 +114,26 @@ export class EventsComponent implements OnInit {
     ariaLabelColumnMenu: "",
   };
 
+  /** -------------------- Constructor -------------------- */
   constructor(private eventsService: EventsService) {}
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit() {
     this.selectedDate = new Date();
+    this.selectedStartDate = this.selectedDate;
+    this.selectedEndDate = this.selectedDate;
     this.setupColumnDefs();
-
-    if (this.selectedFilter === "PENDING") {
-      this.loadPendingEvents();
-      this.loadsecondEscalatedDetails();
-    }
+    this.loadPendingEvents();
+    // if (this.selectedFilter === "CLOSED") {
+    //   this.loadClosedAndEscalatedDetails();
+    // } else {
+    //   this.loadPendingEvents();
+    // }
   }
 
   /** -------------------- Filter & toggle actions -------------------- */
   setFilter(filter: "CLOSED" | "PENDING") {
+    console.log("Setting filter to:", filter);
     this.selectedFilter = filter;
     this.searchTerm = "";
 
@@ -131,28 +143,56 @@ export class EventsComponent implements OnInit {
     } else {
       this.suspiciousChecked = true;
       this.falseChecked = false;
-      this.loadClosedEvents();
-      this.loadsecondEscalatedDetails();
+      this.loadClosedAndEscalatedDetails();
       this.closedGridApi?.setQuickFilter("");
     }
   }
 
   onSuspiciousToggle() {
-    this.suspiciousChecked = false;
-    this.falseChecked = true;
-    this.loadClosedEvents();
-    this.loadsecondEscalatedDetails();
+    this.suspiciousChecked = true;
+    this.falseChecked = false;
+    if (this.selectedFilter === "CLOSED") {
+      this.loadClosedAndEscalatedDetails(); // Refresh table and top cards
+      if (this.showMore) {
+        this.loadEscalatedDetails(); // Refresh "More" section if expanded
+      }
+    }
   }
 
   onFalseToggle() {
-    this.suspiciousChecked = true;
-    this.falseChecked = false;
-    this.loadClosedEvents();
-    this.loadsecondEscalatedDetails();
+    this.suspiciousChecked = false;
+    this.falseChecked = true;
+    if (this.selectedFilter === "CLOSED") {
+      this.loadClosedAndEscalatedDetails(); // Refresh table and top cards
+      if (this.showMore) {
+        this.loadEscalatedDetails(); // Refresh "More" section if expanded
+      }
+    }
+  }
+
+  onconsolesToggle() {
+    this.consolesChecked = true;
+    this.queuesChecked = false;
+    this.selectedpendingFilter = "CONSOLES"; // Add this line
+    if (this.selectedFilter === "PENDING") {
+      this.loadPendingEvents(); // Reload pending events when toggle changes
+    }
+  }
+
+  onqueuesToggle() {
+    this.consolesChecked = false;
+    this.queuesChecked = true;
+    this.selectedpendingFilter = "QUEUES"; // Add this line
+    if (this.selectedFilter === "PENDING") {
+      this.loadPendingEvents(); // Reload pending events when toggle changes
+    }
   }
 
   toggleMore() {
     this.showMore = !this.showMore;
+    if (this.showMore) {
+      this.loadEscalatedDetails(); // Load data for "More" section
+    }
   }
 
   /** -------------------- AG Grid setup -------------------- */
@@ -171,6 +211,7 @@ export class EventsComponent implements OnInit {
   onClosedGridReady(params: any) {
     this.closedGridApi = params.api;
   }
+
   onPendingGridReady(params: any) {
     this.pendingGridApi = params.api;
   }
@@ -179,94 +220,23 @@ export class EventsComponent implements OnInit {
     this.gridApi?.setGridOption("quickFilterText", this.searchTerm);
   }
 
-  closedQuickFilterMatcher = (quickFilterParts: string[], rowText: string) => {
-    return quickFilterParts.every((part) =>
-      new RegExp(part, "i").test(rowText)
-    );
-  };
+  closedQuickFilterMatcher = (quickFilterParts: string[], rowText: string) =>
+    quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
-  pendingQuickFilterMatcher = (quickFilterParts: string[], rowText: string) => {
-    return quickFilterParts.every((part) =>
-      new RegExp(part, "i").test(rowText)
-    );
-  };
+  pendingQuickFilterMatcher = (quickFilterParts: string[], rowText: string) =>
+    quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
+  /** -------------------- AG Grid cell click -------------------- */
   onCellClicked(event: any) {
     const target = event.event.target as HTMLElement;
     if (event.colDef.field === "more") {
-      if (target.closest(".info-icon")) this.tableopenPopup(event.data);
+      if (target.closest(".info-icon")) this.openTablePopup(event.data);
       if (target.closest(".play-icon")) this.openPlayPopup(event.data);
     }
   }
 
-
-
-/** Handle popup close on outside click */
-escalationData = {
-  escalationId: '1234567',
-  ticketNo: '—',
-  siteName: 'KFC - Tadepally',
-  cameraName: 'MDX712 - Cam01',
-  eventTimeCT: '18-04-2025 05:43:18',
-  eventTimeCustomer: '18-04-2025 05:43:18',
-  eventTimeIN: '18-04-2025 16:13:18',
-  type: 'Escalation',
-  city: 'Tadepally',
-  totalDuration: 'oh 20m 18s',
-  indiaDuration: 'oh 7m 27s',
-  usDuration: 'oh 1m 20s',
-  alarmEvents: [
-    { time: '18-04-2025 05:44:16', userImg: 'assets/user1.png', status: 'Success' },
-    { time: '18-04-2025 05:49:16', userImg: 'assets/user2.png', status: 'Success' },
-    { time: '18-04-2025 05:54:16', userImg: 'assets/user2.png', status: 'Success' },
-  ],
-  report: [
-    {
-      userImg: 'assets/user1.png',
-      user: 'Team Member',
-      level: 'Team Member',
-      receiveAt: '05:43:18',
-      reviewStart: '05:44:16',
-      reviewEnd: '05:44:18',
-      duration: 'Oh 1m 0s',
-      action: 'Escalation',
-      tag: 'Vehicle Observed',
-      notes: '18-04-2025 05:43:18',
-      endOfShift: ''
-    },
-    {
-      userImg: 'assets/user2.png',
-      user: 'Team Leader',
-      level: 'Team Leader',
-      receiveAt: '05:43:18',
-      reviewStart: '05:44:16',
-      reviewEnd: '05:44:18',
-      duration: 'Oh 2m 55s',
-      action: 'Escalation',
-      tag: 'Intruder Observed',
-      notes: 'Near the fence',
-      endOfShift: ''
-    },
-    {
-      userImg: 'assets/user2.png',
-      user: 'Manager',
-      level: 'Manager',
-      receiveAt: '05:43:18',
-      reviewStart: '05:44:16',
-      reviewEnd: '05:44:18',
-      duration: 'Oh 0m 12s',
-      action: 'End Escalation',
-      tag: 'Staff-No Notification',
-      notes: 'RC',
-      endOfShift: ''
-    }
-  ]
-};
-
-/** Close popup when clicking outside */
-
-  /** -------------------- Popups -------------------- */
-  tableopenPopup(item: any) {
+  /** -------------------- Popup handling -------------------- */
+  openTablePopup(item: any) {
     this.selectedItem = item;
     this.isTablePopupVisible = true;
   }
@@ -289,15 +259,14 @@ escalationData = {
   openCalendarPopup() {
     this.isCalendarPopupOpen = true;
   }
+
   closeCalendarPopup() {
     this.isCalendarPopupOpen = false;
-  }
-  openCalendar(): void {
-    this.openCalendarPopup();
   }
 
   onDateSelected(date: Date) {
     this.selectedDate = date;
+    console.log(this.selectedDate, "selected dates");
     this.closeCalendarPopup();
   }
 
@@ -314,6 +283,7 @@ escalationData = {
     this.selectedDate = this.currentDate;
   }
 
+  /** -------------------- Play popup carousel -------------------- */
   prevSlide() {
     if (this.selectedPlayItem?.videoFile?.length) {
       this.currentSlideIndex =
@@ -330,7 +300,7 @@ escalationData = {
   }
 
   /** -------------------- Helper functions -------------------- */
-  getIconLabel(iconPath: string | undefined): string {
+  getIconLabel(iconPath?: string): string {
     const map: { [key: string]: string } = {
       "assets/home.svg": "SITE EVENTS",
       "assets/cam.svg": "CAMERA EVENTS",
@@ -356,88 +326,199 @@ escalationData = {
   }
 
   /** -------------------- API calls -------------------- */
+
+  selectedStartDate: Date | null = null;
+  selectedEndDate: Date | null = null;
+  onDateRangeSelected(event: {
+    startDate: Date;
+    startTime: string;
+    endDate: Date;
+    endTime: string;
+  }) {
+    this.selectedStartDate = event.startDate;
+    this.selectedEndDate = event.endDate;
+    console.log(this.selectedStartDate ,"start" , this.selectedEndDate,"end")
+
+    // Reload closed events whenever date range changes
+  }
+
+  formatDate(date: Date): string {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )}`;
+  }
+
+  private transformQueuesMessages(res: any) {
+    const allQueues = [
+      ...(res.eventWallQueues?.queues || []),
+      ...(res.manualWallQueues?.queues || []),
+      ...(res.missedWallQueues?.queues || []),
+    ];
+
+    const queuesMessages = allQueues.map((queue: any) => {
+      if (!queue.messages || queue.messages.length === 0) {
+        // Add placeholder if no messages
+        return {
+          siteName: "-",
+          siteId: "-",
+          cameraId: "-",
+          objectName: "-",
+          eventTag: "-",
+          actionTag: "-",
+          eventTime: "-",
+          actionTime: "-",
+          httpUrl: "-",
+          imageUrl: "-",
+          noOfImages: 0,
+          queueName: queue.queueName,
+          queueLevel: queue.queueLevel,
+        };
+      }
+
+      return queue.messages.map((msg: any) => ({
+        ...msg,
+        queueName: queue.queueName,
+        queueLevel: queue.queueLevel,
+      }));
+    });
+
+    return queuesMessages.flat();
+  }
+
   loadPendingEvents() {
-    this.eventsService.getEventsPendingEventa().subscribe({
-      next: (res) => (this.pendingRowData = res.data || res),
+    // Determine level based on selected filter
+    const level = this.selectedpendingFilter === "CONSOLES" ? 1 : 2;
+    this.eventsService.getEventsPendingEventa(level).subscribe({
+      next: (res) => {
+        // === Keep your summary cards as-is ===
+        this.secondEscalatedDetails = [
+          { label: "Total", value: res.totalEvents || 0, color: "#ED3237" },
+          {
+            iconPath: "assets/home.svg",
+            value: res.siteCount || 0,
+            color: "#ED3237",
+          },
+          {
+            iconPath: "assets/cam.svg",
+            value: res.cameraCount || 0,
+            color: "#ED3237",
+          },
+          {
+            iconcolor: "#53BF8B",
+            value: res.manualWallCount || 0,
+            color: "#ED3237",
+          },
+          {
+            iconcolor: "#FFC400",
+            value: res.eventWallCount || 0,
+            color: "#ED3237",
+          },
+          {
+            iconcolor: "#FF0000",
+            value: res.missedWallCount || 0,
+            color: "#ED3237",
+          },
+        ];
+
+        // === Transform API queues into single array for AG Grid ===
+        this.pendingRowData = this.transformQueuesMessages(res);
+      },
       error: (err) => console.error("Error fetching pending events:", err),
     });
   }
 
-  loadClosedEvents() {
-    this.eventsService.getSuspiciousEvents(this.suspiciousChecked).subscribe({
-      next: (res) => {
-        if (res?.eventData) {
-          this.rowData = res.eventData.map((e: any) => ({
-            siteId: e.siteId,
-            siteName: e.siteName,
-            device: e.unitId,
-            cameraId: e.cameraId.slice(-2),
-            duration: `${Math.floor(e.eventDuration / 60)}m ${
-              e.eventDuration % 60
-            }s`,
-            tz: "CT",
-            eventStartTime: e.eventStartTime,
-            actionTag: e.actionTag,
-            employee: {
-              name: e.employee || "Unknown",
-              avatar: "assets/user1.png",
-              level: e.userLevels || "N/A",
-            },
-            alertType: "green",
-            more: true,
-          }));
-        }
-      },
-      error: (err) => console.error("Failed to load closed events", err),
-    });
+  /** -------------------- Load closed and escalated details -------------------- */
+  loadClosedAndEscalatedDetails() {
+    const actionTag = this.suspiciousChecked ? 2 : 1;
+    const startDateStr = this.selectedStartDate
+      ? this.formatDate(this.selectedStartDate)
+      : undefined;
+    const endDateStr = this.selectedEndDate
+      ? this.formatDate(this.selectedEndDate)
+      : undefined;
+
+
+
+    this.eventsService
+      .getSuspiciousEvents(actionTag, startDateStr, endDateStr)
+      .subscribe({
+        next: (res) => {
+          // Closed events for table
+          console.log(res,"responce")
+          if (res?.eventData) {
+            this.rowData = res.eventData.map((e: any) => ({
+              siteId: e.siteId,
+              siteName: e.siteName,
+              device: e.unitId,
+              cameraId: e.cameraId?.slice(-2) ?? "",
+              duration: `${Math.floor(e.eventDuration / 60)}m ${
+                e.eventDuration % 60
+              }s`,
+              tz: "CT",
+              eventStartTime: e.eventStartTime,
+              actionTag: e.actionTag,
+              employee: {
+                name: e.employee || "Unknown",
+                avatar: "assets/user1.png",
+                level: e.userLevels || "N/A",
+              },
+              alertType: "green",
+              more: true,
+            }));
+          }
+
+          // Escalated cards for top section
+          if (res?.counts) {
+            this.secondEscalatedDetails = [
+              {
+                label: "Total",
+                value: res.counts.totalEventsCount || 0,
+                color: "#ED3237",
+              },
+              {
+                iconPath: "assets/home.svg",
+                value: res.counts.sites || 0,
+                color: "#ED3237",
+              },
+              {
+                iconPath: "assets/cam.svg",
+                value: res.counts.cameras || 0,
+                color: "#ED3237",
+              },
+              {
+                iconcolor: "#53BF8B",
+                value: res.counts.Manual_Wall || 0,
+                color: "#ED3237",
+              },
+              {
+                iconcolor: "#FFC400",
+                value: res.counts.Event_Wall || 0,
+                color: "#ED3237",
+              },
+            ];
+          }
+        },
+        error: (err) => {
+          console.error("Failed to load closed/escalated details", err);
+          this.rowData = [];
+          this.secondEscalatedDetails = [];
+        },
+      });
   }
 
-  loadsecondEscalatedDetails() {
-    this.eventsService.getSuspiciousEvents(this.suspiciousChecked).subscribe({
-      next: (res) => {
-        if (res?.counts) {
-          this.secondEscalatedDetails = [
-            {
-              label: "Total",
-              value: res.counts.totalEventsCount || 0,
-              color: "#ED3237",
-            },
-            {
-              iconPath: "assets/home.svg",
-              value: res.counts.sites || 0,
-              color: "#ED3237",
-            },
-            {
-              iconPath: "assets/cam.svg",
-              value: res.counts.cameras || 0,
-              color: "#ED3237",
-            },
-            {
-              iconcolor: "#53BF8B",
-              value: res.counts.Manual_Wall || 0,
-              color: "#ED3237",
-            },
-            {
-              iconcolor: "#FFC400",
-              value: res.counts.Event_Wall || 0,
-              color: "#ED3237",
-            },
-          ];
-        }
-      },
-      error: (err) => (this.secondEscalatedDetails = []),
-    });
-  }
-
-  /** -------------------- Utility -------------------- */
+  /** -------------------- AG Grid utility -------------------- */
   autoSizeColumn(colKey: string) {
     this.gridApi?.autoSizeColumns([colKey], true);
   }
+
   autoSizeColumns(colKeys: string[]) {
     this.gridApi?.autoSizeColumns(colKeys, true);
   }
 
+  /** -------------------- Column definitions -------------------- */
   setupColumnDefs() {
+    // CLOSED column definitions
     this.closedColumnDefs = [
       {
         headerName: "ID",
@@ -545,46 +626,33 @@ escalationData = {
       },
     ];
 
+    // PENDING column definitions
     this.pendingColumnDefs = [
       {
         headerName: "ID",
-        field: "id",
+        field: "siteId",
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
       },
       {
-        headerName: "SITE",
-        field: "site",
+        headerName: "SITE NAME",
+        field: "siteName",
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
       },
       {
-        headerName: "DEVICE",
-        field: "device",
+        headerName: "CAMERA ID",
+        field: "cameraId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
       },
       {
-        headerName: "CAMERA",
-        field: "camera",
+        headerName: "EVENT TAG",
+        field: "eventTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-      },
-      {
-        headerName: "CITY",
-        field: "city",
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-      },
-      {
-        headerName: "DATE & TIME",
-        field: "dateTime",
-        sortable: true,
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        valueFormatter: (params) => this.formatDateTime(params.value),
       },
       {
         headerName: "ACTION TAG",
@@ -593,136 +661,157 @@ escalationData = {
         cellClass: "custom-cell",
       },
       {
-        headerName: "EMP.",
-        field: "employee",
+        headerName: "EVENT TIME",
+        field: "eventTime",
+        sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        cellRenderer: (params: any) =>
-          `<img src="${params.value.avatar}" style="width:30px; height:30px;" class="avatar-img" alt="Emp"/>`,
+        valueFormatter: (params) => this.formatDateTime(params.value),
       },
+      {
+        headerName: "ACTION TIME",
+        field: "actionTime",
+        sortable: true,
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        valueFormatter: (params) => this.formatDateTime(params.value),
+      },
+      {
+        headerName: "QUEUE NAME",
+        field: "queueName",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+      },
+      {
+        headerName: "QUEUE LEVEL",
+        field: "queueLevel",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+      },
+      // {
+      //   headerName: "EMP.",
+      //   field: "employee",
+      //   headerClass: "custom-header",
+      //   cellClass: "custom-cell",
+      //   cellRenderer: (params: any) =>
+      //     `<img src="${params.value.avatar}" style="width:30px; height:30px;" class="avatar-img" alt="Emp"/>`,
+      // },
       {
         headerName: "MORE",
         field: "more",
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span>
-          <span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/></span>`,
+          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/></span>`,
       },
     ];
   }
 
-  escalatedDetailsClosed: EscalatedDetail[] = [
-    {
-      label: "False",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Escalated",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Arrest",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Intervention",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Diterred",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Missed Event",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    {
-      label: "Information",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    // ...other cards
-  ];
+  /** -------------------- New method for loading escalated details -------------------- */
+  loadEscalatedDetails() {
+    if (this.selectedFilter === "CLOSED") {
+      const actionTag = this.suspiciousChecked ? 2 : 1;
+      const dateStr = this.formatDate(this.selectedDate || new Date());
+      const categoryName = actionTag === 1 ? "False Activity" : "Suspicious";
+      const displayCategoryLabel = actionTag === 1 ? "False" : "Suspicious";
 
-  escalatedDetailsPending: EscalatedDetail[] = [
-    {
-      label: "False",
-      value: 1500,
-      color: ESCALATED_COLORS[0],
-      icons: [
-        { iconPath: "assets/home.svg", count: 300 },
-        { iconPath: "assets/cam.svg", count: 1500 },
-      ],
-      colordot: [
-        { iconcolor: "#FF0000", count: 12 },
-        { iconcolor: "#00FF00", count: 7 },
-      ],
-    },
-    // ...other cards
-  ];
+      this.eventsService
+        .getEventReportCountsForActionTag(dateStr, actionTag)
+        .subscribe({
+          next: (res) => {
+            const counts = res.counts || {};
+            const details: EscalatedDetail[] = [];
+
+            // Add total card for the category
+            const totalData = counts[categoryName];
+            if (totalData) {
+              details.push({
+                label: displayCategoryLabel,
+                value: totalData.totalCount || 0,
+                color: ESCALATED_COLORS[0],
+                icons: [
+                  { iconPath: "assets/home.svg", count: totalData.sites || 0 },
+                  { iconPath: "assets/cam.svg", count: totalData.cameras || 0 },
+                ],
+                colordot: [
+                  { iconcolor: "#53BF8B", count: totalData.Manual_Wall || 0 },
+                  // Add more dots if additional fields like Event_Wall are available
+                  // { iconcolor: "#FFC400", count: totalData.Event_Wall || 0 },
+                ],
+              });
+            }
+
+            // Add cards for each subcategory
+            Object.entries(counts).forEach(([label, data]: [string, any]) => {
+              if (label !== categoryName) {
+                details.push({
+                  label: label,
+                  value: data.totalCount || 0,
+                  color: ESCALATED_COLORS[0],
+                  icons: [
+                    { iconPath: "assets/home.svg", count: data.sites || 0 },
+                    { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+                  ],
+                  colordot: [
+                    { iconcolor: "#53BF8B", count: data.Manual_Wall || 0 },
+                    // Add more dots if additional fields like Event_Wall are available
+                    // { iconcolor: "#FFC400", count: data.Event_Wall || 0 },
+                  ],
+                });
+              }
+            });
+
+            this.escalatedDetailsClosed = details;
+          },
+          error: (err) => {
+            console.error("Error loading escalated details for CLOSED:", err);
+            this.escalatedDetailsClosed = [];
+          },
+        });
+    } else {
+      // PENDING filter: Use secondEscalatedDetails from loadPendingEvents
+      const details: EscalatedDetail[] = [];
+
+      // Map secondEscalatedDetails to escalatedDetailsPending format
+      const total = this.secondEscalatedDetails.find(
+        (e) => e.label === "Total"
+      );
+      const site = this.secondEscalatedDetails.find(
+        (e) => e.iconPath === "assets/home.svg"
+      );
+      const camera = this.secondEscalatedDetails.find(
+        (e) => e.iconPath === "assets/cam.svg"
+      );
+      const manualWall = this.secondEscalatedDetails.find(
+        (e) => e.iconcolor === "#53BF8B"
+      );
+      const eventWall = this.secondEscalatedDetails.find(
+        (e) => e.iconcolor === "#FFC400"
+      );
+      const missedWall = this.secondEscalatedDetails.find(
+        (e) => e.iconcolor === "#FF0000"
+      );
+
+      // Main card for "False"
+      details.push({
+        label: "False",
+        value: total?.value || 0,
+        color: ESCALATED_COLORS[0],
+        icons: [
+          { iconPath: "assets/home.svg", count: site?.value || 0 },
+          { iconPath: "assets/cam.svg", count: camera?.value || 0 },
+        ],
+        colordot: [
+          { iconcolor: "#53BF8B", count: manualWall?.value || 0 },
+          { iconcolor: "#FFC400", count: eventWall?.value || 0 },
+          { iconcolor: "#FF0000", count: missedWall?.value || 0 },
+        ],
+      });
+
+      this.escalatedDetailsPending = details;
+    }
+  }
+
+  escalatedDetailsClosed: EscalatedDetail[] = [];
+  escalatedDetailsPending: EscalatedDetail[] = [];
 }
-
-

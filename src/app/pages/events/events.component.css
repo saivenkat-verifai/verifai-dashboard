@@ -413,18 +413,18 @@ display: flex;
 }
 
 .dot-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 70px;
+  display: flex;
+  justify-content: space-between; /* pushes dot to left, value to right */
+  align-items: center; /* vertically centers them */
+  width: 100px; /* or any width you need */
 }
 
 .dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
+
 
 .dot-value {
     color: rgb(237, 50, 55);

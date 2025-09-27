@@ -429,33 +429,45 @@ selectWeek(week: any) {
     );
   }
 
-  goToday() {
-    const now = new Date(); // ✅ Current time
-    this.currentMonth = now;
+goToday() {
+  const now = new Date(); // ✅ Current time
 
-    this.startDate = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0
-    );
-    this.endDate = now;
+  // 1️⃣ Reset view mode to 'day'
+  this.viewMode = "day";
 
-    this.startTime = "00:00";
-    this.endTime = now.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+  // Optional: if you want the dropdown to reflect the change
+  // (ngModel binding will take care of this)
+  // this.viewMode is already bound to ngModel of <p-dropdown>
 
-    this.dateRangeSelected.emit({
-      startDate: this.startDate,
-      startTime: this.startTime,
-      endDate: this.endDate,
-      endTime: this.endTime,
-    });
-  }
+  // 2️⃣ Set current month to today
+  this.currentMonth = now;
+
+  // 3️⃣ Set startDate and endDate for today
+  this.startDate = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0
+  );
+  this.endDate = now;
+
+  this.startTime = "00:00";
+  this.endTime = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+
+  // 4️⃣ Emit the new date range
+  this.dateRangeSelected.emit({
+    startDate: this.startDate,
+    startTime: this.startTime,
+    endDate: this.endDate,
+    endTime: this.endTime,
+  });
+}
+
 
   selectDate(date: Date) {
     if (!this.startDate || (this.startDate && this.endDate)) {
