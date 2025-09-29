@@ -149,44 +149,32 @@ export class EventsComponent implements OnInit {
   }
 
   onSuspiciousToggle() {
-    this.suspiciousChecked = true;
-    this.falseChecked = false;
-    if (this.selectedFilter === "CLOSED") {
-      this.loadClosedAndEscalatedDetails(); // Refresh table and top cards
-      if (this.showMore) {
-        this.loadEscalatedDetails(); // Refresh "More" section if expanded
-      }
-    }
-  }
+  this.suspiciousChecked = true;
+  this.falseChecked = false;
+  this.loadClosedAndEscalatedDetails();
+  if (this.showMore) this.loadEscalatedDetails();
+}
 
-  onFalseToggle() {
-    this.suspiciousChecked = false;
-    this.falseChecked = true;
-    if (this.selectedFilter === "CLOSED") {
-      this.loadClosedAndEscalatedDetails(); // Refresh table and top cards
-      if (this.showMore) {
-        this.loadEscalatedDetails(); // Refresh "More" section if expanded
-      }
-    }
-  }
+onFalseToggle() {
+  this.suspiciousChecked = false;
+  this.falseChecked = true;
+  this.loadClosedAndEscalatedDetails();
+  if (this.showMore) this.loadEscalatedDetails();
+}
 
-  onconsolesToggle() {
-    this.consolesChecked = true;
-    this.queuesChecked = false;
-    this.selectedpendingFilter = "CONSOLES"; // Add this line
-    if (this.selectedFilter === "PENDING") {
-      this.loadPendingEvents(); // Reload pending events when toggle changes
-    }
-  }
+onconsolesToggle() {
+  this.consolesChecked = true;
+  this.queuesChecked = false;
+  this.selectedpendingFilter = "CONSOLES";
+  this.loadPendingEvents();
+}
 
-  onqueuesToggle() {
-    this.consolesChecked = false;
-    this.queuesChecked = true;
-    this.selectedpendingFilter = "QUEUES"; // Add this line
-    if (this.selectedFilter === "PENDING") {
-      this.loadPendingEvents(); // Reload pending events when toggle changes
-    }
-  }
+onqueuesToggle() {
+  this.consolesChecked = false;
+  this.queuesChecked = true;
+  this.selectedpendingFilter = "QUEUES";
+  this.loadPendingEvents();
+}
 
   toggleMore() {
     this.showMore = !this.showMore;
@@ -227,13 +215,40 @@ export class EventsComponent implements OnInit {
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- AG Grid cell click -------------------- */
-  onCellClicked(event: any) {
-    const target = event.event.target as HTMLElement;
-    if (event.colDef.field === "more") {
-      if (target.closest(".info-icon")) this.openTablePopup(event.data);
-      if (target.closest(".play-icon")) this.openPlayPopup(event.data);
-    }
+onCellClicked(event: any) {
+
+  const target = event.event.target as HTMLElement;
+
+  if (event.colDef.field === "more" && target.closest(".info-icon")) {
+   
+     const eventId = event.data.eventId; // id from the table row
+   
+    this.eventsService.getEventMoreInfo(eventId).subscribe({
+      next: (res) => {
+     
+        this.openTablePopup(res); // pass the full object to popup
+      }
+    });
   }
+
+  if (event.colDef.field === "more" && target.closest(".play-icon")) {
+    this.openPlayPopup(event.data);
+  }
+}
+
+fetchMoreInfo(eventId: number) {
+  this.eventsService.getEventMoreInfo(eventId).subscribe({
+    next: (res) => {
+      this.selectedItem = res; // set popup data
+      this.isTablePopupVisible = true; // open popup
+    },
+    error: (err) => {
+      console.error('Error fetching more info:', err);
+    },
+  });
+}
+
+
 
   /** -------------------- Popup handling -------------------- */
   openTablePopup(item: any) {
@@ -339,6 +354,10 @@ export class EventsComponent implements OnInit {
     this.selectedEndDate = event.endDate;
     console.log(this.selectedStartDate ,"start" , this.selectedEndDate,"end")
 
+     // Make sure to reload data when date range changes
+  if (this.selectedFilter === 'CLOSED') {
+    this.loadClosedAndEscalatedDetails();
+  }
     // Reload closed events whenever date range changes
   }
 
@@ -348,6 +367,8 @@ export class EventsComponent implements OnInit {
       date.getDate()
     )}`;
   }
+
+  
 
   private transformQueuesMessages(res: any) {
     const allQueues = [
@@ -448,6 +469,7 @@ export class EventsComponent implements OnInit {
           console.log(res,"responce")
           if (res?.eventData) {
             this.rowData = res.eventData.map((e: any) => ({
+              ...e,
               siteId: e.siteId,
               siteName: e.siteName,
               device: e.unitId,

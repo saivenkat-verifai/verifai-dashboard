@@ -1,29 +1,29 @@
 @font-face {
-    font-family: 'Neometric Bold';
-    font-style: normal;
-    font-weight: 600;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-family: 'Neometric Bold';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
 }
 
 @font-face {
-    font-family: 'Neometric Medium';
-    font-style: normal;
-    font-weight: 500;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+  font-family: 'Neometric Medium';
+  font-style: normal;
+  font-weight: 500;
+  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
 }
 
 @font-face {
-    font-family: 'Nasalization';
-    /* font-style: normal; */
-    /* font-weight: 400; */
-    src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
+  font-family: 'Nasalization';
+  /* font-style: normal; */
+  /* font-weight: 400; */
+  src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
 }
 
 @font-face {
-    font-family: 'NasalizationLight';
-    font-style: normal;
-    /* font-weight: 400; */
-    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
+  font-family: 'NasalizationLight';
+  font-style: normal;
+  /* font-weight: 400; */
+  src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
 }
 
 
@@ -39,7 +39,7 @@
 h2 {
   font-size: 12px;
   margin: 0 0 10px;
-   font-family: 'Neometric Bold';
+  font-family: 'Neometric Bold';
 
 }
 
@@ -76,6 +76,15 @@ h2 {
   font-size: 14px;
 }
 
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+
 .basic-info p span {
   font-weight: bold;
 }
@@ -84,7 +93,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-   
+
 }
 
 table th,
@@ -92,14 +101,14 @@ table td {
   border-bottom: 1px solid #ddd;
   padding: 10px;
   font-size: 12px;
-     font-family: 'Neometric Regular';
+  font-family: 'Neometric Regular';
   text-align: left;
 }
 
 table th {
   background: #fafafa;
   font-weight: 600;
-     font-family: 'Neometric Regular';
+  font-family: 'Neometric Regular';
 }
 
 .alarm-table td {
@@ -132,12 +141,12 @@ table th {
 .total-duration {
   display: flex;
   justify-content: space-between;
-  margin: 40px 0;
+  margin: 15px 0;
 
   font-weight: bold;
-    font-size: 12px;
+  font-size: 12px;
 
-   font-family: 'Neometric Bold';
+  font-family: 'Neometric Bold';
 }
 
 .report-header {
@@ -150,6 +159,22 @@ table th {
 .report-header h2 {
   margin: 0;
 }
+
+/* Existing today-btn style (keep or adjust as needed) */
+.today-btn ::ng-deep .p-button {
+background: #ffffff !important;
+    border: 1px solid #000 !important;
+    height: 30px !important;
+    width: 60px !important;
+    color: black;
+    padding: 0 6px !important;
+}
+
+.today-btn ::ng-deep .p-button:hover {
+  background: #f5f5f5 !important;
+}
+
+
 
 .timezone {
   display: flex;
@@ -206,25 +231,37 @@ table th {
   width: 100%;
 }
 
+.borderline{
+      border-bottom: 1px solid black;
+    opacity: 25%;
+}
+
 .row {
   display: table-row;
 }
+
 .row1 {
   display: table-row;
+  display: flex
+;
+    flex-direction: row;
 }
 
-.label, .colon, .value {
+.label,
+.colon,
+.value {
   display: table-cell;
   padding: 4px 6px;
 }
 
 .label {
   /* font-weight: 600; */
-  width: 200px; /* controls alignment */
-   font-family: 'Neometric Medium';
-     font-size: 10px;
+  width: 200px;
+  /* controls alignment */
+  font-family: 'Neometric Medium';
+  font-size: 10px;
 
- opacity: 40%;
+  opacity: 40%;
 }
 
 .colon {
@@ -234,8 +271,8 @@ table th {
 
 .value {
   color: #333;
-     font-family: 'Neometric Medium';
-     font-size: 10px;
+  font-family: 'Neometric Medium';
+  font-size: 10px;
 }
 
 

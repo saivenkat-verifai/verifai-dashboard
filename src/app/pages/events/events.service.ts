@@ -15,6 +15,9 @@ export class EventsService {
   private eventReportCountsForActionTag =
     "https://usstaging.ivisecurity.com/events_data/getEventReportCountsForActionTag_1_0";
 
+  private getEventsMoreInfo = 
+     "https://usstaging.ivisecurity.com/events_data/getEventsMoreInfo_1_0"
+
   constructor(private http: HttpClient) {}
 
   getSuspiciousEvents(
@@ -46,4 +49,10 @@ export class EventsService {
     const url = `${this.eventReportCountsForActionTag}?date=${date}&actionTag=${actionTag}`;
     return this.http.get<any>(url);
   }
+
+
+  getEventMoreInfo(eventId: number): Observable<any> {
+    const url = `${this.getEventsMoreInfo}?eventId=${eventId}`;
+  return this.http.get<any>(url);
+}
 }

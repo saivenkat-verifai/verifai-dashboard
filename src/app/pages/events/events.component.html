@@ -39,9 +39,10 @@
               <h3 class="filters-title">SUSPICIOUS</h3>
               <label class="switch">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="closedFilter"
                   [checked]="suspiciousChecked"
-                  (click)="onSuspiciousToggle()"
+                  (change)="onSuspiciousToggle()"
                 />
                 <span class="slider round"></span>
               </label>
@@ -51,9 +52,10 @@
               <h3 class="filters-title">FALSE</h3>
               <label class="switch">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="closedFilter"
                   [checked]="falseChecked"
-                  (click)="onFalseToggle()"
+                  (change)="onFalseToggle()"
                 />
                 <span class="slider round"></span>
               </label>
@@ -66,9 +68,10 @@
               <h3 class="filters-title">CONSOLES</h3>
               <label class="switch">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="pendingFilter"
                   [checked]="consolesChecked"
-                  (click)="onconsolesToggle()"
+                  (change)="onconsolesToggle()"
                 />
                 <span class="slider round"></span>
               </label>
@@ -78,9 +81,10 @@
               <h3 class="filters-title">QUEUES</h3>
               <label class="switch">
                 <input
-                  type="checkbox"
+                  type="radio"
+                  name="pendingFilter"
                   [checked]="queuesChecked"
-                  (click)="onqueuesToggle()"
+                  (change)="onqueuesToggle()"
                 />
                 <span class="slider round"></span>
               </label>
@@ -108,7 +112,12 @@
           </div>
           <div class="popup-body">
             <div class="escalated-content-section">
-              <app-escalation-popup></app-escalation-popup>
+              <app-escalation-popup
+                [isVisible]="isTablePopupVisible"
+                [selectedItem]="selectedItem"
+                (close)="closePopup()"
+              >
+              </app-escalation-popup>
             </div>
           </div>
         </div>
