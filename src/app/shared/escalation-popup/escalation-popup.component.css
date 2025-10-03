@@ -174,6 +174,38 @@ background: #ffffff !important;
   background: #f5f5f5 !important;
 }
 
+/* Common styles for both buttons */
+:host ::ng-deep .action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: black;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  margin: 0 2px; /* small spacing between buttons */
+}
+
+/* Hover effect for all buttons */
+:host ::ng-deep .action-btn:hover {
+  background-color: #333;
+}
+
+
+
+/* Action cell wrapper to center buttons */
+:host ::ng-deep .action-cell {
+  display: flex;
+  align-items: center;   /* vertical center */
+  justify-content: center; /* horizontal center */
+}
+
 
 
 .timezone {

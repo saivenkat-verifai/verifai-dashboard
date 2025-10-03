@@ -28,10 +28,10 @@ interface SecondEscalatedDetail {
   imports: [
     CommonModule,
     FormsModule,
-    GroupsPopupComponent,
     AgGridModule,
     DropdownModule,
     ButtonModule,
+    GroupsPopupComponent,
   ],
 })
 export class GroupsComponent implements OnInit, OnDestroy {
@@ -67,19 +67,29 @@ export class GroupsComponent implements OnInit, OnDestroy {
   selectedFilter: string = "CLOSED";
   currentIndex = 0; // currently selected item index
 
-  nextItem() {
-    if (this.currentIndex < this.rowData.length - 1) {
-      this.currentIndex++;
-      this.loadGroupDetails(this.rowData[this.currentIndex].id);
-    }
+ nextItem() {
+  if (this.rowData.length === 0) return;
+
+  if (this.currentIndex < this.rowData.length - 1) {
+    this.currentIndex++;
+  } else {
+    this.currentIndex = 0; // loop back to start
   }
 
-  prevItem() {
-    if (this.currentIndex > 0) {
-      this.currentIndex--;
-      this.loadGroupDetails(this.rowData[this.currentIndex].id);
-    }
+  this.loadGroupDetails(this.rowData[this.currentIndex].id);
+}
+
+prevItem() {
+  if (this.rowData.length === 0) return;
+
+  if (this.currentIndex > 0) {
+    this.currentIndex--;
+  } else {
+    this.currentIndex = this.rowData.length - 1; // loop to last
   }
+
+  this.loadGroupDetails(this.rowData[this.currentIndex].id);
+}
 
   onFilterTextBoxChanged() {
     if (this.gridApi) {
@@ -114,6 +124,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
         `;
       },
     },
+
     {
       headerName: "MORE",
       field: "more",
@@ -123,7 +134,42 @@ export class GroupsComponent implements OnInit, OnDestroy {
         </span>
       `,
     },
+    {
+  headerName: "ACTION",
+  field: "action",
+  cellRenderer: (params: any) => {
+    const button = document.createElement("button");
+
+    // X for ACTIVE, tick for INACTIVE
+    button.innerHTML = params.data.status === "ACTIVE" ? "X" : "✓";
+    button.title = params.data.status === "ACTIVE" ? "Deactivate Queue" : "Activate Queue";
+
+    button.className = "action-btn"; // use above CSS
+
+    button.addEventListener("click", () => {
+      const newStatus =
+        params.data.status === "ACTIVE" ? "Inactive" : "Active";
+      this.toggleQueueStatus(params.data.id, newStatus);
+    });
+
+    return button;
+  },
+  cellClass: "action-cell",
+}
   ];
+
+  toggleQueueStatus(queueId: number, newStatus: string) {
+  const modifiedBy = 123; // replace with logged-in user ID
+  this.groupsService.toggleQueueStatus(queueId, newStatus, modifiedBy).subscribe({
+    next: (res) => {
+      console.log(`Queue ${queueId} updated to ${newStatus}`, res);
+      this.loadGroups(); // refresh after update
+    },
+    error: (err) => {
+      console.error("Error toggling queue status:", err);
+    },
+  });
+}
 
   //get levels data
   selectedLevel: any;
@@ -228,6 +274,14 @@ export class GroupsComponent implements OnInit, OnDestroy {
     });
   }
 
+  onUserInactivated(queueId: number) {
+    // Reload group details after user is inactivated
+    this.loadGroupDetails(queueId);
+
+    // Optionally refresh your main table
+    // this.loadAllGroups(); // or whatever method reloads the table
+  }
+
   /** Load second API and send data to popup */
   loadGroupDetails(queueId: number) {
     this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
@@ -260,15 +314,22 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.gridApi.addEventListener("firstDataRendered", resizeAll);
   }
 
-  onCellClicked(event: any) {
-    if (event.colDef.field === "more") {
-      const target = event.event.target as HTMLElement;
-      if (target.closest(".info-icon")) {
-        // Call second API for clicked row
-        this.loadGroupDetails(event.data.id);
-      }
+onCellClicked(event: any) {
+  // If "more" column clicked, open popup
+  if (event.colDef.field === "more") {
+    const target = event.event.target as HTMLElement;
+    if (target.closest(".info-icon")) {
+      this.loadGroupDetails(event.data.id);
     }
   }
+
+  // Update currentIndex based on clicked row
+  const clickedIndex = this.rowData.findIndex(r => r.id === event.data.id);
+  if (clickedIndex !== -1) {
+    this.currentIndex = clickedIndex;
+  }
+}
+
   users: any[] = [];
   selectedUserIds: number[] = [];
 
@@ -332,33 +393,33 @@ export class GroupsComponent implements OnInit, OnDestroy {
     }
   }
 
-  errorMessage: string = ''; // Add this at the top of your component
-addSelectedUsers() {
-  if (!this.selectedUserIds.length) {
-    this.errorMessage = 'Please select at least one user.';
-    return;
+  errorMessage: string = ""; // Add this at the top of your component
+  addSelectedUsers() {
+    if (!this.selectedUserIds.length) {
+      this.errorMessage = "Please select at least one user.";
+      return;
+    }
+
+    const payload = {
+      queueId: this.selectedItem?.id || 0, // fallback 0 if null
+      userId: this.selectedUserIds,
+      createdBy: 0, // dummy value
+    };
+
+    this.groupsService.addUsersToQueue(payload).subscribe({
+      next: (res) => {
+        console.log("Users added successfully", res);
+        this.selectedUserIds = []; // clear selection
+        this.errorMessage = ""; // clear any previous errors
+        this.goBack(); // close form
+        this.loadGroups(); //reload the queues api
+      },
+      error: (err) => {
+        console.error("Error adding users:", err);
+        this.errorMessage = "Failed to add users. Please try again.";
+      },
+    });
   }
-
-  const payload = {
-    queueId: this.selectedItem?.id || 0, // fallback 0 if null
-    userId: this.selectedUserIds,
-    createdBy: 0, // dummy value
-  };
-
-  this.groupsService.addUsersToQueue(payload).subscribe({
-    next: (res) => {
-      console.log('Users added successfully', res);
-      this.selectedUserIds = []; // clear selection
-      this.errorMessage = ''; // clear any previous errors
-      this.goBack(); // close form
-   this.loadGroups(); //reload the queues api
-    },
-    error: (err) => {
-      console.error('Error adding users:', err);
-      this.errorMessage = 'Failed to add users. Please try again.';
-    },
-  });
-}
 
   addSiteCamera() {
     if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraId) {

@@ -38,6 +38,32 @@
   
 }
 
+:host ::ng-deep .delete-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: black;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+:host ::ng-deep .delete-btn:hover {
+  background-color: #333;
+}
+
+:host ::ng-deep .action-cell {
+  display: flex;
+  align-items: center;   /* vertical center */
+  justify-content: center; /* horizontal center */
+}
+
 h2 {
   font-size: 12px;
   margin: 0 0 10px;

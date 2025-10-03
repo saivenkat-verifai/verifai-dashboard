@@ -55,7 +55,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
       this.chartOptions = {
         chart: { type: "column" },
             accessibility: { enabled: true },
-        title: { text: 'Suspicious Events', align: 'center' },
+        title: { text: 'Escalated Events', align: 'center' },
         xAxis: { categories: this.compareData.map((d) => d.label) },
         yAxis: { title: { text: "Count" } },
         plotOptions: {
@@ -84,7 +84,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
       this.chartOptions = {
         chart: { type: "column" },
             accessibility: { enabled: true },
-         title: { text: 'Suspicious Events', align: 'center' },
+         title: { text: 'Escalated Events', align: 'center' },
         xAxis: { categories: this.chartData.map((d) => d.label) },
         yAxis: { title: { text: "Count" } },
         plotOptions: {

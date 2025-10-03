@@ -62,6 +62,9 @@
           [defaultColDef]="defaultColDef"
           [pagination]="true"
           [paginationPageSize]="10"
+          [enableCellTextSelection]="true"
+          [enableRangeSelection]="true"
+          [copyHeadersToClipboard]="true"
           domLayout="autoHeight"
           [paginationPageSizeSelector]="[10, 20, 50, 100]"
           [localeText]="localeText"
@@ -165,7 +168,7 @@
               Cancel
             </button>
             <button type="submit" (click)="addSiteCamera()" class="btn add-btn">
-              Adds
+              Add
             </button>
           </div>
         </form>
@@ -299,16 +302,19 @@
           </div>
 
           <!-- Action Buttons -->
-          <div class="form-actions">
-            <button type="button" class="btn cancel-btn" (click)="goBack()">
-              Cancel
-            </button>
-            <p-button
-              label="Create"
-              class="p-button-success"
-              (onClick)="createQueue()"
-            >
-            </p-button>
+          <div class="form-actions row">
+            <div class="col-6">
+              <button type="button" class="btn cancel-btn w-100">Cancel</button>
+            </div>
+            <div class="col-6">
+              <button
+                type="submit"
+                (click)="createQueue()"
+                class="btn add-btn w-100"
+              >
+                Create
+              </button>
+            </div>
           </div>
         </form>
       </div>

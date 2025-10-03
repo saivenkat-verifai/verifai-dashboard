@@ -32,6 +32,9 @@ private addSiteCameraForQueue =
   private listUsersByDepartment = "https://usstaging.ivisecurity.com/events_data/listUsersByDepartment_1_0";
   private addQueueUsers = "https://usstaging.ivisecurity.com/events_data/addQueueUsers_1_0";
 
+  private inActiveQueueUserMapping = 'https://usstaging.ivisecurity.com/events_data/inActiveQueueUserMapping_1_0';
+  private inActiveQueueSiteMapping = 'https://usstaging.ivisecurity.com/events_data/inActiveQueueSiteMapping_1_0';
+  private inActiveQueue = 'https://usstaging.ivisecurity.com/events_data/inActiveQueue_1_0';
 
 
   constructor(private http: HttpClient) {}
@@ -41,8 +44,11 @@ private addSiteCameraForQueue =
     return this.http.get<any>(this.getQueues);
   }
 
+  
+
   // Second API: Get sites and users for a queue
   getGroupSitesAndUsers(queueId: number): Observable<any> {
+    console.log(queueId,"groupservice")
     return this.http.get<any>(
       `${this.getQueueSitesAndUsers}?queueId=${queueId}`
     );
@@ -82,6 +88,26 @@ private addSiteCameraForQueue =
 addUsersToQueue(payload: any): Observable<any> {
   const headers = { "Content-Type": "application/json" };
   return this.http.post(this.addQueueUsers, payload, { headers });
+}
+
+  inactivateQueuesUser(userId: number, modifiedBy: number): Observable<any> {
+    const url = `${this.inActiveQueueUserMapping}?userId=${userId}&modifiedBy=${modifiedBy}`;
+    console.log('Calling API URL:', url);
+    return this.http.put(url, null); // body is null
+  }
+
+inactivateQueuesSite(siteId: number, modifiedBy: number): Observable<any> {
+    const url = `${this.inActiveQueueSiteMapping}?siteId=${siteId}&modifiedBy=${modifiedBy}`;
+    console.log('Calling API URL:', url);
+    return this.http.put(url, null); // body is null
+  }
+
+
+
+  toggleQueueStatus(queueId: number, status: string, modifiedBy: number): Observable<any> {
+  const url = `${this.inActiveQueue}?queueId=${queueId}&status=${status}&modifiedBy=${modifiedBy}`;
+  console.log("Calling API URL:", url);
+  return this.http.put(url, null);
 }
 
 }

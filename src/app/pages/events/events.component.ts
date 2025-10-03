@@ -67,6 +67,7 @@ export class EventsComponent implements OnInit {
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
+  currentDateTime: Date = new Date();
 
   /** -------------------- Filters & toggles -------------------- */
   selectedFilter: "CLOSED" | "PENDING" = "PENDING";
@@ -118,18 +119,18 @@ export class EventsComponent implements OnInit {
   constructor(private eventsService: EventsService) {}
 
   /** -------------------- Lifecycle -------------------- */
-  ngOnInit() {
-    this.selectedDate = new Date();
-    this.selectedStartDate = this.selectedDate;
-    this.selectedEndDate = this.selectedDate;
-    this.setupColumnDefs();
-    this.loadPendingEvents();
-    // if (this.selectedFilter === "CLOSED") {
-    //   this.loadClosedAndEscalatedDetails();
-    // } else {
-    //   this.loadPendingEvents();
-    // }
-  }
+ngOnInit() {
+  this.selectedDate = new Date();
+  this.selectedStartDate = this.selectedDate;
+  this.selectedEndDate = this.selectedDate;
+  this.setupColumnDefs();
+  this.loadPendingEvents();
+
+  // auto-refresh the displayed clock every 1 min
+  setInterval(() => {
+    this.currentDateTime = new Date();
+  }, 60000);
+}
 
   /** -------------------- Filter & toggle actions -------------------- */
   setFilter(filter: "CLOSED" | "PENDING") {
@@ -344,22 +345,31 @@ fetchMoreInfo(eventId: number) {
 
   selectedStartDate: Date | null = null;
   selectedEndDate: Date | null = null;
-  onDateRangeSelected(event: {
-    startDate: Date;
-    startTime: string;
-    endDate: Date;
-    endTime: string;
-  }) {
-    this.selectedStartDate = event.startDate;
-    this.selectedEndDate = event.endDate;
-    console.log(this.selectedStartDate ,"start" , this.selectedEndDate,"end")
+onDateRangeSelected(event: {
+  startDate: Date;
+  startTime: string;
+  endDate: Date;
+  endTime: string;
+}) {
+  // Merge into full Date objects
+  this.selectedStartDate = this.combineDateAndTime(event.startDate, event.startTime);
+  this.selectedEndDate = this.combineDateAndTime(event.endDate, event.endTime);
 
-     // Make sure to reload data when date range changes
+  console.log("Start DateTime:", this.selectedStartDate);
+  console.log("End DateTime:", this.selectedEndDate);
+
   if (this.selectedFilter === 'CLOSED') {
     this.loadClosedAndEscalatedDetails();
   }
-    // Reload closed events whenever date range changes
-  }
+}
+
+/** Utility: combine Date + time string into formatted string */
+private combineDateAndTime(date: Date, time: string): Date {
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  const combined = new Date(date);
+  combined.setHours(hours || 0, minutes || 0, seconds || 0);
+  return combined;
+}
 
   formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -450,14 +460,24 @@ fetchMoreInfo(eventId: number) {
   }
 
   /** -------------------- Load closed and escalated details -------------------- */
+
+  private formatDateTimeFull(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+    date.getDate()
+  )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
   loadClosedAndEscalatedDetails() {
-    const actionTag = this.suspiciousChecked ? 2 : 1;
-    const startDateStr = this.selectedStartDate
-      ? this.formatDate(this.selectedStartDate)
-      : undefined;
-    const endDateStr = this.selectedEndDate
-      ? this.formatDate(this.selectedEndDate)
-      : undefined;
+  const actionTag = this.suspiciousChecked ? 2 : 1;
+
+  const startDateStr = this.selectedStartDate
+    ? this.formatDateTimeFull(this.selectedStartDate)
+    : undefined;
+
+  const endDateStr = this.selectedEndDate
+    ? this.formatDateTimeFull(this.selectedEndDate)
+    : undefined;
 
 
 
@@ -656,6 +676,9 @@ fetchMoreInfo(eventId: number) {
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "SITE NAME",
@@ -663,24 +686,36 @@ fetchMoreInfo(eventId: number) {
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "CAMERA ID",
         field: "cameraId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "EVENT TAG",
         field: "eventTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "ACTION TAG",
         field: "actionTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "EVENT TIME",
@@ -689,6 +724,9 @@ fetchMoreInfo(eventId: number) {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "ACTION TIME",
@@ -697,18 +735,27 @@ fetchMoreInfo(eventId: number) {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "QUEUE NAME",
         field: "queueName",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       {
         headerName: "QUEUE LEVEL",
         field: "queueLevel",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+         floatingFilter: true,
+        filter: true,
+        suppressHeaderMenuButton: true,
       },
       // {
       //   headerName: "EMP.",

@@ -25,11 +25,18 @@
       <!-- ===================== Calendar & Toggles Section ===================== -->
       <div class="calender-section-body">
         <!-- Calendar -->
-        <div class="calendar-section-wrapper calender-first-section">
-          <app-calendar
-            (dateRangeSelected)="onDateRangeSelected($event)"
-          ></app-calendar>
-        </div>
+      <div class="calendar-section-wrapper calender-first-section">
+  <!-- Show Calendar if CLOSED -->
+  <app-calendar
+    *ngIf="selectedFilter === 'CLOSED'"
+    (dateRangeSelected)="onDateRangeSelected($event)"
+  ></app-calendar>
+
+  <!-- Show current datetime if PENDING -->
+  <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
+    {{ currentDateTime | date:'dd MMM, yyyy HH:mm a' }}
+  </div>
+</div>
 
         <!-- Toggle Switches based on selected filter -->
         <div class="escalated-section calender-second-section">
@@ -349,6 +356,9 @@
             [pagination]="true"
             [paginationPageSize]="10"
             domLayout="autoHeight"
+            [enableCellTextSelection]="true"
+            [enableRangeSelection]="true"  
+            [copyHeadersToClipboard]="true"  
             [quickFilterMatcher]="pendingQuickFilterMatcher"
             [paginationPageSizeSelector]="[10, 20, 50, 100]"
             (gridReady)="onGridReady($event)"
@@ -369,6 +379,9 @@
             [columnDefs]="closedColumnDefs"
             [defaultColDef]="{ resizable: true }"
             [pagination]="true"
+            [enableCellTextSelection]="true"
+            [enableRangeSelection]="true"  
+            [copyHeadersToClipboard]="true"  
             [paginationPageSize]="10"
             [paginationPageSizeSelector]="[10, 20, 50, 100]"
             [localeText]="localeText"

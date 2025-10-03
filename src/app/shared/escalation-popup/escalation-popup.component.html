@@ -33,6 +33,9 @@
         [columnDefs]="alarmColumnDefs"
         [defaultColDef]="defaultColDef"
         [defaultColDef]="{ resizable: true }"
+        [enableCellTextSelection]="true"
+        [enableRangeSelection]="true"
+        [copyHeadersToClipboard]="true"
         [pagination]="true"
         [paginationPageSize]="3"
         [paginationPageSizeSelector]="[3, 20, 50, 100]"
@@ -79,6 +82,9 @@
     [columnDefs]="escalationColumnDefs"
     [defaultColDef]="{ resizable: true }"
     [pagination]="true"
+    [enableCellTextSelection]="true"
+    [enableRangeSelection]="true"
+    [copyHeadersToClipboard]="true"
     [paginationPageSize]="3"
     [paginationPageSizeSelector]="[3, 20, 50, 100]"
     domLayout="autoHeight"
@@ -86,11 +92,12 @@
   >
   </ag-grid-angular>
 
-    <div class="report-header">
+  <div class="report-header">
     <h2>Comments</h2>
     <!-- TIMEZONE -->
     <div class="timezone">
-    <p-button label="Add" class="today-btn" (onClick)="addComments()"> </p-button>
+      <p-button label="Add" class="today-btn" (onClick)="addComments()">
+      </p-button>
     </div>
   </div>
   <div class="div">
@@ -98,18 +105,21 @@
   </div>
 
   <ag-grid-angular
-  #commentGrid
-  style="width: 100%"
-  theme="legacy"
-  class="ag-theme-alpine"
-  [rowData]="commentRowData"
-  [columnDefs]="commentColumnDefs"
-  [defaultColDef]="{ resizable: true }"
-  [pagination]="true"
-  [paginationPageSize]="3"
-  [paginationPageSizeSelector]="[3, 20, 50, 100]"
-  domLayout="autoHeight"
-  (gridReady)="onCommentGridReady($event)"
->
-</ag-grid-angular>
+    #commentGrid
+    style="width: 100%"
+    theme="legacy"
+    class="ag-theme-alpine"
+    [rowData]="commentRowData"
+    [columnDefs]="commentColumnDefs"
+    [defaultColDef]="{ resizable: true }"
+    [pagination]="true"
+    [paginationPageSize]="3"
+    [enableCellTextSelection]="true"
+    [enableRangeSelection]="true"
+    [copyHeadersToClipboard]="true"
+    [paginationPageSizeSelector]="[3, 20, 50, 100]"
+    domLayout="autoHeight"
+    (gridReady)="onCommentGridReady($event)"
+  >
+  </ag-grid-angular>
 </div>

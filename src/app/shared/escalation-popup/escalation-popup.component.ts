@@ -11,7 +11,8 @@ import { AgGridModule } from "ag-grid-angular";
 import { ColDef } from "ag-grid-community";
 import { DialogModule } from "primeng/dialog";
 import { ButtonModule } from "primeng/button";
-import { GridApi, Column } from 'ag-grid-community';
+import { GridApi, Column } from "ag-grid-community";
+import { EventsService } from "../../pages/events/events.service"; // adjust path
 
 @Component({
   selector: "app-escalation-popup",
@@ -25,6 +26,8 @@ export class EscalationPopupComponent implements OnChanges {
   @Input() selectedItem: any;
   @Input() selectedDate: Date | null = null;
   @Input() data: any; // escalationData
+
+  constructor(private eventsService: EventsService) {}
 
   @Input() tableConfigs: {
     [key: string]: { columnDefs: ColDef[]; rowData: any[] };
@@ -167,131 +170,188 @@ export class EscalationPopupComponent implements OnChanges {
 
   // Update row data when selectedItem changes
   ngOnChanges(changes: SimpleChanges) {
-  if (changes["selectedItem"] && this.selectedItem) {
-    console.log("API Data received in popup:", this.selectedItem);
+    if (changes["selectedItem"] && this.selectedItem) {
+      console.log("API Data received in popup:", this.selectedItem);
 
-    // Escalation
-    this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map((item: any) => ({
-      ...item,
-      user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-    }));
+      // Escalation
+      this.escalationRowData = (
+        this.selectedItem.eventEscalationInfo || []
+      ).map((item: any) => ({
+        ...item,
+        user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
+      }));
 
-    // Alarm
-    this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map((item: any) => ({
-      ...item,
-      user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-    }));
+      // Alarm
+      this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
+        (item: any) => ({
+          ...item,
+          user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
+        })
+      );
 
-    // Comments
-    this.commentRowData = (this.selectedItem.eventComments || []).map((c: any) => ({
-      userName: c.userName || "Unknown",
-      comment: c.comment || "",
-      timestamp: c.timestamp || "--",
-    }));
+      // Comments
+      this.commentRowData = (this.selectedItem.eventComments || []).map(
+        (c: any) => ({
+          user: { img: "https://i.pravatar.cc/30?img=1" },
+          name: c.NAME || "", // map NAME → name
+          level: c.level || "", // same
+          submittedtime: c.submittedTime || new Date().toISOString(), // map submittedTime → submittedtime
+          notes: c.notes || "", // map notes → notes
+        })
+      );
 
-    // Event Details
-    this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
+      // Event Details
+      this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
+    }
   }
-}
 
   // Grid ready handler
   onGridReady(params: any) {
     params.api.sizeColumnsToFit();
     params.columnApi.autoSizeAllColumns();
-      this.commentGridApi = params.api;
-
+    this.commentGridApi = params.api;
   }
 
   commentGridApi!: GridApi;
-commentGridColumnApi!: Column;
-onCommentGridReady(params: any) {
+  commentGridColumnApi!: Column;
+  onCommentGridReady(params: any) {
     params.api.sizeColumnsToFit();
-  this.commentGridApi = params.api;
-  this.commentGridColumnApi = params.columnApi;
-}
+    this.commentGridApi = params.api;
+    this.commentGridColumnApi = params.columnApi;
+  }
 
   // Column definitions for comments
-commentColumnDefs: ColDef[] = [
-  {
-    headerName: "USER",
-    field: "user",
-    cellRenderer: this.userCellRenderer.bind(this),
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-  },
-  {
-    headerName: "NAME",
-    field: "name",
-    editable: true,
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-  },
-  {
-    headerName: "LEVEL",
-    field: "level",
-    editable: true,
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-  },
-  {
-    headerName: "SUBMITTED TIME",
-    field: "submittedtime",
-    editable: true,
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-  },
-  {
-    headerName: "NOTES",
-    field: "notes",
-    editable: true,
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-  },
-  {
-    headerName: "ACTIONS",
-    field: "actions",
-    cellRenderer: (params: any) => {
-      return `
-        <button class="save-btn">💾</button>
-        <button class="delete-btn">❌</button>
-      `;
+  commentColumnDefs: ColDef[] = [
+    {
+      headerName: "USER",
+      field: "user",
+      cellRenderer: this.userCellRenderer.bind(this),
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
     },
-    cellRendererParams: {
-      onSave: (data: any) => this.saveComment(data),
-      onDelete: (data: any) => this.deleteComment(data),
+    {
+      headerName: "NAME",
+      field: "name",
+      editable: true,
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
     },
-  },
-];
+    {
+      headerName: "LEVEL",
+      field: "level",
+      editable: true,
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+    },
+    {
+      headerName: "SUBMITTED TIME",
+      field: "submittedtime",
+      editable: true,
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+    },
+    {
+      headerName: "NOTES",
+      field: "notes",
+      editable: true,
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+    },
+    {
+      headerName: "ACTIONS",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      cellRenderer: (params: any) => {
+        if (!params.data.isNew) return ""; // no buttons for old rows
 
+        const container = document.createElement("div");
+        container.style.display = "flex";
+        container.style.gap = "6px";
 
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "action-btn save-btn";
+        saveBtn.innerText = "✓";
+        saveBtn.addEventListener("click", () => {
+          params.api.stopEditing();
+          this.saveComment(params.data);
+        });
 
-addComments() {
-  if (!this.commentGridApi) return;
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "action-btn delete-btn";
+        deleteBtn.innerText = "X";
+        deleteBtn.addEventListener("click", () => {
+          this.deleteComment(params.data);
+        });
 
-  const newComment = {
-    user: { img: 'https://i.pravatar.cc/30?img=3' },
-    name: '',
-    level: '',
-    submittedtime: new Date().toISOString(),
-    notes: ''
-  };
+        container.appendChild(saveBtn);
+        container.appendChild(deleteBtn);
 
-  this.commentGridApi.applyTransaction({ add: [newComment] });
+        return container;
+      },
+    },
+  ];
 
-  const rowIndex = this.commentRowData.length;
-  this.commentGridApi.setFocusedCell(rowIndex, 'name');
-  this.commentGridApi.startEditingCell({ rowIndex, colKey: 'name' });
-  this.commentGridApi.ensureIndexVisible(rowIndex, 'bottom');
+  addComments() {
+    if (!this.commentGridApi) return;
+
+    const newComment = {
+      user: { img: "https://i.pravatar.cc/30?img=3" },
+      name: "",
+      level: "",
+      submittedtime: new Date().toISOString(),
+      notes: "",
+      isNew: true, // flag to show buttons
+    };
+
+    this.commentGridApi.applyTransaction({ add: [newComment] });
+
+    const rowIndex = this.commentRowData.length;
+    this.commentGridApi.setFocusedCell(rowIndex, "name");
+    this.commentGridApi.startEditingCell({ rowIndex, colKey: "name" });
+    this.commentGridApi.ensureIndexVisible(rowIndex, "bottom");
+  }
+
+ saveComment(data: any) {
+  if (!this.selectedEvent) {
+    console.error("No event selected");
+    return;
+  }
+
+  // Ensure eventId is a number
+  const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+  if (!eventId) {
+    console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+    return;
+  }
+
+  // Prepare payload according to typical backend field names
+const payload = {
+  eventsId: Number(this.selectedItem.eventDetails[0]?.eventId),
+  commentsInfo: data.notes || "",
+  createdBy: 123, // replace with logged-in user ID
+  remarks: "Added via escalation popup"
+};
+
+  console.log("Sending comment payload:", payload);
+
+  // Send POST request with explicit application/json header
+  this.eventsService.addComment(payload).subscribe({
+    next: (res) => {
+      console.log("Comment saved successfully", res);
+
+      // Update grid row timestamp
+      data.submittedtime = new Date().toISOString();
+      this.commentGridApi.applyTransaction({ update: [data] });
+    },
+    error: (err) => {
+      console.error("Error saving comment", err);
+    }
+  });
 }
 
-saveComment(data: any) {
-  // This is where you send your API call to save the row
-  console.log('Saving comment:', data);
-}
-
-deleteComment(data: any) {
-  this.commentGridApi.applyTransaction({ remove: [data] });
-}
+  deleteComment(data: any) {
+    this.commentGridApi.applyTransaction({ remove: [data] });
+  }
 
   commentRowData: any[] = [];
 
