@@ -27,6 +27,7 @@
     background-color: white;
     color: black;
     border-radius: 3px;
+    font-family: 'Neometric Medium';
 }
 
 /* === DASHBOARD CONTAINER === */
@@ -46,7 +47,19 @@
     gap: 16px;
     padding: 20px;
     height: calc(100vh - 100px);
-    overflow: hidden;
+    overflow: scroll;
+}
+
+:host ::ng-deep .p-dropdown-label {
+  height: 35px !important;
+  line-height: 35px !important;
+  padding: 0 10px !important;
+  
+}
+
+:host ::ng-deep .p-dropdown-trigger {
+  height: 35px !important;
+  line-height: 35px !important;
 }
 
 /* === LEFT SECTION === */
@@ -54,7 +67,7 @@
     display: flex;
     flex-direction: column;
     /* gap: 16px; */
-    overflow: hidden;
+    overflow: scroll;
 }
 
 .section-header {
@@ -73,11 +86,26 @@
     margin: 0;
 }
 
+.flip-horizontal {
+  transform: scaleX(-1);
+}
+.flip-horizontal1 {
+  transform: scaleX(-1);
+  margin-right: 10px;
+}
+
+.icon-info{
+    display: flex
+;
+    flex-direction: row;
+    align-items: center;
+}
+
 .arrow {
-    width: 15px;
-    height: 15px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 1px solid #ccc;
+    border: 1px solid white;
     background-color: white;
     color: #ED3237;
     font-size: 11px;
@@ -150,7 +178,7 @@
 }
 
 .calender-search input {
-    width: 90%;
+    width: 100%;
     padding: 8px 12px;
     border-radius: 25px;
     border: 1px solid #ccc;
@@ -185,10 +213,10 @@
 
 .right-section.add-section .popup-header {
     padding: 16px;
-    background: #000000;
+    background: #ff0000;
     color: #fff;
     display: flex;
-    justify-content: flex-start;
+        justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
 }
@@ -304,7 +332,11 @@ width: -webkit-fill-available;
 .right-section.add-section .cancel-btn {
     background-color: #ffffff;
     border: 1px solid #ff0000;
-    color: #333;
+    color: #ff0000;
+}
+
+.value{
+    font-family: 'NasalizationLight';
 }
 
 .right-section.add-section .cancel-btn:hover {
@@ -324,7 +356,7 @@ width: -webkit-fill-available;
 .right-section {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    /* gap: 10px; */
     background-color: #fff;
     border-radius: 8px;
     box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
@@ -428,11 +460,27 @@ background: #ffffff !important;
   background: #f5f5f5 !important;
 } */
 
-
 /* === AG GRID CUSTOM FONTS === */
-:host ::ng-deep .custom-header,
-:host ::ng-deep .custom-cell,
-:host ::ng-deep .ag-paging-panel {
+/* === AG GRID CUSTOM FONTS (CORRECTED) === */
+:host ::ng-deep .ag-theme-alpine {
+    /* Global font family for entire grid (headers, cells, pagination, etc.) */
+    --ag-font-family: 'Neometric Medium' !important;
+    
+    /* Global font size (adjust as needed) */
+    --ag-font-size: 12px !important;
+    
+    /* Optional: Bold weight for headers (if needed; defaults to normal) */
+    --ag-header-font-weight: 600 !important;
+    
+    /* Optional: Ensure fallback for any overrides */
+    font-family: var(--ag-font-family) !important;
+    font-size: var(--ag-font-size) !important;
+}
+
+/* Fallback: Explicitly target key elements if vars don't propagate (rare) */
+:host ::ng-deep .ag-theme-alpine .ag-header-cell-label,
+:host ::ng-deep .ag-theme-alpine .ag-cell-value,
+:host ::ng-deep .ag-theme-alpine .ag-paging-panel {
     font-family: 'Neometric Medium' !important;
     font-size: 12px !important;
 }

@@ -5,7 +5,7 @@
       <div class="section-header">
         <h2>QUEUES</h2>
         <button class="createbutton" (click)="onCreateQueueClick()">
-          CREATE QUEUE
+         +  CREATE QUEUE
         </button>
       </div>
 
@@ -82,13 +82,15 @@
       <div class="popup-header">
         <div class="popup-header-content">
           <div class="icon-info">
-            <p class="label nomargin">{{ selectedItem?.name }}</p>
+            <img class="calenderimage flip-horizontal1" src="../../../assets/headericons/direction-wueues.svg" alt="" />
+         
+            <p class="label nomargin"> {{ selectedItem?.name }}</p>
           </div>
         </div>
         <div class="navigation-controls">
-          <button class="arrow left-arrow" (click)="prevItem()">←</button>
+          <button class="arrow left-arrow" (click)="prevItem()"> <img class="calenderimage flip-horizontal" src="../../../assets/arrow-circle-right.svg" alt="" /></button>
           <p class="nomargin">{{ currentIndex + 1 }}/{{ rowData.length }}</p>
-          <button class="arrow right-arrow" (click)="nextItem()">→</button>
+          <button class="arrow right-arrow" (click)="nextItem()">   <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" /></button>
         </div>
       </div>
       <div class="popup-body">
@@ -112,8 +114,9 @@
       [ngClass]="'add-section'"
     >
       <div class="popup-header">
-        <button class="right-arrow" (click)="goBack()">←</button>
+        <!-- <button class="right-arrow" (click)="goBack()">←</button> -->
         <p class="label nomargin">ADD {{ currentSection | titlecase }}</p>
+         <img class="calenderimage" (click)="goBack()" src="../../../assets/close-filled.svg" alt="" />
       </div>
 
       <div class="popup-body">
@@ -296,7 +299,7 @@
               optionLabel="levelName"
               optionValue="levelId"
               placeholder="Select Level"
-              [style]="{ width: '100%' }"
+             [style]="{ width: '100%', height: '35px' }"
             >
             </p-dropdown>
           </div>
@@ -312,7 +315,7 @@
                 (click)="createQueue()"
                 class="btn add-btn w-100"
               >
-                Create
+               Create
               </button>
             </div>
           </div>

@@ -186,3 +186,9 @@ nav a:hover {
   height: 17px;
   margin-right: 6px;
 }
+
+.nav-icon1 {
+  width: 17px;
+  height: 17px;
+  /* margin-right: 6px; */
+}

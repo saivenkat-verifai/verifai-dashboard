@@ -15,9 +15,9 @@
     <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
   </button>
 
-  <span class="selected-range" #rangeTrigger (click)="op.toggle($event)">
-    {{ startDate | date : "dd MMM, yyyy HH:mm a" }} -
-    {{ endDate | date : "dd MMM, yyyy HH:mm a" }}
+  <span class="selected-range font-Neometric-Bold" #rangeTrigger (click)="op.toggle($event)">
+    {{ startDate | date : "dd MMM, yyyy HH:mm a" | uppercase }} -
+    {{ endDate | date : "dd MMM, yyyy HH:mm a" | uppercase }}
   </span>
 
   <button class="circle-btn" (click)="nextMonth()">
@@ -114,7 +114,7 @@
       <div class="custom-calendar" *ngIf="viewMode === 'month'">
         <div class="month-header">
           <button class="circle-btn" (click)="prevMonth()">&lt;</button>
-          <span>{{ currentMonth | date : "MMMM yyyy" }}</span>
+          <span>{{ currentMonth | date : "MMMM yyyy"  | uppercase }}</span>
           <button class="circle-btn" (click)="nextMonth()">&gt;</button>
         </div>
         <div class="weekdays">

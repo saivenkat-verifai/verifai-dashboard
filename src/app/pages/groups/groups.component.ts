@@ -257,9 +257,9 @@ prevItem() {
           ).length;
 
           this.secondEscalatedDetails = [
-            { label: "Total", value: total, color: "#f44336" },
-            { label: "Active", value: active, color: "#2196f3" },
-            { label: "Inactive", value: inactive, color: "#4caf50" },
+            { label: "TOTAL", value: total, color: "#f44336" },
+            { label: "ACTIVE", value: active, color: "#2196f3" },
+            { label: "INACTIVE", value: inactive, color: "#4caf50" },
           ];
 
           // ✅ Auto-select first group and call second API

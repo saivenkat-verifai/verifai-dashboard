@@ -26,6 +26,15 @@
     src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
 }
 
+.font-Neometric-Medium{
+    font-family: 'Neometric Medium';
+    font-size: 12px;
+}
+.font-Neometric-Bold{
+    font-family: 'Neometric Bold';
+    font-size: 12px;
+}
+
 .m-t-20 {
     margin-top: 20px;
 }
@@ -599,6 +608,8 @@ display: flex;
     padding: 10px;
 }
 
+
+
 .calender-escalated-card-content {
     display: flex;
     flex-direction: row;
@@ -616,7 +627,7 @@ display: flex;
     margin: 0px;
     font-size: 12px;
     font-weight: 600;
-    font-family: 'NasalizationLight';
+    font-family: 'Neometric Medium';
 }
 
 .calender-escalated-card p {

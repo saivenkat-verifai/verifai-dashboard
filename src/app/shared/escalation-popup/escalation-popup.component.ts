@@ -47,56 +47,159 @@ export class EscalationPopupComponent implements OnChanges {
       field: "user",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      cellRenderer: this.userCellRenderer.bind(this),
+      editable: false, // User column with avatar is not editable
     },
     {
       headerName: "USER LEVEL",
       field: "userLevel",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "RECEIVE AT",
       field: "receiveAt",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "REVIEW START",
       field: "reviewStart",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "REVIEW END",
       field: "reviewEnd",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "DURATION",
       field: "duration",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "ACTION TAG",
       field: "actionTag",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "TAG",
       field: "subActionTag",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
     },
     {
       headerName: "NOTES",
       field: "notes",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
+    },
+    {
+      headerName: "ACTIONS",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      cellRenderer: (params: any) => {
+        const container = document.createElement("div");
+        container.style.display = "flex";
+        container.style.gap = "6px";
+
+        if (params.data.isEditing) {
+          // Save button (tick)
+          const saveBtn = document.createElement("button");
+          saveBtn.className = "action-btn save-btn";
+          saveBtn.innerText = "✓";
+          saveBtn.addEventListener("click", () => {
+            params.api.stopEditing();
+            this.saveEscalation(params.data);
+          });
+
+          // Cancel button
+          const cancelBtn = document.createElement("button");
+          cancelBtn.className = "action-btn delete-btn";
+          cancelBtn.innerText = "x";
+          cancelBtn.addEventListener("click", () => {
+            params.data.isEditing = false;
+            params.api.refreshCells({ rowNodes: [params.node], force: true });
+            params.api.stopEditing(true); // Cancel editing
+          });
+
+          container.appendChild(saveBtn);
+          container.appendChild(cancelBtn);
+        } else {
+          // Edit button
+          const editBtn = document.createElement("button");
+          editBtn.className = "action-btn edit-btn";
+          editBtn.innerText = "✎";
+          editBtn.addEventListener("click", () => {
+            params.data.isEditing = true;
+            params.api.refreshCells({ rowNodes: [params.node], force: true });
+            params.api.startEditingCell({
+              rowIndex: params.node.rowIndex,
+              colKey: "userLevel", // Start editing on USER LEVEL column
+            });
+          });
+
+          container.appendChild(editBtn);
+        }
+
+        return container;
+      },
     },
   ];
+
+  saveEscalation(data: any) {
+    if (!this.selectedEvent) {
+      console.error("No event selected");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+    if (!eventId) {
+      console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+      return;
+    }
+
+    // Prepare payload based on the provided schema
+    const payload = {
+      eventsId: String(eventId),
+      userlevel: data.userLevel || 0,
+      user: data.user?.id || 0, // Assuming user object has an id
+      alarm: data.alarm || "",
+      landingTime: data.landingTime || "",
+      receivedTime: data.receiveAt || "",
+      reviewStartTime: data.reviewStart || "",
+      reviewEndTime: data.reviewEnd || "",
+      actionTag: Number(data.actionTag) || 0,
+      subActionTag: Number(data.subActionTag) || 0,
+      notes: data.notes || "",
+    };
+
+    console.log("Sendinghjk escalation update payload:", payload);
+
+    this.eventsService.putEventsMoreInfo(payload).subscribe({
+      next: (res) => {
+        console.log("Escalation updated successfully", res);
+        data.isEditing = false;
+        this.escalationGridApi.applyTransaction({ update: [data] });
+      },
+      error: (err) => {
+        console.error("Error updating escalation", err);
+      },
+    });
+  }
+  escalationGridApi!: GridApi;
 
   // Column Definitions for alarm events
   alarmColumnDefs: ColDef[] = [
@@ -311,43 +414,43 @@ export class EscalationPopupComponent implements OnChanges {
     this.commentGridApi.ensureIndexVisible(rowIndex, "bottom");
   }
 
- saveComment(data: any) {
-  if (!this.selectedEvent) {
-    console.error("No event selected");
-    return;
-  }
-
-  // Ensure eventId is a number
-  const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
-  if (!eventId) {
-    console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
-    return;
-  }
-
-  // Prepare payload according to typical backend field names
-const payload = {
-  eventsId: Number(this.selectedItem.eventDetails[0]?.eventId),
-  commentsInfo: data.notes || "",
-  createdBy: 123, // replace with logged-in user ID
-  remarks: "Added via escalation popup"
-};
-
-  console.log("Sending comment payload:", payload);
-
-  // Send POST request with explicit application/json header
-  this.eventsService.addComment(payload).subscribe({
-    next: (res) => {
-      console.log("Comment saved successfully", res);
-
-      // Update grid row timestamp
-      data.submittedtime = new Date().toISOString();
-      this.commentGridApi.applyTransaction({ update: [data] });
-    },
-    error: (err) => {
-      console.error("Error saving comment", err);
+  saveComment(data: any) {
+    if (!this.selectedEvent) {
+      console.error("No event selected");
+      return;
     }
-  });
-}
+
+    // Ensure eventId is a number
+    const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+    if (!eventId) {
+      console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+      return;
+    }
+
+    // Prepare payload according to typical backend field names
+    const payload = {
+      eventsId: String(this.selectedItem.eventDetails[0]?.eventId),
+      commentsInfo: data.notes || "",
+      createdBy: 123, // replace with logged-in user ID
+      remarks: "Added via escalation popup",
+    };
+
+    console.log("Sending comment payload:", payload);
+
+    // Send POST request with explicit application/json header
+    this.eventsService.addComment(payload).subscribe({
+      next: (res) => {
+        console.log("Comment saved successfully", res);
+
+        // Update grid row timestamp
+        data.submittedtime = new Date().toISOString();
+        this.commentGridApi.applyTransaction({ update: [data] });
+      },
+      error: (err) => {
+        console.error("Error saving comment", err);
+      },
+    });
+  }
 
   deleteComment(data: any) {
     this.commentGridApi.applyTransaction({ remove: [data] });

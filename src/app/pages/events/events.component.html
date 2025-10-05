@@ -25,18 +25,18 @@
       <!-- ===================== Calendar & Toggles Section ===================== -->
       <div class="calender-section-body">
         <!-- Calendar -->
-      <div class="calendar-section-wrapper calender-first-section">
-  <!-- Show Calendar if CLOSED -->
-  <app-calendar
-    *ngIf="selectedFilter === 'CLOSED'"
-    (dateRangeSelected)="onDateRangeSelected($event)"
-  ></app-calendar>
+        <div class="calendar-section-wrapper calender-first-section">
+          <!-- Show Calendar if CLOSED -->
+          <app-calendar
+            *ngIf="selectedFilter === 'CLOSED'"
+            (dateRangeSelected)="onDateRangeSelected($event)"
+          ></app-calendar>
 
-  <!-- Show current datetime if PENDING -->
-  <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
-    {{ currentDateTime | date:'dd MMM, yyyy HH:mm a' }}
-  </div>
-</div>
+          <!-- Show current datetime if PENDING -->
+          <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
+            {{ currentDateTime | date : "dd MMM, yyyy HH:mm a" | uppercase  }}
+          </div>
+        </div>
 
         <!-- Toggle Switches based on selected filter -->
         <div class="escalated-section calender-second-section">
@@ -113,7 +113,7 @@
               </div>
             </div>
             <div *ngIf="selectedDate" class="selected-date">
-              <p>{{ selectedDate | date : "dd MMMM, yyyy" }}</p>
+              <p>{{ selectedDate | date : "dd MMMM, yyyy" | uppercase  }}</p>
             </div>
             <button class="close-btn" (click)="closePopup()">×</button>
           </div>
@@ -148,7 +148,7 @@
           <div class="popup-content">
             <div class="play-popup-header">
               <p class="play-text">
-                <strong>DEVICE ID:</strong> {{ selectedPlayItem?.device }}
+                <strong>DEVICE ID:</strong> {{ selectedPlayItem?.siteId }}
               </p>
               <button class="close-btn" (click)="closePlayPopup()">×</button>
             </div>
@@ -235,7 +235,7 @@
         <div class="escalated-section calender-seventh-section">
           <div class="more-less-toggle" (click)="toggleMore()">
             <button>
-              <span class="btn-text">{{ showMore ? "Less" : "More" }}</span>
+              <span class="btn-text">{{ showMore ? "LESS" : "MORE" }}</span>
               <span class="more-arrow">
                 <i [ngClass]="showMore ? 'arrow-up' : 'arrow-down'"></i>
               </span>
@@ -357,8 +357,8 @@
             [paginationPageSize]="10"
             domLayout="autoHeight"
             [enableCellTextSelection]="true"
-            [enableRangeSelection]="true"  
-            [copyHeadersToClipboard]="true"  
+            [enableRangeSelection]="true"
+            [copyHeadersToClipboard]="true"
             [quickFilterMatcher]="pendingQuickFilterMatcher"
             [paginationPageSizeSelector]="[10, 20, 50, 100]"
             (gridReady)="onGridReady($event)"
@@ -380,8 +380,8 @@
             [defaultColDef]="{ resizable: true }"
             [pagination]="true"
             [enableCellTextSelection]="true"
-            [enableRangeSelection]="true"  
-            [copyHeadersToClipboard]="true"  
+            [enableRangeSelection]="true"
+            [copyHeadersToClipboard]="true"
             [paginationPageSize]="10"
             [paginationPageSizeSelector]="[10, 20, 50, 100]"
             [localeText]="localeText"

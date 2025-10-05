@@ -18,6 +18,9 @@ export class EventsService {
     "https://usstaging.ivisecurity.com/events_data/getEventsMoreInfo_1_0";
   private addCommentForEvent =
     "https://usstaging.ivisecurity.com/events_data/addCommentForEvent_1_0";
+  private updateEventsMoreInfo =
+    "https://usstaging.ivisecurity.com/events_data/updateEventsMoreInfo_1_0";
+
 
   constructor(private http: HttpClient) {}
 
@@ -58,7 +61,7 @@ export class EventsService {
   }
 
   addComment(event: {
-    eventsId: number;
+    eventsId: string;
     commentsInfo: string;
     createdBy: number;
     remarks: string;
@@ -67,4 +70,25 @@ export class EventsService {
       headers: { "Content-Type": "application/json" },
     });
   }
+  
+  putEventsMoreInfo(event: {
+    eventsId: string;
+    userlevel: number;
+    user: number;
+    alarm: string;
+    landingTime: string;
+    receivedTime: string;
+    reviewStartTime: string;
+    reviewEndTime: string;
+    actionTag: number;
+    subActionTag: number;
+    notes: string;
+  }): Observable<any> {
+    console.log(event,"kk")
+    return this.http.put<any>(this.updateEventsMoreInfo, event, {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  
 }

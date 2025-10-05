@@ -424,7 +424,7 @@ private combineDateAndTime(date: Date, time: string): Date {
       next: (res) => {
         // === Keep your summary cards as-is ===
         this.secondEscalatedDetails = [
-          { label: "Total", value: res.totalEvents || 0, color: "#ED3237" },
+          { label: "TOTAL", value: res.totalEvents || 0, color: "#ED3237" },
           {
             iconPath: "assets/home.svg",
             value: res.siteCount || 0,

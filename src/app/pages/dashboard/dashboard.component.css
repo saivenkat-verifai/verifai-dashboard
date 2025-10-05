@@ -3,26 +3,25 @@
 @import 'primeng/resources/primeng.min.css';
 @import 'primeicons/primeicons.css';
 
+@import url('https://fonts.cdnfonts.com/css/neometric-2');
+
+
 @font-face {
   font-family: 'Neometric Bold';
   font-style: normal;
-  font-weight: 600;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-weight: 700;
+  src: url('../../../assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff') format('woff');
 }
-@font-face {
-  font-family: 'Neometric Medium';
-  font-style: normal;
-  font-weight: 500;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+
+.label,
+h2 {
+  font-family: 'Neometric Bold';
+  font-weight: 700;
 }
-@font-face {
-  font-family: 'Nasalization';
-  src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
-}
-@font-face {
-  font-family: 'NasalizationLight';
-  font-style: normal;
-  src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
+
+.my-bold-text {
+  font-family: 'Neometric', sans-serif;
+  font-weight: 700;
 }
 
 /* Loader Styles */
@@ -81,8 +80,13 @@
   overflow-y: scroll;
 }
 
+
 .dashboard-content-section {
-  padding-bottom: 35px;
+  padding-bottom: 40px;
+}
+
+.escalated-content-section{
+    padding-bottom: 35px;
 }
 
 .section-header {
@@ -147,6 +151,7 @@
 
 .card.red .label {
   color: rgba(255, 255, 255, 0.9);
+  font-family: 'Neometric Bold';
 }
 
 .card-top {
@@ -185,7 +190,7 @@
   margin: 0;
   text-align: left;
   color: rgba(0, 0, 0, 0.7);
-  font-family: 'Neometric Bold';
+  /* font-family: 'NasalizationLight', sans-serif; */
   font-size: 12px;
 }
 
@@ -255,9 +260,9 @@
 }
 
 /* Escalated Section */
-.escalated-content-section {
-  padding-bottom: 15px;
-}
+/* .escalated-content-section {
+  padding-bottom: 50px;
+} */
 
 .escalated-section {
   display: flex;

@@ -6,7 +6,7 @@ html, body {
     overflow: hidden;
   }
 html, body { height: 100%; }
-body { margin: 0; font-family: Neometric 2; }
+/* body { margin: 0; font-family: Neometric 2; } */
 
 .calendar-popup {
   /* Ensure the popup is styled properly */

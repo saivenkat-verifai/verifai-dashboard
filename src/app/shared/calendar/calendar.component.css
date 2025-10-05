@@ -4,17 +4,21 @@
 @import 'primeicons/primeicons.css';
 
 @font-face {
-  font-family: 'Neometric Bold';
-  font-style: normal;
-  font-weight: 600;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
-}
-@font-face {
   font-family: 'Neometric Medium';
   font-style: normal;
   font-weight: 500;
   src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
 }
+
+
+@font-face {
+  font-family: 'Neometric Bold';
+  font-style: normal;
+  font-weight: 700;
+  src: url('../../../assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff') format('woff');
+}
+
+
 @font-face {
   font-family: 'Nasalization';
   src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
@@ -31,6 +35,16 @@
   font-weight: 400;
   src: url('/assets/fonts/Neometric-Regular.woff') format('woff');
   font-display: swap;
+}
+
+.font-Neometric-Medium{
+   font-family: 'Neometric';
+    font-size: 12px;
+}
+.font-Neometric-Bold{
+font-family: 'Neometric Bold';
+font-weight: 500;
+    font-size: 12px;
 }
 
 /* PrimeNG Overrides for Design Match */
@@ -259,8 +273,7 @@ width: 2rem;
 }
 
 .selected-range {
-  font-weight: bold !important;
-  font-size: 14px !important;
+  
   color: #000 !important;
   margin: 0 10px !important;
 }
@@ -284,5 +297,5 @@ width: 2rem;
   display: flex !important;
   align-items: center !important;
   gap: 5px !important;
-  padding: 5px 10px !important;
+  /* padding: 5px 10px !important; */
 }
