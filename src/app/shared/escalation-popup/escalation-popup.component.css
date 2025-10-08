@@ -162,11 +162,12 @@ table th {
 
 /* Existing today-btn style (keep or adjust as needed) */
 .today-btn ::ng-deep .p-button {
-background: #ffffff !important;
+    background: #ffffff !important;
     border: 1px solid #000 !important;
     height: 30px !important;
-    width: 60px !important;
     color: black;
+    font-size: 15px;
+    font-family: 'Neometric Bold';
     padding: 0 6px !important;
 }
 

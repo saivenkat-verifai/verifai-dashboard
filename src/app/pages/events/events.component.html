@@ -34,7 +34,7 @@
 
           <!-- Show current datetime if PENDING -->
           <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
-            {{ currentDateTime | date : "dd MMM, yyyy HH:mm a" | uppercase  }}
+            {{ currentDateTime | date : "dd MMM, yyyy HH:mm a" | uppercase }}
           </div>
         </div>
 
@@ -112,9 +112,9 @@
                 <p class="label">ESCALATION DETAILS</p>
               </div>
             </div>
-            <div *ngIf="selectedDate" class="selected-date">
-              <p>{{ selectedDate | date : "dd MMMM, yyyy" | uppercase  }}</p>
-            </div>
+            <!-- <div *ngIf="selectedDate" class="selected-date">
+              <p>{{ selectedDate | date : "dd MMMM, yyyy" | uppercase }}</p>
+            </div> -->
             <button class="close-btn" (click)="closePopup()">×</button>
           </div>
           <div class="popup-body">
@@ -235,10 +235,8 @@
         <div class="escalated-section calender-seventh-section">
           <div class="more-less-toggle" (click)="toggleMore()">
             <button>
+              <i [ngClass]="showMore ? 'arrow-up' : 'arrow-down'"></i>
               <span class="btn-text">{{ showMore ? "LESS" : "MORE" }}</span>
-              <span class="more-arrow">
-                <i [ngClass]="showMore ? 'arrow-up' : 'arrow-down'"></i>
-              </span>
             </button>
           </div>
         </div>

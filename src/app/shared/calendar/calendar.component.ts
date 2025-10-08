@@ -322,45 +322,60 @@ selectWeek(week: any) {
     return this.weeks[this.currentWeekIndex]?.end;
   }
 
-  toggleDateRange() {
-    if (this.daterange) {
-      this.wholeDay = false;
-    }
+    toggleDateRange() {
+    this.dateRange = true;
+    this.wholeDay = false;
     this.setTodayStartEndValues();
   }
 
   toggleWholeDay() {
-    if (this.wholeDay) {
-      this.daterange = false;
-    }
+    this.wholeDay = true;
+    this.dateRange = false;
     this.setTodayStartEndValues();
   }
 
   setTodayStartEndValues() {
-    const now = new Date(); // ✅ Current time
-    const todayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0
-    );
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
 
     if (this.wholeDay) {
+      // Whole Day = 12:00 AM – 12:00 PM
+      const todayNoon = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
+      this.startDate = todayStart;
+      this.endDate = todayNoon;
+      this.startTime = "12:00 AM";
+      this.endTime = "12:00 PM";
+    } else if (this.dateRange) {
+      // Date Range = 12:00 AM – current time
       this.startDate = todayStart;
       this.endDate = now;
-      this.startTime = "00:00";
-      this.endTime = "11:59 PM"; // End of day in 12-hour format
+      this.startTime = "12:00 AM";
+      this.endTime = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
     } else {
       this.startDate = todayStart;
       this.endDate = now;
-      this.startTime = "00:00";
+      this.startTime = "12:00 AM";
       this.endTime = now.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: true,
       });
     }
+
+    this.emitDateRange();
+  }
+
+  emitDateRange() {
+    this.dateRangeSelected.emit({
+      startDate: this.startDate,
+      startTime: this.startTime,
+      endDate: this.endDate,
+      endTime: this.endTime,
+    });
   }
 
   confirmSelection(op: any) {

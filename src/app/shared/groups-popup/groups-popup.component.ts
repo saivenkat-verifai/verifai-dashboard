@@ -178,6 +178,28 @@ export class GroupsPopupComponent implements OnChanges {
       this.data.status = isActive ? "ACTIVE" : "INACTIVE";
     }
   }
+onStatusToggle(event: Event) {
+  if (!this.data || !this.data.id) return;
+
+  // Cast event target to HTMLInputElement
+  const input = event.target as HTMLInputElement;
+  const isActive = input.checked;
+  const status = isActive ? 'ACTIVE' : 'INACTIVE';
+  const modifiedBy = 123; // replace with logged-in user id
+
+  this.groupsService.toggleQueueStatus(this.data.id, status, modifiedBy)
+    .subscribe({
+      next: () => {
+        this.data.status = status; // update local data
+        console.log('Queue status updated successfully');
+      },
+      error: (err) => {
+        console.error('Error updating queue status', err);
+        // revert checkbox state if API fails
+        input.checked = !isActive;
+      }
+    });
+}
 
   /** Inactivate a user and refresh data */
 

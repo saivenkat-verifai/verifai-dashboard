@@ -67,29 +67,29 @@ export class GroupsComponent implements OnInit, OnDestroy {
   selectedFilter: string = "CLOSED";
   currentIndex = 0; // currently selected item index
 
- nextItem() {
-  if (this.rowData.length === 0) return;
+  nextItem() {
+    if (this.rowData.length === 0) return;
 
-  if (this.currentIndex < this.rowData.length - 1) {
-    this.currentIndex++;
-  } else {
-    this.currentIndex = 0; // loop back to start
+    if (this.currentIndex < this.rowData.length - 1) {
+      this.currentIndex++;
+    } else {
+      this.currentIndex = 0; // loop back to start
+    }
+
+    this.loadGroupDetails(this.rowData[this.currentIndex].id);
   }
 
-  this.loadGroupDetails(this.rowData[this.currentIndex].id);
-}
+  prevItem() {
+    if (this.rowData.length === 0) return;
 
-prevItem() {
-  if (this.rowData.length === 0) return;
+    if (this.currentIndex > 0) {
+      this.currentIndex--;
+    } else {
+      this.currentIndex = this.rowData.length - 1; // loop to last
+    }
 
-  if (this.currentIndex > 0) {
-    this.currentIndex--;
-  } else {
-    this.currentIndex = this.rowData.length - 1; // loop to last
+    this.loadGroupDetails(this.rowData[this.currentIndex].id);
   }
-
-  this.loadGroupDetails(this.rowData[this.currentIndex].id);
-}
 
   onFilterTextBoxChanged() {
     if (this.gridApi) {
@@ -106,7 +106,20 @@ prevItem() {
   columnDefs: ColDef[] = [
     { headerName: "ID", field: "id", sortable: true },
     { headerName: "NAME", field: "name", sortable: true },
-    { headerName: "LEVEL", field: "level", sortable: true },
+    {
+      headerName: "LEVEL",
+      field: "level",
+      valueGetter: (params) => {
+        const levelMap: { [key: string]: string } = {
+          "1": "Q",
+          "2": "PDQ",
+          "3": "DQ",
+          "4": "OBQ",
+        };
+        return levelMap[params.data.level] ?? params.data.level;
+      },
+      sortable: true,
+    },
     { headerName: "SITE", field: "site" },
     { headerName: "CAMERAS", field: "cameras" },
     { headerName: "EMPLOYEES", field: "employees" },
@@ -134,42 +147,7 @@ prevItem() {
         </span>
       `,
     },
-    {
-  headerName: "ACTION",
-  field: "action",
-  cellRenderer: (params: any) => {
-    const button = document.createElement("button");
-
-    // X for ACTIVE, tick for INACTIVE
-    button.innerHTML = params.data.status === "ACTIVE" ? "X" : "✓";
-    button.title = params.data.status === "ACTIVE" ? "Deactivate Queue" : "Activate Queue";
-
-    button.className = "action-btn"; // use above CSS
-
-    button.addEventListener("click", () => {
-      const newStatus =
-        params.data.status === "ACTIVE" ? "Inactive" : "Active";
-      this.toggleQueueStatus(params.data.id, newStatus);
-    });
-
-    return button;
-  },
-  cellClass: "action-cell",
-}
   ];
-
-  toggleQueueStatus(queueId: number, newStatus: string) {
-  const modifiedBy = 123; // replace with logged-in user ID
-  this.groupsService.toggleQueueStatus(queueId, newStatus, modifiedBy).subscribe({
-    next: (res) => {
-      console.log(`Queue ${queueId} updated to ${newStatus}`, res);
-      this.loadGroups(); // refresh after update
-    },
-    error: (err) => {
-      console.error("Error toggling queue status:", err);
-    },
-  });
-}
 
   //get levels data
   selectedLevel: any;
@@ -229,6 +207,34 @@ prevItem() {
     this.isPopupVisible = true;
   }
 
+  // Check if all visible (filtered) users are selected
+  areAllFilteredUsersSelected(): boolean {
+    const filteredIds = this.filteredUsers.map((u) => u.userId);
+    return (
+      filteredIds.every((id) => this.selectedUserIds.includes(id)) &&
+      filteredIds.length > 0
+    );
+  }
+
+  // Toggle select/deselect all visible users
+  toggleSelectAll(isChecked: boolean) {
+    const filteredIds = this.filteredUsers.map((u) => u.userId);
+
+    if (isChecked) {
+      // Add all filtered users that are not already selected
+      filteredIds.forEach((id) => {
+        if (!this.selectedUserIds.includes(id)) {
+          this.selectedUserIds.push(id);
+        }
+      });
+    } else {
+      // Remove all filtered users from selected
+      this.selectedUserIds = this.selectedUserIds.filter(
+        (id) => !filteredIds.includes(id)
+      );
+    }
+  }
+
   defaultColDef: ColDef = { resizable: true, filter: true };
 
   /** Load data via service */
@@ -240,7 +246,7 @@ prevItem() {
           this.rowData = res.queuesData.map((g: any) => ({
             id: g.queueId,
             name: g.queueName,
-            level: g.level,
+            level: g.levelId,
             site: g.sites,
             cameras: g.cameras,
             employees: g.employees,
@@ -314,21 +320,21 @@ prevItem() {
     this.gridApi.addEventListener("firstDataRendered", resizeAll);
   }
 
-onCellClicked(event: any) {
-  // If "more" column clicked, open popup
-  if (event.colDef.field === "more") {
-    const target = event.event.target as HTMLElement;
-    if (target.closest(".info-icon")) {
-      this.loadGroupDetails(event.data.id);
+  onCellClicked(event: any) {
+    // If "more" column clicked, open popup
+    if (event.colDef.field === "more") {
+      const target = event.event.target as HTMLElement;
+      if (target.closest(".info-icon")) {
+        this.loadGroupDetails(event.data.id);
+      }
+    }
+
+    // Update currentIndex based on clicked row
+    const clickedIndex = this.rowData.findIndex((r) => r.id === event.data.id);
+    if (clickedIndex !== -1) {
+      this.currentIndex = clickedIndex;
     }
   }
-
-  // Update currentIndex based on clicked row
-  const clickedIndex = this.rowData.findIndex(r => r.id === event.data.id);
-  if (clickedIndex !== -1) {
-    this.currentIndex = clickedIndex;
-  }
-}
 
   users: any[] = [];
   selectedUserIds: number[] = [];

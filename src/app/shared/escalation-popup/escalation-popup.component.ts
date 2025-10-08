@@ -40,6 +40,8 @@ export class EscalationPopupComponent implements OnChanges {
   escalationRowData: any[] = [];
   alarmRowData: any[] = [];
 
+  
+
   // Column Definitions for escalation
   escalationColumnDefs: ColDef[] = [
     {
@@ -57,27 +59,33 @@ export class EscalationPopupComponent implements OnChanges {
       cellClass: "custom-cell",
       editable: (params) => params.data.isEditing,
     },
-    {
-      headerName: "RECEIVE AT",
-      field: "receiveAt",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-    },
-    {
-      headerName: "REVIEW START",
-      field: "reviewStart",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-    },
-    {
-      headerName: "REVIEW END",
-      field: "reviewEnd",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-    },
+   {
+  headerName: "RECEIVE AT",
+  field: "receiveAt",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  editable: (params) => params.data.isEditing,
+  valueFormatter: (params) => {
+    const full = this.formatDateTime(params.value); // "dd-mm-yyyy HH:MM:SS"
+    return full.split(" ")[1]; // return only "HH:MM:SS"
+  },
+},
+{
+  headerName: "REVIEW START",
+  field: "reviewStart",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  editable: (params) => params.data.isEditing,
+  valueFormatter: (params) => this.formatDateTime(params.value).split(" ")[1],
+},
+{
+  headerName: "REVIEW END",
+  field: "reviewEnd",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  editable: (params) => params.data.isEditing,
+  valueFormatter: (params) => this.formatDateTime(params.value).split(" ")[1],
+},
     {
       headerName: "DURATION",
       field: "duration",
@@ -252,9 +260,9 @@ export class EscalationPopupComponent implements OnChanges {
   getEventDotColor(eventType: string): string {
     switch (eventType) {
       case "Manual_Wall":
-        return "#53BF8B"; // green
+         return "#FFC400"; // yellow
       case "Event_Wall":
-        return "#FFC400"; // yellow
+         return "#53BF8B"; // green
       case "Missed_Wall":
         return "#FF0000"; // red
       default:
@@ -273,41 +281,69 @@ export class EscalationPopupComponent implements OnChanges {
 
   // Update row data when selectedItem changes
   ngOnChanges(changes: SimpleChanges) {
-    if (changes["selectedItem"] && this.selectedItem) {
-      console.log("API Data received in popup:", this.selectedItem);
+  if (changes["selectedItem"] && this.selectedItem) {
+    console.log("API Data received in popup:", this.selectedItem);
 
-      // Escalation
-      this.escalationRowData = (
-        this.selectedItem.eventEscalationInfo || []
-      ).map((item: any) => ({
+    // Escalation
+    this.escalationRowData = (
+      this.selectedItem.eventEscalationInfo || []
+    ).map((item: any) => ({
+      ...item,
+      user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
+    }));
+
+    // Alarm
+    this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
+      (item: any) => ({
         ...item,
         user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-      }));
+      })
+    );
 
-      // Alarm
-      this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
-        (item: any) => ({
-          ...item,
-          user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-        })
-      );
+    // Comments
+    this.commentRowData = (this.selectedItem.eventComments || []).map(
+      (c: any) => ({
+        user: { img: "https://i.pravatar.cc/30?img=1" },
+        name: c.NAME || "",
+        level: c.level || "",
+        submittedtime: this.formatDateTime(c.submittedTime || new Date()), // <--- formatted
+        notes: c.notes || "",
+      })
+    );
 
-      // Comments
-      this.commentRowData = (this.selectedItem.eventComments || []).map(
-        (c: any) => ({
-          user: { img: "https://i.pravatar.cc/30?img=1" },
-          name: c.NAME || "", // map NAME → name
-          level: c.level || "", // same
-          submittedtime: c.submittedTime || new Date().toISOString(), // map submittedTime → submittedtime
-          notes: c.notes || "", // map notes → notes
-        })
-      );
-
-      // Event Details
-      this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
-    }
+    // Event Details
+    this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
   }
+}
 
+get formattedBasicInfo() {
+  return this.basicInfoFields.map(field => {
+    let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
+
+    // Format date/time fields
+    if (field.label.toLowerCase().includes("time") && value !== "--") {
+      value = this.formatDateTime(value);
+    }
+
+    return { ...field, value };
+  });
+}
+
+// Helper function in the component
+formatDateTime(dateInput: string | Date): string {
+  const d = new Date(dateInput);
+  const pad = (n: number) => n.toString().padStart(2, "0");
+
+  const day = pad(d.getDate());
+  const month = pad(d.getMonth() + 1); // months are 0-indexed
+  const year = d.getFullYear();
+
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const seconds = pad(d.getSeconds());
+
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+}
   // Grid ready handler
   onGridReady(params: any) {
     params.api.sizeColumnsToFit();

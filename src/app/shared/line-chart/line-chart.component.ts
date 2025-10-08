@@ -45,7 +45,7 @@ export class LineChartComponent implements OnChanges {
 
       accessibility: { enabled: true },
 
-      title: { text: "Escalated Events Hourly Breakdown", align: "center" },
+      title: { text: "", align: "center" },
       xAxis: { categories: this.categories },
       yAxis: { title: { text: "Count" } },
       legend: { layout: "vertical", align: "right", verticalAlign: "middle" },

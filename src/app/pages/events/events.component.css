@@ -172,52 +172,86 @@
     gap: 10px;
 }
 
-/* Toggle switch CSS */
+/* // */
+/* Container */
 .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
+  position: relative;
+  display: inline-block;
+  width: 35px; /* width of toggle */
+  height: 20px; /* height of toggle */
 }
 
+/* Hide default input */
 .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
+/* Slider track */
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 24px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white; /* track background */
+  border: 1px solid #ED3237;   /* red border */
+  border-radius: 20px;
+  transition: 0.3s;
 }
 
+/* Circle (thumb) */
 .slider:before {
-    position: absolute;
-    content: "";
-    height: 18px;
-    width: 18px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: 0.3s;
-    border-radius: 50%;
+  content: "";
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: gray; /* OFF color */
+  transition: 0.3s;
+  border-radius: 50%;
 }
 
-input:checked+.slider {
-    background-color: #4caf50;
+/* Checked state */
+input:checked + .slider:before {
+  background-color: #ED3237; /* ON color */
 }
 
-input:checked+.slider:before {
-    transform: translateX(26px);
+/* Keep track background white when checked */
+input:checked + .slider {
+  background-color: white;
 }
 
+/* Optional: round shape */
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Move thumb when ON */
+input:checked + .slider:before {
+  transform: translateX(15px);
+}
+
+
+
+/* Make unchecked toggle faded */
+.switch input:not(:checked) + .slider {
+  opacity: 0.5; /* adjust between 0.3–0.7 depending on preference */
+}
+
+/* Keep checked toggle fully visible */
+.switch input:checked + .slider {
+  opacity: 5;
+}
+
+/* // */
 .calender-first-section {
     grid-column: span 6;
 }
@@ -320,6 +354,25 @@ display: flex;
     font-size: 12px !important;
     /* width: auto !important; */
 }
+
+:host ::ng-deep .center-cell {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  text-align: center !important;
+  font-family: 'Neometric Medium' !important;
+  font-size: 12px !important;
+  height: 100% !important; /* ensure it fills the cell */
+}
+
+:host ::ng-deep .center-cell .ag-cell-wrapper {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100%;
+}
+
+
 
 :host ::ng-deep .ag-paging-panel {
     font-family: 'Neometric Medium' !important;
@@ -641,13 +694,22 @@ display: flex;
     width: -webkit-fill-available;
 }
 
+
+
+
 .search-input {
     width: -webkit-fill-available;
-    padding: 8px 12px;
-    border-radius: 25px;
-    border: 1px solid #ccc;
-    font-size: 15px;
-    /* height: 25px; */
+  padding: 8px 35px 8px 10px; /* right padding for the icon */
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 14px;
+
+  background-color: white; /* ✅ white background */
+  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'><path d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>")
+    no-repeat right 10px center;
+  background-size: 18px;
+
+  outline: none;
 }
 
 /* === CALENDAR POPUP === */

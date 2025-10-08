@@ -5,7 +5,7 @@
       <div class="section-header">
         <h2>QUEUES</h2>
         <button class="createbutton" (click)="onCreateQueueClick()">
-         +  CREATE QUEUE
+          + CREATE QUEUE
         </button>
       </div>
 
@@ -44,6 +44,7 @@
             <input
               type="text"
               placeholder="Search here"
+              class="search-input"
               [(ngModel)]="searchTerm"
               (input)="onFilterTextBoxChanged()"
             />
@@ -82,15 +83,31 @@
       <div class="popup-header">
         <div class="popup-header-content">
           <div class="icon-info">
-            <img class="calenderimage flip-horizontal1" src="../../../assets/headericons/direction-wueues.svg" alt="" />
-         
-            <p class="label nomargin"> {{ selectedItem?.name }}</p>
+            <img
+              class="calenderimage flip-horizontal1"
+              src="../../../assets/headericons/direction-wueues.svg"
+              alt=""
+            />
+
+            <p class="label nomargin">{{ selectedItem?.name }}</p>
           </div>
         </div>
         <div class="navigation-controls">
-          <button class="arrow left-arrow" (click)="prevItem()"> <img class="calenderimage flip-horizontal" src="../../../assets/arrow-circle-right.svg" alt="" /></button>
+          <!-- <button class="arrow left-arrow" (click)="prevItem()"> <img class="calenderimage flip-horizontal" src="../../../assets/arrow-circle-right.svg" alt="" /></button> -->
+          <img
+            class="calenderimage"
+            (click)="prevItem()"
+            src="../../../assets/arrow-circle-left-groups.svg"
+            alt=""
+          />
           <p class="nomargin">{{ currentIndex + 1 }}/{{ rowData.length }}</p>
-          <button class="arrow right-arrow" (click)="nextItem()">   <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" /></button>
+          <!-- <button class="arrow right-arrow" (click)="nextItem()">  </button> -->
+          <img
+            class="calenderimage flip-horizontal"
+            (click)="nextItem()"
+            src="../../../assets/arrow-circle-left-groups.svg"
+            alt=""
+          />
         </div>
       </div>
       <div class="popup-body">
@@ -115,8 +132,21 @@
     >
       <div class="popup-header">
         <!-- <button class="right-arrow" (click)="goBack()">←</button> -->
-        <p class="label nomargin">ADD {{ currentSection | titlecase }}</p>
-         <img class="calenderimage" (click)="goBack()" src="../../../assets/close-filled.svg" alt="" />
+        <p class="label nomargin">
+          {{
+            currentSection.toLowerCase() === "queue"
+              ? "CREATE QUEUE"
+              : currentSection.toLowerCase() === "camera"
+              ? "ADD SITE & CAMERA"
+              : "ADD " + (currentSection | titlecase | uppercase)
+          }}
+        </p>
+        <img
+          class="calenderimage"
+          (click)="goBack()"
+          src="../../../assets/close-filled.svg"
+          alt=""
+        />
       </div>
 
       <div class="popup-body">
@@ -200,6 +230,19 @@
                 class="form-control"
               />
             </div>
+            <div class="form-groups select-all">
+              <label for="selectAll"> Employee ({{ users.length }})</label>
+              <label for="selectAll">
+                <input
+                  type="checkbox"
+                  id="selectAll"
+                  #selectAllCheckbox
+                  [checked]="areAllFilteredUsersSelected()"
+                  (change)="toggleSelectAll(selectAllCheckbox.checked)"
+                />
+                Select All</label
+              >
+            </div>
 
             <!-- Users list with scroll -->
             <div
@@ -216,6 +259,7 @@
                       toggleUserSelection(user.userId, checkbox.checked)
                     "
                   />
+
                   <div>
                     <img
                       class="imground"
@@ -290,7 +334,7 @@
 
           <!-- Queue Level -->
           <div class="form-group">
-            <label for="queueLevel">Level</label>
+            <label for="queueLevel">Queue Level</label>
 
             <p-dropdown
               [options]="levelsData"
@@ -299,7 +343,7 @@
               optionLabel="levelName"
               optionValue="levelId"
               placeholder="Select Level"
-             [style]="{ width: '100%', height: '35px' }"
+              [style]="{ width: '100%', height: '35px' }"
             >
             </p-dropdown>
           </div>
@@ -315,7 +359,7 @@
                 (click)="createQueue()"
                 class="btn add-btn w-100"
               >
-               Create
+                Create
               </button>
             </div>
           </div>

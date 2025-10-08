@@ -1,64 +1,64 @@
 <div class="calendar-header">
-<p-dropdown 
-    [options]="viewOptions" 
-    [(ngModel)]="viewMode" 
-    placeholder="DAY" 
-    class="view-select" 
-    styleClass="w-12"
-    [showClear]="false"
-    (onChange)="onViewModeChange($event.value)">
-</p-dropdown>
+  <p-dropdown 
+      [options]="viewOptions" 
+      [(ngModel)]="viewMode" 
+      placeholder="DAY" 
+      class="view-select" 
+      styleClass="w-12"
+      [showClear]="false"
+      (onChange)="onViewModeChange($event.value)">
+  </p-dropdown>
+
   <p-button label="TODAY" class="today-btn" (onClick)="goToday()"> </p-button>
 
-<ng-container *ngIf="viewMode !== 'week' && viewMode !== 'month'">
-  <button class="circle-btn" (click)="prevMonth()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
-  </button>
+  <ng-container *ngIf="viewMode !== 'week' && viewMode !== 'month'">
+    <button class="circle-btn" (click)="prevMonth()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+    </button>
 
-  <span class="selected-range font-Neometric-Bold" #rangeTrigger (click)="op.toggle($event)">
-    {{ startDate | date : "dd MMM, yyyy HH:mm a" | uppercase }} -
-    {{ endDate | date : "dd MMM, yyyy HH:mm a" | uppercase }}
-  </span>
+    <span class="selected-range font-Neometric-Bold" #rangeTrigger (click)="op.toggle($event)">
+      {{ startDate | date : "dd MMM, yyyy HH:mm a" | uppercase }} -
+      {{ endDate | date : "dd MMM, yyyy HH:mm a" | uppercase }}
+    </span>
 
-  <button class="circle-btn" (click)="nextMonth()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
-  </button>
-</ng-container>
+    <button class="circle-btn" (click)="nextMonth()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+    </button>
+  </ng-container>
 
-<div class="week-cards" *ngIf="viewMode === 'week'">
-  <button class="circle-btn" (click)="prevWeekWindow()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
-  </button>
+  <div class="week-cards" *ngIf="viewMode === 'week'">
+    <button class="circle-btn" (click)="prevWeekWindow()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+    </button>
 
-  <div class="week-card" 
-       *ngFor="let week of visibleWeekWindow()" 
-       (click)="selectWeek(week)" 
-       [class.active]="currentWeekIndex === weeks.indexOf(week)">
-    {{ week.label }} <br>
-    <!-- {{ week.start | date:'MMM d, yyyy' }} - {{ week.end | date:'MMM d, yyyy' }} -->
+    <div class="week-card" 
+         *ngFor="let week of visibleWeekWindow()" 
+         (click)="selectWeek(week)" 
+         [class.active]="currentWeekIndex === weeks.indexOf(week)">
+      {{ week.label }}
+    </div>
+
+    <button class="circle-btn" (click)="nextWeekWindow()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+    </button>
   </div>
 
-  <button class="circle-btn" (click)="nextWeekWindow()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
-  </button>
-</div>
+  <div class="month-cards" *ngIf="viewMode === 'month'">
+    <button class="circle-btn" (click)="prevMonthWindow()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+    </button>
 
-<div class="month-cards" *ngIf="viewMode === 'month'">
-  <button class="circle-btn" (click)="prevMonthWindow()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
-  </button>
+    <div class="month-card"
+         *ngFor="let month of visibleMonthWindow()"
+         (click)="selectMonth(month)"
+         [class.active]="currentMonthIndex === months.indexOf(month)">
+      {{ month.label }}
+    </div>
 
-  <div class="month-card"
-       *ngFor="let month of visibleMonthWindow()"
-       (click)="selectMonth(month)"
-       [class.active]="currentMonthIndex === months.indexOf(month)">
-    {{ month.label }}
+    <button class="circle-btn" (click)="nextMonthWindow()">
+      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+    </button>
   </div>
-
-  <button class="circle-btn" (click)="nextMonthWindow()">
-    <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
-  </button>
-</div>
 
   <p-button class="custom-today-btn" (click)="op.toggle($event)">
     <ng-template pTemplate="icon">
@@ -75,13 +75,23 @@
           <div class="date-time-inputs">
             <div class="input-group">
               <div class="p-field-checkbox">
-                <p-checkbox name="remember" label="Date Range" [(ngModel)]="dateRange" [binary]="true">
+                <p-checkbox 
+                  name="dateRange" 
+                  label="Date Range" 
+                  [(ngModel)]="dateRange" 
+                  [binary]="true" 
+                  (onChange)="toggleDateRange()">
                 </p-checkbox>
               </div>
             </div>
             <div class="input-group">
               <div class="p-field-checkbox">
-                <p-checkbox name="remember" label="Whole Day" [(ngModel)]="wholeday" [binary]="true">
+                <p-checkbox 
+                  name="wholeDay" 
+                  label="Whole Day" 
+                  [(ngModel)]="wholeDay" 
+                  [binary]="true"
+                  (onChange)="toggleWholeDay()">
                 </p-checkbox>
               </div>
             </div>
@@ -105,6 +115,7 @@
             [maxDate]="today">
           </p-calendar>
         </div>
+
         <div class="popup-footer">
           <p-button label="Confirm" severity="danger" (onClick)="confirmSelection(op)" class="submitdate">
           </p-button>
@@ -136,5 +147,3 @@
     </div>
   </ng-template>
 </p-overlayPanel>
-
-<!-- Removed the hidden trigger div since we're using explicit triggers -->

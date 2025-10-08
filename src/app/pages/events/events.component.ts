@@ -119,18 +119,18 @@ export class EventsComponent implements OnInit {
   constructor(private eventsService: EventsService) {}
 
   /** -------------------- Lifecycle -------------------- */
-ngOnInit() {
-  this.selectedDate = new Date();
-  this.selectedStartDate = this.selectedDate;
-  this.selectedEndDate = this.selectedDate;
-  this.setupColumnDefs();
-  this.loadPendingEvents();
+  ngOnInit() {
+    this.selectedDate = new Date();
+    this.selectedStartDate = this.selectedDate;
+    this.selectedEndDate = this.selectedDate;
+    this.setupColumnDefs();
+    this.loadPendingEvents();
 
-  // auto-refresh the displayed clock every 1 min
-  setInterval(() => {
-    this.currentDateTime = new Date();
-  }, 60000);
-}
+    // auto-refresh the displayed clock every 1 min
+    setInterval(() => {
+      this.currentDateTime = new Date();
+    }, 60000);
+  }
 
   /** -------------------- Filter & toggle actions -------------------- */
   setFilter(filter: "CLOSED" | "PENDING") {
@@ -150,32 +150,32 @@ ngOnInit() {
   }
 
   onSuspiciousToggle() {
-  this.suspiciousChecked = true;
-  this.falseChecked = false;
-  this.loadClosedAndEscalatedDetails();
-  if (this.showMore) this.loadEscalatedDetails();
-}
+    this.suspiciousChecked = true;
+    this.falseChecked = false;
+    this.loadClosedAndEscalatedDetails();
+    if (this.showMore) this.loadEscalatedDetails();
+  }
 
-onFalseToggle() {
-  this.suspiciousChecked = false;
-  this.falseChecked = true;
-  this.loadClosedAndEscalatedDetails();
-  if (this.showMore) this.loadEscalatedDetails();
-}
+  onFalseToggle() {
+    this.suspiciousChecked = false;
+    this.falseChecked = true;
+    this.loadClosedAndEscalatedDetails();
+    if (this.showMore) this.loadEscalatedDetails();
+  }
 
-onconsolesToggle() {
-  this.consolesChecked = true;
-  this.queuesChecked = false;
-  this.selectedpendingFilter = "CONSOLES";
-  this.loadPendingEvents();
-}
+  onconsolesToggle() {
+    this.consolesChecked = true;
+    this.queuesChecked = false;
+    this.selectedpendingFilter = "CONSOLES";
+    this.loadPendingEvents();
+  }
 
-onqueuesToggle() {
-  this.consolesChecked = false;
-  this.queuesChecked = true;
-  this.selectedpendingFilter = "QUEUES";
-  this.loadPendingEvents();
-}
+  onqueuesToggle() {
+    this.consolesChecked = false;
+    this.queuesChecked = true;
+    this.selectedpendingFilter = "QUEUES";
+    this.loadPendingEvents();
+  }
 
   toggleMore() {
     this.showMore = !this.showMore;
@@ -216,40 +216,35 @@ onqueuesToggle() {
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- AG Grid cell click -------------------- */
-onCellClicked(event: any) {
+  onCellClicked(event: any) {
+    const target = event.event.target as HTMLElement;
 
-  const target = event.event.target as HTMLElement;
+    if (event.colDef.field === "more" && target.closest(".info-icon")) {
+      const eventId = event.data.eventId; // id from the table row
 
-  if (event.colDef.field === "more" && target.closest(".info-icon")) {
-   
-     const eventId = event.data.eventId; // id from the table row
-   
+      this.eventsService.getEventMoreInfo(eventId).subscribe({
+        next: (res) => {
+          this.openTablePopup(res); // pass the full object to popup
+        },
+      });
+    }
+
+    if (event.colDef.field === "more" && target.closest(".play-icon")) {
+      this.openPlayPopup(event.data);
+    }
+  }
+
+  fetchMoreInfo(eventId: number) {
     this.eventsService.getEventMoreInfo(eventId).subscribe({
       next: (res) => {
-     
-        this.openTablePopup(res); // pass the full object to popup
-      }
+        this.selectedItem = res; // set popup data
+        this.isTablePopupVisible = true; // open popup
+      },
+      error: (err) => {
+        console.error("Error fetching more info:", err);
+      },
     });
   }
-
-  if (event.colDef.field === "more" && target.closest(".play-icon")) {
-    this.openPlayPopup(event.data);
-  }
-}
-
-fetchMoreInfo(eventId: number) {
-  this.eventsService.getEventMoreInfo(eventId).subscribe({
-    next: (res) => {
-      this.selectedItem = res; // set popup data
-      this.isTablePopupVisible = true; // open popup
-    },
-    error: (err) => {
-      console.error('Error fetching more info:', err);
-    },
-  });
-}
-
-
 
   /** -------------------- Popup handling -------------------- */
   openTablePopup(item: any) {
@@ -345,31 +340,37 @@ fetchMoreInfo(eventId: number) {
 
   selectedStartDate: Date | null = null;
   selectedEndDate: Date | null = null;
-onDateRangeSelected(event: {
-  startDate: Date;
-  startTime: string;
-  endDate: Date;
-  endTime: string;
-}) {
-  // Merge into full Date objects
-  this.selectedStartDate = this.combineDateAndTime(event.startDate, event.startTime);
-  this.selectedEndDate = this.combineDateAndTime(event.endDate, event.endTime);
+  onDateRangeSelected(event: {
+    startDate: Date;
+    startTime: string;
+    endDate: Date;
+    endTime: string;
+  }) {
+    // Merge into full Date objects
+    this.selectedStartDate = this.combineDateAndTime(
+      event.startDate,
+      event.startTime
+    );
+    this.selectedEndDate = this.combineDateAndTime(
+      event.endDate,
+      event.endTime
+    );
 
-  console.log("Start DateTime:", this.selectedStartDate);
-  console.log("End DateTime:", this.selectedEndDate);
+    console.log("Start DateTime:", this.selectedStartDate);
+    console.log("End DateTime:", this.selectedEndDate);
 
-  if (this.selectedFilter === 'CLOSED') {
-    this.loadClosedAndEscalatedDetails();
+    if (this.selectedFilter === "CLOSED") {
+      this.loadClosedAndEscalatedDetails();
+    }
   }
-}
 
-/** Utility: combine Date + time string into formatted string */
-private combineDateAndTime(date: Date, time: string): Date {
-  const [hours, minutes, seconds] = time.split(":").map(Number);
-  const combined = new Date(date);
-  combined.setHours(hours || 0, minutes || 0, seconds || 0);
-  return combined;
-}
+  /** Utility: combine Date + time string into formatted string */
+  private combineDateAndTime(date: Date, time: string): Date {
+    const [hours, minutes, seconds] = time.split(":").map(Number);
+    const combined = new Date(date);
+    combined.setHours(hours || 0, minutes || 0, seconds || 0);
+    return combined;
+  }
 
   formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -377,8 +378,6 @@ private combineDateAndTime(date: Date, time: string): Date {
       date.getDate()
     )}`;
   }
-
-  
 
   private transformQueuesMessages(res: any) {
     const allQueues = [
@@ -462,31 +461,31 @@ private combineDateAndTime(date: Date, time: string): Date {
   /** -------------------- Load closed and escalated details -------------------- */
 
   private formatDateTimeFull(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
-  )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
-}
+    const pad = (n: number) => n.toString().padStart(2, "0");
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
+      date.getSeconds()
+    )}`;
+  }
 
   loadClosedAndEscalatedDetails() {
-  const actionTag = this.suspiciousChecked ? 2 : 1;
+    const actionTag = this.suspiciousChecked ? 2 : 1;
 
-  const startDateStr = this.selectedStartDate
-    ? this.formatDateTimeFull(this.selectedStartDate)
-    : undefined;
+    const startDateStr = this.selectedStartDate
+      ? this.formatDateTimeFull(this.selectedStartDate)
+      : undefined;
 
-  const endDateStr = this.selectedEndDate
-    ? this.formatDateTimeFull(this.selectedEndDate)
-    : undefined;
-
-
+    const endDateStr = this.selectedEndDate
+      ? this.formatDateTimeFull(this.selectedEndDate)
+      : undefined;
 
     this.eventsService
       .getSuspiciousEvents(actionTag, startDateStr, endDateStr)
       .subscribe({
         next: (res) => {
           // Closed events for table
-          console.log(res,"responce")
+          console.log(res, "responce");
           if (res?.eventData) {
             this.rowData = res.eventData.map((e: any) => ({
               ...e,
@@ -600,7 +599,7 @@ private combineDateAndTime(date: Date, time: string): Date {
       },
       {
         headerName: "EVENT TIME",
-        field: "eventStartTime",
+        field: "eventStartDatetime",
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
@@ -626,11 +625,12 @@ private combineDateAndTime(date: Date, time: string): Date {
         filter: true,
         suppressHeaderMenuButton: true,
       },
+
       {
         headerName: "ACTION TAG",
         field: "actionTag",
         headerClass: "custom-header",
-        cellClass: "custom-cell",
+        cellClass: "custome-cell",
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -642,7 +642,8 @@ private combineDateAndTime(date: Date, time: string): Date {
         cellClass: "custom-cell",
         valueFormatter: (params) => params.value?.name || "",
         cellRenderer: (params: any) =>
-          `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span>${params.value.name} - Level ${params.value.level}</span></div>`,
+          `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span> Level ${params.value.level}</span></div>`,
+        // `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span>${params.value.name} - Level ${params.value.level}</span></div>`,
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -651,7 +652,12 @@ private combineDateAndTime(date: Date, time: string): Date {
         headerName: "ALERT TYPE",
         field: "alertType",
         headerClass: "custom-header",
-        cellClass: "custom-cell",
+        cellStyle: {
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
         cellRenderer: () =>
           `<span style="display:inline-block; width:14px; height:14px; background:green; border-radius:50%;"></span>`,
         floatingFilter: true,
@@ -676,7 +682,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -686,7 +692,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -695,7 +701,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         field: "cameraId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -704,7 +710,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         field: "eventTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -713,7 +719,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         field: "actionTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -724,7 +730,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -735,7 +741,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -744,7 +750,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         field: "queueName",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
@@ -753,7 +759,7 @@ private combineDateAndTime(date: Date, time: string): Date {
         field: "queueLevel",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-         floatingFilter: true,
+        floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
       },
