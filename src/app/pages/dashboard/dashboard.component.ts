@@ -106,8 +106,8 @@ onDateRangeSelected(event: {
       percentage: c.perc,
       color: c.color,
       colordot: [
-        { iconcolor: '#FFC400', count: item.eventWall },
-        { iconcolor: '#53BF8B', count: item.manualWall },
+        { iconcolor: '#53BF8B', count: item.eventWall },
+        { iconcolor: '#FFC400', count: item.manualWall },
       ],
       icons: [
         { iconPath: 'assets/home.svg', count: item.sitesCount },
@@ -123,8 +123,8 @@ onDateRangeSelected(event: {
       value: details[k].total,
       color: ESCALATED_COLORS[i] || '#000',
       colordot: [
-        { iconcolor: '#FFC400', count: details[k].eventWall },
-        { iconcolor: '#53BF8B', count: details[k].manualWall },
+        { iconcolor: '#53BF8B', count: details[k].eventWall },
+        { iconcolor: '#FFC400', count: details[k].manualWall },
       ],
       icons: [
         { iconPath: 'assets/home.svg', count: details[k].sitesCount },

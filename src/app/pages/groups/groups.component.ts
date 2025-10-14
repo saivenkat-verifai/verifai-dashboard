@@ -41,7 +41,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
   gridApi!: GridApi;
   private apiSub?: Subscription;
 
-  constructor(private groupsService: GroupsService) {}
+  constructor(private groupsService: GroupsService) { }
 
   ngOnInit() {
     this.selectedDate = new Date();
@@ -127,9 +127,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
       headerName: "STATUS",
       field: "status",
       headerClass: "custom-header",
-      cellClass: "custom-cell",
       cellRenderer: (params: any) => {
-        const color = params.value === "ACTIVE" ? "#53BF8B" : "#00000040";
+        const color = params.value === "ACTIVE" ? "#53BF8B" : "#979797";
         return `
           <span style="display:inline-flex; align-items:center; gap:6px;">
             <span style="display:inline-block; width:14px; height:14px; background:${color}; border-radius:50%;"></span>
@@ -137,7 +136,6 @@ export class GroupsComponent implements OnInit, OnDestroy {
         `;
       },
     },
-
     {
       headerName: "MORE",
       field: "more",
@@ -378,17 +376,17 @@ export class GroupsComponent implements OnInit, OnDestroy {
     return Math.ceil(
       (this.searchUserTerm
         ? this.users.filter(
-            (u) =>
-              u.userName
-                .toLowerCase()
-                .includes(this.searchUserTerm.toLowerCase()) ||
-              u.email
-                .toLowerCase()
-                .includes(this.searchUserTerm.toLowerCase()) ||
-              u.userContact
-                .toLowerCase()
-                .includes(this.searchUserTerm.toLowerCase())
-          ).length
+          (u) =>
+            u.userName
+              .toLowerCase()
+              .includes(this.searchUserTerm.toLowerCase()) ||
+            u.email
+              .toLowerCase()
+              .includes(this.searchUserTerm.toLowerCase()) ||
+            u.userContact
+              .toLowerCase()
+              .includes(this.searchUserTerm.toLowerCase())
+        ).length
         : this.users.length) / this.pageSize
     );
   }

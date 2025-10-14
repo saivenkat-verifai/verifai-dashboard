@@ -40,8 +40,6 @@ export class EscalationPopupComponent implements OnChanges {
   escalationRowData: any[] = [];
   alarmRowData: any[] = [];
 
-  
-
   // Column Definitions for escalation
   escalationColumnDefs: ColDef[] = [
     {
@@ -59,33 +57,35 @@ export class EscalationPopupComponent implements OnChanges {
       cellClass: "custom-cell",
       editable: (params) => params.data.isEditing,
     },
-   {
-  headerName: "RECEIVE AT",
-  field: "receiveAt",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  editable: (params) => params.data.isEditing,
-  valueFormatter: (params) => {
-    const full = this.formatDateTime(params.value); // "dd-mm-yyyy HH:MM:SS"
-    return full.split(" ")[1]; // return only "HH:MM:SS"
-  },
-},
-{
-  headerName: "REVIEW START",
-  field: "reviewStart",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  editable: (params) => params.data.isEditing,
-  valueFormatter: (params) => this.formatDateTime(params.value).split(" ")[1],
-},
-{
-  headerName: "REVIEW END",
-  field: "reviewEnd",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  editable: (params) => params.data.isEditing,
-  valueFormatter: (params) => this.formatDateTime(params.value).split(" ")[1],
-},
+    {
+      headerName: "RECEIVE AT",
+      field: "receiveAt",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
+      valueFormatter: (params) => {
+        const full = this.formatDateTime(params.value); // "dd-mm-yyyy HH:MM:SS"
+        return full.split(" ")[1]; // return only "HH:MM:SS"
+      },
+    },
+    {
+      headerName: "REVIEW START",
+      field: "reviewStart",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
+      valueFormatter: (params) =>
+        this.formatDateTime(params.value).split(" ")[1],
+    },
+    {
+      headerName: "REVIEW END",
+      field: "reviewEnd",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      editable: (params) => params.data.isEditing,
+      valueFormatter: (params) =>
+        this.formatDateTime(params.value).split(" ")[1],
+    },
     {
       headerName: "DURATION",
       field: "duration",
@@ -115,7 +115,7 @@ export class EscalationPopupComponent implements OnChanges {
       editable: (params) => params.data.isEditing,
     },
     {
-      headerName: "ACTIONS",
+      headerName: "END OF SHIFT",
       headerClass: "custom-header",
       cellClass: "custom-cell",
       cellRenderer: (params: any) => {
@@ -147,19 +147,31 @@ export class EscalationPopupComponent implements OnChanges {
           container.appendChild(cancelBtn);
         } else {
           // Edit button
-          const editBtn = document.createElement("button");
-          editBtn.className = "action-btn edit-btn";
-          editBtn.innerText = "✎";
-          editBtn.addEventListener("click", () => {
-            params.data.isEditing = true;
-            params.api.refreshCells({ rowNodes: [params.node], force: true });
-            params.api.startEditingCell({
-              rowIndex: params.node.rowIndex,
-              colKey: "userLevel", // Start editing on USER LEVEL column
-            });
-          });
+       // Edit button
+const editBtn = document.createElement("button");
+editBtn.className = "action-btn1 edit-btn1";
 
-          container.appendChild(editBtn);
+// Create an image element for the pencil icon
+const pencilIcon = document.createElement("img");
+pencilIcon.src = "assets/pencil.svg"; // replace with the correct path to your SVG
+pencilIcon.alt = "Edit";
+pencilIcon.style.width = "16px"; // adjust size as needed
+pencilIcon.style.height = "16px";
+
+// Append the image to the button
+editBtn.appendChild(pencilIcon);
+
+editBtn.addEventListener("click", () => {
+  params.data.isEditing = true;
+  params.api.refreshCells({ rowNodes: [params.node], force: true });
+  params.api.startEditingCell({
+    rowIndex: params.node.rowIndex,
+    colKey: "userLevel", // Start editing on USER LEVEL column
+  });
+});
+
+container.appendChild(editBtn);
+
         }
 
         return container;
@@ -260,9 +272,9 @@ export class EscalationPopupComponent implements OnChanges {
   getEventDotColor(eventType: string): string {
     switch (eventType) {
       case "Manual_Wall":
-         return "#FFC400"; // yellow
+        return "#FFC400"; // yellow
       case "Event_Wall":
-         return "#53BF8B"; // green
+        return "#53BF8B"; // green
       case "Missed_Wall":
         return "#FF0000"; // red
       default:
@@ -281,69 +293,69 @@ export class EscalationPopupComponent implements OnChanges {
 
   // Update row data when selectedItem changes
   ngOnChanges(changes: SimpleChanges) {
-  if (changes["selectedItem"] && this.selectedItem) {
-    console.log("API Data received in popup:", this.selectedItem);
+    if (changes["selectedItem"] && this.selectedItem) {
+      console.log("API Data received in popup:", this.selectedItem);
 
-    // Escalation
-    this.escalationRowData = (
-      this.selectedItem.eventEscalationInfo || []
-    ).map((item: any) => ({
-      ...item,
-      user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-    }));
-
-    // Alarm
-    this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
-      (item: any) => ({
+      // Escalation
+      this.escalationRowData = (
+        this.selectedItem.eventEscalationInfo || []
+      ).map((item: any) => ({
         ...item,
         user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-      })
-    );
+      }));
 
-    // Comments
-    this.commentRowData = (this.selectedItem.eventComments || []).map(
-      (c: any) => ({
-        user: { img: "https://i.pravatar.cc/30?img=1" },
-        name: c.NAME || "",
-        level: c.level || "",
-        submittedtime: this.formatDateTime(c.submittedTime || new Date()), // <--- formatted
-        notes: c.notes || "",
-      })
-    );
+      // Alarm
+      this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
+        (item: any) => ({
+          ...item,
+          user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
+        })
+      );
 
-    // Event Details
-    this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
-  }
-}
+      // Comments
+      this.commentRowData = (this.selectedItem.eventComments || []).map(
+        (c: any) => ({
+          user: { img: "https://i.pravatar.cc/30?img=1" },
+          name: c.NAME || "",
+          level: c.level || "",
+          submittedtime: this.formatDateTime(c.submittedTime || new Date()), // <--- formatted
+          notes: c.notes || "",
+        })
+      );
 
-get formattedBasicInfo() {
-  return this.basicInfoFields.map(field => {
-    let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
-
-    // Format date/time fields
-    if (field.label.toLowerCase().includes("time") && value !== "--") {
-      value = this.formatDateTime(value);
+      // Event Details
+      this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
     }
+  }
 
-    return { ...field, value };
-  });
-}
+  get formattedBasicInfo() {
+    return this.basicInfoFields.map((field) => {
+      let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
 
-// Helper function in the component
-formatDateTime(dateInput: string | Date): string {
-  const d = new Date(dateInput);
-  const pad = (n: number) => n.toString().padStart(2, "0");
+      // Format date/time fields
+      if (field.label.toLowerCase().includes("time") && value !== "--") {
+        value = this.formatDateTime(value);
+      }
 
-  const day = pad(d.getDate());
-  const month = pad(d.getMonth() + 1); // months are 0-indexed
-  const year = d.getFullYear();
+      return { ...field, value };
+    });
+  }
 
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  const seconds = pad(d.getSeconds());
+  // Helper function in the component
+  formatDateTime(dateInput: string | Date): string {
+    const d = new Date(dateInput);
+    const pad = (n: number) => n.toString().padStart(2, "0");
 
-  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-}
+    const day = pad(d.getDate());
+    const month = pad(d.getMonth() + 1); // months are 0-indexed
+    const year = d.getFullYear();
+
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  }
   // Grid ready handler
   onGridReady(params: any) {
     params.api.sizeColumnsToFit();

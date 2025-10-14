@@ -65,13 +65,13 @@
                   class="dot"
                   [ngStyle]="{ 'background-color': dot.iconcolor }"
                 ></span>
-                <span>{{ dot.count }}</span>
+                <span class="icon-counts">{{ dot.count }}</span>
               </div>
             </div>
-            <div class="icons-group">
+            <div class="icons-group icon-counts">
               <div class="icon" *ngFor="let icon of card.icons">
                 <img [src]="icon.iconPath" alt="icon" />
-                <span>{{ icon.count }}</span>
+                <span >{{ icon.count }}</span>
               </div>
             </div>
           </div>
@@ -100,10 +100,10 @@
                     class="dot"
                     [ngStyle]="{ 'background-color': dot.iconcolor }"
                   ></span>
-                  <span>{{ dot.count }}</span>
+                  <span class="opacity-25">{{ dot.count }}</span>
                 </div>
               </div>
-              <div class="icons-group" *ngIf="e.icons">
+              <div class="icons-group opacity-25" *ngIf="e.icons">
                 <div class="icon-section" *ngFor="let icon of e.icons">
                   <img
                     [src]="icon.iconPath"
@@ -113,7 +113,7 @@
                       'cam-icon': icon.iconPath.includes('cam.svg')
                     }"
                   />
-                  <span>{{ icon.count }}</span>
+                  <span >{{ icon.count }}</span>
                 </div>
               </div>
             </div>

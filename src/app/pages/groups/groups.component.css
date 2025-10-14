@@ -1,5 +1,6 @@
 /* === FONT FACES === */
 @import url('https://fonts.cdnfonts.com/css/neometric-2');
+
 @font-face {
     font-family: 'Neometric Bold';
     font-style: normal;
@@ -22,82 +23,37 @@
     src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
 }
 
-.createbutton {
-    height: 30px;
-    border: 1px solid black;
-    background-color: white;
-    color: black;
-    border-radius: 3px;
-    font-family: 'Neometric Medium';
-}
+/* === UTILITY CLASSES === */
+.nomargin { margin: 0; }
 
-.search-input {
-    width: -webkit-fill-available;
-  padding: 8px 35px 8px 10px; /* right padding for the icon */
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  font-size: 14px;
+.flip-horizontal { transform: scaleX(-1); }
+.flip-horizontal1 { transform: scaleX(-1); margin-right: 10px; }
 
-  background-color: white; /* ✅ white background */
-  background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'><path d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>")
-    no-repeat right 10px center;
-  background-size: 18px;
-
-  outline: none;
-}
-
-.calender-search {
-    grid-column: span 4;
-}
-
-.form-groups{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    font-family: 'Neometric Regular';
-    font-size: 10px;
-}
-
+.m-t-20 { margin-top: 20px; }
 
 /* === DASHBOARD CONTAINER === */
 .dashboard-container {
-   font-family: 'Neometric Regular';
+    font-family: 'Neometric Regular';
     background-color: #f6f6f6;
     height: 100vh;
     display: flex;
     flex-direction: column;
 }
 
-/* === DASHBOARD GRID === */
 .dashboard-content {
     flex: 1;
     display: grid;
     grid-template-columns: 7fr 5fr;
-    gap: 16px;
-    padding: 20px;
     height: calc(100vh - 100px);
     overflow: scroll;
-}
-
-:host ::ng-deep .p-dropdown-label {
-  height: 35px !important;
-  line-height: 35px !important;
-  padding: 0 10px !important;
-  
-}
-
-:host ::ng-deep .p-dropdown-trigger {
-  height: 35px !important;
-  line-height: 35px !important;
 }
 
 /* === LEFT SECTION === */
 .left-section {
     display: flex;
     flex-direction: column;
-    /* gap: 16px; */
     overflow: scroll;
+    padding: 20px;
 }
 
 .section-header {
@@ -106,57 +62,20 @@
     justify-content: space-between;
 }
 
-.navigation-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.nomargin {
-    margin: 0;
-}
-
-.flip-horizontal {
-  transform: scaleX(-1);
-}
-.flip-horizontal1 {
-  transform: scaleX(-1);
-  margin-right: 10px;
-}
-
-.icon-info{
-    display: flex
-;
-    flex-direction: row;
-    align-items: center;
-}
-
-.arrow {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 1px solid white;
-    background-color: white;
-    color: #ED3237;
-    font-size: 11px;
-    font-weight: 900;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-}
-
-.arrow:hover {
-    background-color: #f0f0f0;
-    transform: scale(1.1);
-}
-
 .section-header h2 {
     opacity: 0.15;
     font-size: 20px;
     font-weight: 600;
     color: #333;
+}
+
+.createbutton {
+    height: 30px;
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    border-radius: 3px;
+    font-family: 'Neometric Medium';
 }
 
 .escalated-row {
@@ -173,7 +92,6 @@
     align-items: center;
     padding: 8px 12px;
     border: 1px solid #ddd;
-    border-radius: 8px;
     background: #fff;
     font-family: 'Neometric Medium';
     font-size: 14px;
@@ -181,88 +99,86 @@
     transition: transform 0.2s;
 }
 
-.calender-escalated-card:hover {
-    transform: scale(1.02);
+.calender-escalated-card:hover { transform: scale(1.02); }
+
+.calender-escalated-card .label { font-weight: 600; color: #333; }
+.calender-escalated-card .value { font-weight: bold; color: inherit; }
+.hidden-card { display: none; }
+
+.blank-space { grid-column: span 2; }
+
+.calender-search {
+    grid-column: span 4;
 }
 
-.calender-escalated-card .label {
-    font-weight: 600;
-    color: #333;
+.search-input {
+    width: -webkit-fill-available;
+    padding: 8px 35px 8px 10px;
+    border: 1px solid #ED3237;
+    border-radius: 20px;
+    font-size: 14px;
+    background-color: white;
+    background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'><path d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>") no-repeat right 10px center;
+    background-size: 18px;
+    outline: none;
 }
 
-.calender-escalated-card .value {
-    font-weight: bold;
-    color: inherit;
-}
-
-.hidden-card {
-    display: none;
-}
-
-.blank-space {
-    grid-column: span 2;
-}
-
-
-
-:host ::ng-deep .action-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: black; /* black background */
-  color: white;            /* white icon */
-  border: none;
-  font-weight: bold;
-  font-size: 12px;         /* adjust if needed */
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-:host ::ng-deep .action-btn:hover {
-  background-color: #333; /* slightly lighter on hover */
-}
-
-:host ::ng-deep .action-cell {
-  display: flex;
-  align-items: center;    /* vertical center */
-  justify-content: center; /* horizontal center */
-}
-
-.right-section.add-section .popup-header {
-    padding: 16px;
-    background: #ff0000;
-    color: #fff;
+.form-groups {
     display: flex;
-        justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Neometric Regular';
+    font-size: 10px;
+}
+
+.navigation-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* === RIGHT SECTION === */
+.right-section {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    overflow: auto;
+}
+
+.right-section .popup-header {
+    padding: 16px;
+    background: #ED3237;
+    color: #fff;
     align-items: center;
     flex-shrink: 0;
 }
 
-.right-section.add-section .right-arrow {
-    background-color: transparent;
-    /* no background */
-    border: none;
-    /* remove border */
-    color: white;
-    /* white arrow */
-    font-size: 20px;
-    /* adjust size */
-    cursor: pointer;
-    font-weight: bold;
-    padding: 5px 10px;
-    border-radius: 4px;
-    transition: background 0.2s;
+.popup-header-grid { display: flex; align-items: center; }
+.col { display: flex; align-items: center; }
+.col-1, .col-2 { justify-content: center; }
+.col img.calenderimage { display: block; max-height: 15px; }
+
+.popup-header-content { display: flex; align-items: center; gap: 10px; font-family: 'Neometric Bold'; font-size: 14px; }
+
+.popup-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+.popup-body::-webkit-scrollbar { width: 6px; }
+.popup-body::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 3px; }
+
+/* === ADD SECTION FORMS === */
+.right-section.add-section .popup-header {
+    padding: 16px;
+    background: #ff0000;
+    color: #fff;
+    align-items: center;
+    flex-shrink: 0;
 }
 
-.right-section.add-section .right-arrow:hover {
-    background-color: rgba(0, 0, 0, 0.2);
-    /* subtle hover effect */
-}
-
-/* Form inside ADD section */
 .right-section.add-section .add-form {
     display: flex;
     flex-direction: column;
@@ -280,56 +196,6 @@
     font-weight: 600;
     color: #333;
 }
-
-.escalated-card-content {
-    display: flex;
-    flex-direction: row;
-}
-
-.usercheckbox {
-    font-size: 30px;
-    width: 18px;
-    margin-right: 10px;
-}
-
-.imground {
-    height: 45px;
-    border-radius: 20px;
-}
-
-.nameemail {
-    display: flex;
-    flex-direction: column;
-    margin: 0px 0px 0px 10px;
-}
-
-.labelmargin {
-    margin: 0px;
-    font-family: 'Neometric Medium';
-    font-size: 10px;
-}
-
-.labelmail {
-    margin: 0px;
-     font-family: 'Neometric Regular';
-    font-size: 8px;
-}
-
-/* 
-.p-dropdown .p-component .p-inputwrapper{
-
-  width: -webkit-fill-available;
-}
-
-.p-dropdown .p-dropdown-label.p-placeholder {
-    
-      width: -webkit-fill-available;
-}
-
-.form-group{
-width: -webkit-fill-available;
-} */
-
 
 .right-section.add-section .form-control {
     padding: 6px 10px;
@@ -358,57 +224,68 @@ width: -webkit-fill-available;
     border: 1px solid #ff0000;
     color: #ff0000;
 }
-
-.value{
-    font-family: 'NasalizationLight';
-}
-
-.right-section.add-section .cancel-btn:hover {
-    background-color: #b3b3b3;
-}
+.right-section.add-section .cancel-btn:hover { background-color: #b3b3b3; }
 
 .right-section.add-section .add-btn {
     background-color: #ff0000;
     color: white;
 }
+.right-section.add-section .add-btn:hover { background-color: #ff0000; }
 
-.right-section.add-section .add-btn:hover {
-    background-color: #ff0000;
+/* === USER CARD === */
+.escalated-card-content { display: flex; flex-direction: row; }
+.imground { height: 45px; border-radius: 20px; }
+.nameemail { display: flex; flex-direction: column; margin-left: 10px; }
+.labelmargin { margin: 0; font-family: 'Neometric Medium'; font-size: 10px; }
+.labelmail { margin: 0; font-family: 'Neometric Regular'; font-size: 8px; }
+.value { font-family: 'NasalizationLight'; }
+
+/* === AG GRID === */
+:host ::ng-deep .ag-theme-alpine {
+    --ag-font-family: 'Neometric Medium' !important;
+    --ag-font-size: 12px !important;
+    --ag-header-font-weight: 600 !important;
+    font-family: var(--ag-font-family) !important;
+    font-size: var(--ag-font-size) !important;
 }
 
-/* === RIGHT SECTION === */
-.right-section {
-    display: flex;
-    flex-direction: column;
-    /* gap: 10px; */
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
-    overflow: auto;
-    height: calc(100vh - 100px);
+:host ::ng-deep .ag-theme-alpine .ag-header-cell-label,
+:host ::ng-deep .ag-theme-alpine .ag-cell-value,
+:host ::ng-deep .ag-theme-alpine .ag-paging-panel {
+    font-family: 'Neometric Medium' !important;
+    font-size: 12px !important;
 }
 
-.calenderimage{
-    height: 15px;
-}
-
-.right-section .popup-header {
-    padding: 16px;
-    background: #ED3237;
-    color: #fff;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-
-.popup-header-content {
+:host ::ng-deep .ag-theme-alpine .ag-cell {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-family: 'Neometric Bold';
-    font-size: 14px;
+    justify-content: flex-start;
+    height: 100%;
+    line-height: normal !important;
 }
+
+:host ::ng-deep .ag-theme-alpine .ag-cell-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+/* === MISC STYLES === */
+.arrow {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid white;
+    background-color: white;
+    color: #ED3237;
+    font-size: 11px;
+    font-weight: 900;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.arrow:hover { background-color: #f0f0f0; transform: scale(1.1); }
 
 .statusbutton {
     display: flex;
@@ -424,107 +301,10 @@ width: -webkit-fill-available;
     font-family: 'Neometric Medium';
 }
 
-.dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 6px;
-}
-
-/* Scrollable popup body */
-.popup-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-}
-
-/* Optional: scrollbar style */
-.popup-body::-webkit-scrollbar {
-    width: 6px;
-}
-
-.popup-body::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 3px;
-}
-
-/* class="p-ripple p-element p-button p-component" */
-
-::ng-deep .today-btn .p-button {
-    background: #ffffff !important;
-    border: 1px solid #000 !important;
-    height: 30px !important;
-    width: 60px !important;
-    color: black !important;
-    padding: 0 6px !important;
-}
-
-.form-actions .btn {
-    width: 100%;
-    /* stretch to fill col-6 */
-    height: 35px;
-    /* fixed height */
-    font-size: 14px;
-    /* keep text consistent */
-    border-radius: 4px;
-}
-
-::ng-deep .today-btn .p-button:hover {
-    background: #f5f5f5 !important;
-}
-
-/* 
-::ng-deep .today-btn .p-button   {
-background: #ffffff !important;
-    border: 1px solid #000 !important;
-    height: 30px !important;
-    width: 60px !important;
-    color: black;
-    padding: 0 6px !important;
-}
-
-::ng-deep .today-btn .p-button:hover {
-  background: #f5f5f5 !important;
-} */
-
-/* === AG GRID CUSTOM FONTS === */
-/* === AG GRID CUSTOM FONTS (CORRECTED) === */
-:host ::ng-deep .ag-theme-alpine {
-    /* Global font family for entire grid (headers, cells, pagination, etc.) */
-    --ag-font-family: 'Neometric Medium' !important;
-    
-    /* Global font size (adjust as needed) */
-    --ag-font-size: 12px !important;
-    
-    /* Optional: Bold weight for headers (if needed; defaults to normal) */
-    --ag-header-font-weight: 600 !important;
-    
-    /* Optional: Ensure fallback for any overrides */
-    font-family: var(--ag-font-family) !important;
-    font-size: var(--ag-font-size) !important;
-}
-
-/* Fallback: Explicitly target key elements if vars don't propagate (rare) */
-:host ::ng-deep .ag-theme-alpine .ag-header-cell-label,
-:host ::ng-deep .ag-theme-alpine .ag-cell-value,
-:host ::ng-deep .ag-theme-alpine .ag-paging-panel {
-    font-family: 'Neometric Medium' !important;
-    font-size: 12px !important;
-}
-
-/* === UTILITY CLASSES === */
-.m-t-20 {
-    margin-top: 20px;
-}
+.dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 6px; }
 
 /* === RESPONSIVE === */
 @media (max-width: 1024px) {
-    .dashboard-content {
-        grid-template-columns: 1fr;
-    }
-
-    .right-section {
-        height: auto;
-    }
+    .dashboard-content { grid-template-columns: 1fr; }
+    .right-section { height: auto; }
 }

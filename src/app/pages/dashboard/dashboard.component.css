@@ -242,7 +242,12 @@ h2 {
   justify-content: space-between;
   align-items: flex-end;
   font-family: 'NasalizationLight';
-  opacity: 40%;
+
+}
+
+ .icon-counts{
+  opacity: 25%;
+  color: #000000;
 }
 
 .dots-column {
@@ -264,8 +269,8 @@ h2 {
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -302,10 +307,13 @@ h2 {
   align-items: center;
 }
 
+
+
 .escalated-card h4 {
-  margin: 0 0 5px;
-  font-size: 12px;
-  font-family: 'Neometric Medium';
+    margin: 0 0 5px;
+    font-size: 12px;
+    font-family: 'Neometric Medium';
+    color: #000000;
 }
 
 .escalated-card p {
@@ -317,8 +325,14 @@ h2 {
 .icons {
   display: flex;
   justify-content: space-between;
-  opacity: 40%;
+
   align-items: flex-end;
+      font-size: 12px;
+    font-family: 'Neometric Regular';
+}
+
+.opacity-25 {
+  opacity: 25%;
 }
 
 .icon-section {

@@ -426,6 +426,6 @@ table th {
 .ag-theme-alpine {
   --ag-header-background-color: #fafafa;
   --ag-odd-row-background-color: #fcfcfc;
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 0px;
+  overflow: scroll;
 }

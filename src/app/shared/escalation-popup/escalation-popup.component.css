@@ -193,6 +193,26 @@ table th {
   margin: 0 2px; /* small spacing between buttons */
 }
 
+/* Common styles for both buttons */
+:host ::ng-deep .action-btn1 {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0);
+  color: rgba(255, 255, 255, 0);
+  border: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  margin: 0 2px; /* small spacing between buttons */
+}
+
+
+
 /* Hover effect for all buttons */
 :host ::ng-deep .action-btn:hover {
   background-color: #333;
@@ -340,6 +360,6 @@ table th {
 .ag-theme-alpine {
   --ag-header-background-color: #fafafa;
   --ag-odd-row-background-color: #fcfcfc;
-  border-radius: 8px;
+  border-radius: 0px;
   overflow: hidden;
 }
