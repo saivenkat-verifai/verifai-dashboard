@@ -353,24 +353,18 @@ export class GroupsComponent implements OnInit, OnDestroy {
   currentPage: number = 1;
   pageSize: number = 8; // number of users per page
 
-  get filteredUsers() {
-    let filtered = this.users;
-
-    // Filter by search term
-    if (this.searchUserTerm) {
-      const term = this.searchUserTerm.toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          u.userName.toLowerCase().includes(term) ||
-          u.email.toLowerCase().includes(term) ||
-          u.userContact.toLowerCase().includes(term)
-      );
-    }
-
-    // Paginate
-    const start = (this.currentPage - 1) * this.pageSize;
-    return filtered.slice(start, start + this.pageSize);
+get filteredUsers() {
+  if (this.searchUserTerm) {
+    const term = this.searchUserTerm.toLowerCase();
+    return this.users.filter(
+      (u) =>
+        u.userName.toLowerCase().includes(term) ||
+        u.email.toLowerCase().includes(term) ||
+        u.userContact.toLowerCase().includes(term)
+    );
   }
+  return this.users;
+}
 
   get totalPages() {
     return Math.ceil(

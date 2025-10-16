@@ -2,14 +2,14 @@
   <div class="filter-item">
     <div class="status-wrapper">
       <h3 class="filters-title">STATUS</h3>
-     <label class="switch">
-  <input
-    type="checkbox"
-    [checked]="data?.status === 'ACTIVE'"  
-    (change)="onStatusToggle($event)"
-  />
-  <span class="slider round"></span>
-</label>
+      <label class="switch">
+        <input
+          type="checkbox"
+          [checked]="data?.status === 'ACTIVE'"
+          (change)="onStatusToggle($event)"
+        />
+        <span class="slider round"></span>
+      </label>
     </div>
 
     <!-- + Button -->
@@ -45,13 +45,14 @@
     [treeData]="true"
     [getDataPath]="getDataPath"
     [animateRows]="true"
-    [pagination]="true"
     [paginationPageSize]="4"
     [suppressRowClickSelection]="true"
     [suppressAggFuncInHeader]="true"
     [paginationPageSizeSelector]="[4, 10, 50, 100]"
+    [enableCellTextSelection]="true"
+    [enableRangeSelection]="true"
+    [copyHeadersToClipboard]="true"
     [autoGroupColumnDef]="autoGroupColumnDef"
-   
     (gridReady)="onSitesGridReady($event)"
   >
   </ag-grid-angular>
@@ -62,17 +63,19 @@
   </div>
   <ag-grid-angular
     class="ag-theme-alpine report-grid"
-    theme="legacy"
-    [rowData]="usersRowData"
-    [columnDefs]="usersColumnDefs"
-    [defaultColDef]="defaultColDef"
-    [pagination]="true"
-    [animateRows]="true"
-    [paginationPageSize]="4"
- 
-    [paginationPageSizeSelector]="[4, 10, 50, 100]"
-    style="width: 100%; height: 270px"
-    (gridReady)="onUsersGridReady($event)"
+  theme="legacy"
+  [rowData]="usersRowData"
+  [columnDefs]="usersColumnDefs"
+  [defaultColDef]="defaultColDef"
+  [enableCellTextSelection]="true"
+  [enableRangeSelection]="true"
+  [copyHeadersToClipboard]="true"
+  [pagination]="true"
+  [animateRows]="true"
+  [paginationPageSize]="4"
+  [paginationPageSizeSelector]="[4, 10, 50, 100]"
+  style="width: 100%; height: 270px"
+  (gridReady)="onUsersGridReady($event)"
   >
   </ag-grid-angular>
 </div>

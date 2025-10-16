@@ -61,40 +61,50 @@ export class GroupsPopupComponent implements OnChanges {
   };
 
   /** Columns for Sites AG Grid */
-  sitesColumnDefs: ColDef[] = [
-    {
-      headerName: "SITE / CAMERA NAME",
-      field: "siteName",
-      cellClass: "custom-cell",
-      valueGetter: (params) =>
-        params.data.isCamera ? params.data.cameraName : params.data.siteName,
-    },
+ sitesColumnDefs: ColDef[] = [
+  {
+    headerName: "SITE / CAMERA NAME",
+    field: "siteName",
+    cellClass: "custom-cell",
+    valueGetter: (params) =>
+      params.data.isCamera ? params.data.cameraName : params.data.siteName,
+  },
+  {
+    headerName: "CAMERAS",
+    field: "totalCamerasCount",
+    cellClass: "custom-cell",
+    valueGetter: (params) =>
+      params.data.isCamera ? "" : params.data.totalCamerasCount,
+  },
+  { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
+  {
+    headerName: "ACTION",
+    field: "action",
+    cellRenderer: (params: any) => {
+      // Hide button if this specific site is inactive
+      if (
+        !params.data ||
+        params.data.status?.toLowerCase() !== "active"
+      ) {
+        return document.createTextNode(""); // no button rendered
+      }
 
-    {
-      headerName: "CAMERAS",
-      field: "totalCamerasCount",
-      cellClass: "custom-cell",
-      valueGetter: (params) =>
-        params.data.isCamera ? "" : params.data.totalCamerasCount,
-    },
-    { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
-    {
-      headerName: "ACTION",
-      field: "action",
-      cellRenderer: (params: any) => {
-        const button = document.createElement("button");
-        button.innerHTML = "X";
-        button.className = "delete-btn";
+      const button = document.createElement("button");
+      button.innerHTML = "X";
+      button.className = "delete-btn";
 
-        button.addEventListener("click", () => {
-          this.inactivateSite(params.data.siteId, this.data.id);
-        });
+      button.addEventListener("click", () => {
+        params.context.componentParent.inactivateSite(
+          params.data.siteId,
+          params.context.componentParent.data.id
+        );
+      });
 
-        return button;
-      },
-      cellClass: "action-cell",
+      return button;
     },
-  ];
+    cellClass: "action-cell",
+  },
+];
 
   inactivateSite(siteId: number, queueId: number) {
     const modifiedBy = 123; // replace with logged-in user ID
@@ -122,36 +132,51 @@ export class GroupsPopupComponent implements OnChanges {
 
   /** Columns for Users AG Grid including X button */
   usersColumnDefs: ColDef[] = [
-    { headerName: "USER ID", field: "userId", cellClass: "custom-cell" },
-    { headerName: "NAME", field: "User_Name", cellClass: "custom-cell" },
-    { headerName: "EMAIL", field: "email", cellClass: "custom-cell" },
-    { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
-    {
-      headerName: "ACTION",
-      field: "action",
-      cellRenderer: (params: any) => {
-        const button = document.createElement("button");
-        button.innerHTML = "X";
-        button.className = "delete-btn";
+  { headerName: "USER ID", field: "userId", cellClass: "custom-cell" },
+  { headerName: "NAME", field: "User_Name", cellClass: "custom-cell" },
+  { headerName: "EMAIL", field: "email", cellClass: "custom-cell" },
+  { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
+  {
+    headerName: "ACTION",
+    field: "action",
+    cellRenderer: (params: any) => {
+      // Hide button if this user is inactive
+      if (
+        !params.data ||
+        params.data.status?.toLowerCase() !== "active"
+      ) {
+        return document.createTextNode("");
+      }
 
-        // Use arrow function to preserve `this` context
-        button.addEventListener("click", () => {
-          // Pass userId from row and queueId from @Input() data
-          this.inactivateUser(params.data.userId, this.data.id);
-        });
+      const button = document.createElement("button");
+      button.innerHTML = "X";
+      button.className = "delete-btn";
 
-        return button;
-      },
-      cellClass: "action-cell",
+      button.addEventListener("click", () => {
+        params.context.componentParent.inactivateUser(
+          params.data.userId,
+          params.context.componentParent.data.id
+        );
+      });
+
+      return button;
     },
-  ];
+    cellClass: "action-cell",
+  },
+];
+
+
 
   /** Default column definition */
-  defaultColDef: ColDef = {
-    sortable: true,
-    filter: true,
-    resizable: true,
-  };
+defaultColDef: ColDef = {
+ resizable: true,
+  sortable: true,
+  filter: true,
+  wrapText: false,      // keep false so text stays on one line
+  autoHeight: false, 
+};
+
+
 
   
   /** Row data arrays */
@@ -260,10 +285,10 @@ export class GroupsPopupComponent implements OnChanges {
     // Users
     if (Array.isArray(res.groupUsers)) {
       this.usersRowData = res.groupUsers.map((user: any) => ({
-        userId: user.userId ?? `user-${Math.random()}`,
-        User_Name: user.User_Name || "Unknown User",
+        userId: user.userId || "N/A",
+        User_Name: user.User_Name || "N/A",
         email: user.email || "N/A",
-        status: user.status || "UNKNOWN",
+        status: user.status || "N/A",
       }));
     } else {
       this.usersRowData = [];
@@ -273,12 +298,12 @@ export class GroupsPopupComponent implements OnChanges {
     if (Array.isArray(res.groupSites)) {
       this.sitesRowData = [];
       res.groupSites.forEach((site: any) => {
-        const safeSiteId = site.siteId ?? `site-${Math.random()}`;
+        const safeSiteId = site.siteId || "N/A";
 
         this.sitesRowData.push({
           siteId: safeSiteId,
-          siteName: site.siteName || "Unnamed Site",
-          status: site.status || "UNKNOWN",
+          siteName: site.siteName || "N/A",
+          status: site.status || "N/A",
           totalCamerasCount: site.totalCamerasCount || 0,
           isCamera: false,
         });

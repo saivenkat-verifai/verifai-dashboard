@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import {
   GridApi,
   GridReadyEvent,
@@ -64,6 +64,9 @@ interface SecondEscalatedDetail {
   ],
 })
 export class EventsComponent implements OnInit {
+
+
+   @ViewChild('paginationControls') paginationControls!: ElementRef<HTMLDivElement>;
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
@@ -184,6 +187,9 @@ export class EventsComponent implements OnInit {
     }
   }
 
+
+  
+
   /** -------------------- AG Grid setup -------------------- */
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
@@ -195,7 +201,35 @@ export class EventsComponent implements OnInit {
     setTimeout(resizeAll);
     this.gridApi.addEventListener("firstDataRendered", resizeAll);
     window.addEventListener("resize", resizeAll);
+
+  // Wait until AG Grid renders pagination
+  setTimeout(() => {
+      const paginationPanel = document.querySelector('.ag-paging-panel') as HTMLElement;
+      if (paginationPanel && this.paginationControls) {
+        // Clone the HTML from template
+        const controlsClone = this.paginationControls.nativeElement.cloneNode(true) as HTMLElement;
+        controlsClone.style.display = 'flex';
+        controlsClone.style.alignItems = 'center';
+        controlsClone.style.gap = '12px';
+        controlsClone.style.marginRight = '35%'; // spacing between your controls and pagination
+        paginationPanel.prepend(controlsClone); // prepend to left
+      }
+    }, 100);
   }
+
+
+refreshInterval = 5; // default to 5 minutes
+
+ refreshData() {
+    console.log('Refreshing grid data...');
+    // Call your data reload logic here
+  }
+
+  onIntervalChange(interval: number) {
+    console.log('Selected refresh interval:', interval, 'minutes');
+    // Optional: setup auto refresh logic
+  }
+
 
   onClosedGridReady(params: any) {
     this.closedGridApi = params.api;
@@ -203,6 +237,7 @@ export class EventsComponent implements OnInit {
 
   onPendingGridReady(params: any) {
     this.pendingGridApi = params.api;
+    
   }
 
   onFilterTextBoxChanged() {
@@ -777,10 +812,18 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/></span>`,
+          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span> `,
       },
     ];
   }
+
+  statusBar = {
+  statusPanels: [
+    { statusPanel: 'agTotalRowCountComponent', align: 'left' },
+    { statusPanel: 'myEventWallLabel', align: 'left' },
+    { statusPanel: 'agPaginationPanel', align: 'right' }
+  ]
+};
 
   /** -------------------- New method for loading escalated details -------------------- */
   loadEscalatedDetails() {

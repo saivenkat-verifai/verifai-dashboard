@@ -380,6 +380,66 @@ display: flex;
      /* width: auto !important; */
 }
 
+
+.ag-grid-wrapper {
+  position: relative;
+}
+
+.custom-pagination {
+  display: flex;
+  align-items: center;
+  margin-top: 5px;
+  justify-content: flex-start; /* aligns left */
+}
+
+.custom-pagination .label {
+  margin-right: 10px;
+  font-weight: bold;
+}
+
+
+.ag-grid-wrapper {
+  position: relative;
+}
+
+.ag-custom-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-left label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.refresh-btn {
+  background-color: #f3f3f3;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.refresh-btn:hover {
+  background-color: #e7e7e7;
+}
+
+.refresh-dropdown {
+  border-radius: 6px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+}
+
+
 .filters button {
     padding: 4px 10px;
     border: 1px solid #ccc;
@@ -477,6 +537,20 @@ display: flex;
     margin: 0px;
 }
 
+.refreshbutton{
+        height: 25px;
+    background-color: white;
+    border: 1px solid #0000001A;
+    border-radius: 5px;
+}
+
+.refresh-interval-select{
+     height: 25px;
+    background-color: white;
+    border: 1px solid #0000001A;
+    border-radius: 5px;
+}
+
 .dot-item {
   display: flex;
   justify-content: space-between; /* pushes dot to left, value to right */
@@ -489,6 +563,21 @@ display: flex;
   height: 15px;
   border-radius: 50%;
 }
+.dot-eventwall {
+    background-color: #53BF8B;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+.dot-manualwall {
+    background-color: #FFC400;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+
+
 
 
 .dot-value {

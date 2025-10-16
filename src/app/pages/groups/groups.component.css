@@ -177,6 +177,14 @@
     color: #fff;
     align-items: center;
     flex-shrink: 0;
+        display: flex;
+    justify-content: space-between;
+}
+
+.selectall-text {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .right-section.add-section .add-form {
@@ -223,12 +231,16 @@
     background-color: #ffffff;
     border: 1px solid #ff0000;
     color: #ff0000;
+    width: 295px;
+    height: 35px;
 }
-.right-section.add-section .cancel-btn:hover { background-color: #b3b3b3; }
+.right-section.add-section .cancel-btn:hover { background-color: #ffffff; }
 
 .right-section.add-section .add-btn {
     background-color: #ff0000;
     color: white;
+     width: 295px;
+    height: 35px;
 }
 .right-section.add-section .add-btn:hover { background-color: #ff0000; }
 

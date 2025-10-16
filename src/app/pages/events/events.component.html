@@ -344,25 +344,50 @@
       <!-- PENDING Table -->
       <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'">
         <div class="escalated-content-section">
-          <ag-grid-angular
-            style="width: 100%"
-            theme="legacy"
-            class="ag-theme-alpine"
-            [rowData]="pendingRowData"
-            [columnDefs]="pendingColumnDefs"
-            [defaultColDef]="defaultColDef"
-            [pagination]="true"
-            [paginationPageSize]="10"
-            domLayout="autoHeight"
-            [enableCellTextSelection]="true"
-            [enableRangeSelection]="true"
-            [copyHeadersToClipboard]="true"
-            [quickFilterMatcher]="pendingQuickFilterMatcher"
-            [paginationPageSizeSelector]="[10, 20, 50, 100]"
-            (gridReady)="onGridReady($event)"
-            (cellClicked)="onCellClicked($event)"
+          <div class="ag-grid-wrapper">
+            <ag-grid-angular
+              style="width: 100%"
+              theme="legacy"
+              class="ag-theme-alpine"
+              [rowData]="pendingRowData"
+              [columnDefs]="pendingColumnDefs"
+              [defaultColDef]="defaultColDef"
+              [pagination]="true"
+              [paginationPageSize]="10"
+              domLayout="autoHeight"
+              [enableCellTextSelection]="true"
+              [enableRangeSelection]="true"
+              [copyHeadersToClipboard]="true"
+              [quickFilterMatcher]="pendingQuickFilterMatcher"
+              [paginationPageSizeSelector]="[10, 20, 50, 100]"
+              (gridReady)="onGridReady($event)"
+              (cellClicked)="onCellClicked($event)"
+              [statusBar]="statusBar"
+            >
+            </ag-grid-angular>
+          </div>
+              <!-- Hidden template for pagination controls -->
+     
+
+        <div
+          #paginationControls
+          class="pagination-controls"
+          style="display: none"
+        >
+            <div class="dot-eventwall"></div>
+          <label class="event-wall-label">Event Wall</label>
+            <div class="dot-manualwall"></div>
+          <label class="manual-wall-label">Manual Wall</label>
+          <button class="refreshbutton" (click)="refreshData()">🔄 Refresh</button>
+          <select class="refresh-interval-select"
+            [(ngModel)]="refreshInterval"
+            (change)="onIntervalChange(refreshInterval)"
           >
-          </ag-grid-angular>
+            <option *ngFor="let min of [1, 5, 10, 15, 30]" [value]="min">
+              {{ min }} min
+            </option>
+          </select>
+        </div>
         </div>
       </div>
 
@@ -387,9 +412,9 @@
             [quickFilterMatcher]="closedQuickFilterMatcher"
             (gridReady)="onGridReady($event)"
             (cellClicked)="onCellClicked($event)"
-          >
-          </ag-grid-angular>
+          ></ag-grid-angular>
         </div>
+    
       </div>
     </div>
   </div>

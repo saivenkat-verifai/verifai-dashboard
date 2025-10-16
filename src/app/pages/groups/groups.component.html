@@ -217,6 +217,10 @@
             <div class="form-groups select-all">
               <label>
                 Employee ({{ users.length }})
+                
+              </label>
+                <label class="selectall-text">
+             
                 <input
                   type="checkbox"
                   #selectAllCheckbox
@@ -245,12 +249,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="pagination-controls" *ngIf="totalPages > 1">
-              <button type="button" class="btn" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
-              <span>Page {{ currentPage }} of {{ totalPages }}</span>
-              <button type="button" class="btn" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
             </div>
 
             <div class="form-actions">
@@ -282,7 +280,7 @@
 
           <div class="form-actions row">
             <div class="col-6">
-              <button type="button" class="btn cancel-btn w-100">Cancel</button>
+              <button type="button" (click)="goBack()" class="btn cancel-btn w-100">Cancel</button>
             </div>
             <div class="col-6">
               <button type="submit" (click)="createQueue()" class="btn add-btn w-100">Create</button>

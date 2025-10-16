@@ -152,6 +152,18 @@ h2 {
   gap: 10px;
 }
 
+.text-ellipsis {
+  white-space: nowrap;       /* no wrapping */
+  overflow: hidden;          /* hide overflow */
+  text-overflow: ellipsis;   /* show ... */
+}
+
+:host ::ng-deep  .ag-cell {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
 .filters {
     display: flex;
     gap: 20px;
