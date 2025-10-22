@@ -31,11 +31,11 @@ export class EventsService {
   ): Observable<any> {
     console.log(startDate, "dates");
     console.log(endDate, "date");
-    let startDates = "2025-09-01 00:00:00";
-    let endDates = "2025-10-01 03:00:00";
+    // let startDates = "2025-09-01 00:00:00";
+    // let endDates = "2025-10-01 03:00:00";
     // Send suspiciousChecked as a query parameter https://usstaging.ivisecurity.com/events_data/getEventReportCountsForActionTag_1_0?date=2025-09-25&actionTag=2
     return this.http.get<any>(
-      `${this.eventReportFullData}?fromDate=${startDates}&toDate=${endDates}&actionTag=${actionTag}`
+      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`
     );
   }
 
@@ -48,10 +48,11 @@ export class EventsService {
   }
 
   getEventReportCountsForActionTag(
-    date: string,
-    actionTag: number
+    startDate?: string,
+    endDate?: string,
+    actionTag?: number
   ): Observable<any> {
-    const url = `${this.eventReportCountsForActionTag}?date=${date}&actionTag=${actionTag}`;
+    const url = `${this.eventReportCountsForActionTag}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`;
     return this.http.get<any>(url);
   }
 

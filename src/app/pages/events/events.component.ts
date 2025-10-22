@@ -11,7 +11,7 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-
+import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { EscalationPopupComponent } from "../../shared/escalation-popup/escalation-popup.component";
 import { AgGridModule } from "ag-grid-angular";
 import { CalendarComponent } from "src/app/shared/calendar/calendar.component";
@@ -64,9 +64,8 @@ interface SecondEscalatedDetail {
   ],
 })
 export class EventsComponent implements OnInit {
-
-
-   @ViewChild('paginationControls') paginationControls!: ElementRef<HTMLDivElement>;
+  @ViewChild("paginationControls")
+  paginationControls!: ElementRef<HTMLDivElement>;
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
@@ -119,7 +118,10 @@ export class EventsComponent implements OnInit {
   };
 
   /** -------------------- Constructor -------------------- */
-  constructor(private eventsService: EventsService) {}
+  constructor(
+    private eventsService: EventsService,
+    private sanitizer: DomSanitizer
+  ) {}
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit() {
@@ -187,9 +189,6 @@ export class EventsComponent implements OnInit {
     }
   }
 
-
-  
-
   /** -------------------- AG Grid setup -------------------- */
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
@@ -202,34 +201,36 @@ export class EventsComponent implements OnInit {
     this.gridApi.addEventListener("firstDataRendered", resizeAll);
     window.addEventListener("resize", resizeAll);
 
-  // Wait until AG Grid renders pagination
-  setTimeout(() => {
-      const paginationPanel = document.querySelector('.ag-paging-panel') as HTMLElement;
+    // Wait until AG Grid renders pagination
+    setTimeout(() => {
+      const paginationPanel = document.querySelector(
+        ".ag-paging-panel"
+      ) as HTMLElement;
       if (paginationPanel && this.paginationControls) {
         // Clone the HTML from template
-        const controlsClone = this.paginationControls.nativeElement.cloneNode(true) as HTMLElement;
-        controlsClone.style.display = 'flex';
-        controlsClone.style.alignItems = 'center';
-        controlsClone.style.gap = '12px';
-        controlsClone.style.marginRight = '35%'; // spacing between your controls and pagination
+        const controlsClone = this.paginationControls.nativeElement.cloneNode(
+          true
+        ) as HTMLElement;
+        controlsClone.style.display = "flex";
+        controlsClone.style.alignItems = "center";
+        controlsClone.style.gap = "12px";
+        controlsClone.style.marginRight = "35%"; // spacing between your controls and pagination
         paginationPanel.prepend(controlsClone); // prepend to left
       }
     }, 100);
   }
 
+  refreshInterval = 5; // default to 5 minutes
 
-refreshInterval = 5; // default to 5 minutes
-
- refreshData() {
-    console.log('Refreshing grid data...');
+  refreshData() {
+    console.log("Refreshing grid data...");
     // Call your data reload logic here
   }
 
   onIntervalChange(interval: number) {
-    console.log('Selected refresh interval:', interval, 'minutes');
+    console.log("Selected refresh interval:", interval, "minutes");
     // Optional: setup auto refresh logic
   }
-
 
   onClosedGridReady(params: any) {
     this.closedGridApi = params.api;
@@ -237,7 +238,6 @@ refreshInterval = 5; // default to 5 minutes
 
   onPendingGridReady(params: any) {
     this.pendingGridApi = params.api;
-    
   }
 
   onFilterTextBoxChanged() {
@@ -292,14 +292,37 @@ refreshInterval = 5; // default to 5 minutes
     this.isTablePopupVisible = false;
   }
 
+  // openPlayPopup(item: any) {
+  //   this.selectedPlayItem = item;
+  //   this.isPlayPopupVisible = true;
+  // }
+
+  // closePlayPopup() {
+  //   this.isPlayPopupVisible = false;
+  //   this.selectedPlayItem = null;
+  // }
+
+  safeVideoUrl: SafeResourceUrl | null = null;
+
   openPlayPopup(item: any) {
     this.selectedPlayItem = item;
+
+    if (item?.httpUrl) {
+      // Trust the URL so Angular doesn’t block it
+      this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        item.httpUrl
+      );
+    } else {
+      this.safeVideoUrl = null;
+    }
+
     this.isPlayPopupVisible = true;
   }
 
   closePlayPopup() {
     this.isPlayPopupVisible = false;
     this.selectedPlayItem = null;
+    this.safeVideoUrl = null;
   }
 
   openCalendarPopup() {
@@ -470,12 +493,12 @@ refreshInterval = 5; // default to 5 minutes
             color: "#ED3237",
           },
           {
-            iconcolor: "#53BF8B",
+            iconcolor: "#FFC400",
             value: res.manualWallCount || 0,
             color: "#ED3237",
           },
           {
-            iconcolor: "#FFC400",
+            iconcolor: "#53BF8B",
             value: res.eventWallCount || 0,
             color: "#ED3237",
           },
@@ -522,26 +545,36 @@ refreshInterval = 5; // default to 5 minutes
           // Closed events for table
           console.log(res, "responce");
           if (res?.eventData) {
-            this.rowData = res.eventData.map((e: any) => ({
-              ...e,
-              siteId: e.siteId,
-              siteName: e.siteName,
-              device: e.unitId,
-              cameraId: e.cameraId?.slice(-2) ?? "",
-              duration: `${Math.floor(e.eventDuration / 60)}m ${
-                e.eventDuration % 60
-              }s`,
-              tz: "CT",
-              eventStartTime: e.eventStartTime,
-              actionTag: e.actionTag,
-              employee: {
-                name: e.employee || "Unknown",
-                avatar: "assets/user1.png",
-                level: e.userLevels || "N/A",
-              },
-              alertType: "green",
-              more: true,
-            }));
+            this.rowData = res.eventData.map((e: any) => {
+              let alertColor = "#53BF8B"; // default green
+
+              if (e.eventType === "Event_Wall") {
+                alertColor = "#FFC400"; // yellow
+              } else if (e.eventType === "Manual_Wall") {
+                alertColor = "#53BF8B"; // green
+              }
+
+              return {
+                ...e,
+                siteId: e.siteId,
+                siteName: e.siteName,
+                device: e.unitId,
+                cameraId: e.cameraId?.slice(-2) ?? "",
+                duration: `${Math.floor(e.eventDuration / 60)}m ${
+                  e.eventDuration % 60
+                }s`,
+                tz: "CT",
+                eventStartTime: e.eventStartTime,
+                actionTag: e.actionTag,
+                employee: {
+                  name: e.employee || "Unknown",
+                  avatar: "assets/user1.png",
+                  level: e.userLevels || "N/A",
+                },
+                alertType: alertColor,
+                more: true,
+              };
+            });
           }
 
           // Escalated cards for top section
@@ -601,6 +634,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "siteId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -617,6 +651,7 @@ refreshInterval = 5; // default to 5 minutes
       {
         headerName: "DEVICE",
         field: "device",
+        cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
         floatingFilter: true,
@@ -628,6 +663,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "cameraId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -636,6 +672,7 @@ refreshInterval = 5; // default to 5 minutes
         headerName: "EVENT TIME",
         field: "eventStartDatetime",
         headerClass: "custom-header",
+        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
         floatingFilter: true,
@@ -646,6 +683,7 @@ refreshInterval = 5; // default to 5 minutes
         headerName: "DURATION",
         field: "duration",
         headerClass: "custom-header",
+        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         floatingFilter: true,
         filter: true,
@@ -656,6 +694,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "tz",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -666,6 +705,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "actionTag",
         headerClass: "custom-header",
         cellClass: "custome-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -683,27 +723,33 @@ refreshInterval = 5; // default to 5 minutes
         filter: true,
         suppressHeaderMenuButton: true,
       },
+     {
+  headerName: "ALERT TYPE",
+  field: "alertType",
+  headerClass: "custom-header",
+  cellStyle: {
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cellRenderer: (params:any) =>
+    `<span style="display:inline-block; width:14px; height:14px; background:${params.value}; border-radius:50%;"></span>`,
+  floatingFilter: true,
+  filter: true,
+  suppressHeaderMenuButton: true,
+},
       {
-        headerName: "ALERT TYPE",
-        field: "alertType",
+        headerName: "MORE",
+        field: "more",
         headerClass: "custom-header",
+        cellClass: "custom-cell",
         cellStyle: {
           textAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
         },
-        cellRenderer: () =>
-          `<span style="display:inline-block; width:14px; height:14px; background:green; border-radius:50%;"></span>`,
-        floatingFilter: true,
-        filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "MORE",
-        field: "more",
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
         cellRenderer: () =>
           `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/></span>`,
       },
@@ -717,6 +763,7 @@ refreshInterval = 5; // default to 5 minutes
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -736,6 +783,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "cameraId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -745,6 +793,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "eventTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -754,6 +803,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "actionTag",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
         floatingFilter: true,
         filter: true,
         suppressHeaderMenuButton: true,
@@ -762,6 +812,7 @@ refreshInterval = 5; // default to 5 minutes
         headerName: "EVENT TIME",
         field: "eventTime",
         sortable: true,
+        cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
@@ -774,6 +825,7 @@ refreshInterval = 5; // default to 5 minutes
         field: "actionTime",
         sortable: true,
         headerClass: "custom-header",
+        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
         floatingFilter: true,
@@ -783,6 +835,7 @@ refreshInterval = 5; // default to 5 minutes
       {
         headerName: "QUEUE NAME",
         field: "queueName",
+        cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
         floatingFilter: true,
@@ -793,6 +846,7 @@ refreshInterval = 5; // default to 5 minutes
         headerName: "QUEUE LEVEL",
         field: "queueLevel",
         headerClass: "custom-header",
+        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         floatingFilter: true,
         filter: true,
@@ -810,6 +864,12 @@ refreshInterval = 5; // default to 5 minutes
         headerName: "MORE",
         field: "more",
         headerClass: "custom-header",
+        cellStyle: {
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
         cellClass: "custom-cell",
         cellRenderer: () =>
           `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span> `,
@@ -818,23 +878,30 @@ refreshInterval = 5; // default to 5 minutes
   }
 
   statusBar = {
-  statusPanels: [
-    { statusPanel: 'agTotalRowCountComponent', align: 'left' },
-    { statusPanel: 'myEventWallLabel', align: 'left' },
-    { statusPanel: 'agPaginationPanel', align: 'right' }
-  ]
-};
+    statusPanels: [
+      { statusPanel: "agTotalRowCountComponent", align: "left" },
+      { statusPanel: "myEventWallLabel", align: "left" },
+      { statusPanel: "agPaginationPanel", align: "right" },
+    ],
+  };
 
   /** -------------------- New method for loading escalated details -------------------- */
   loadEscalatedDetails() {
     if (this.selectedFilter === "CLOSED") {
       const actionTag = this.suspiciousChecked ? 2 : 1;
-      const dateStr = this.formatDate(this.selectedDate || new Date());
+      // const dateStr = this.formatDate(this.selectedDate || new Date());
+      const startDateStr = this.selectedStartDate
+        ? this.formatDateTimeFull(this.selectedStartDate)
+        : undefined;
+
+      const endDateStr = this.selectedEndDate
+        ? this.formatDateTimeFull(this.selectedEndDate)
+        : undefined;
       const categoryName = actionTag === 1 ? "False Activity" : "Suspicious";
       const displayCategoryLabel = actionTag === 1 ? "False" : "Suspicious";
 
       this.eventsService
-        .getEventReportCountsForActionTag(dateStr, actionTag)
+        .getEventReportCountsForActionTag(startDateStr, endDateStr, actionTag)
         .subscribe({
           next: (res) => {
             const counts = res.counts || {};
@@ -901,10 +968,10 @@ refreshInterval = 5; // default to 5 minutes
         (e) => e.iconPath === "assets/cam.svg"
       );
       const manualWall = this.secondEscalatedDetails.find(
-        (e) => e.iconcolor === "#53BF8B"
+        (e) => e.iconcolor === "#FFC400"
       );
       const eventWall = this.secondEscalatedDetails.find(
-        (e) => e.iconcolor === "#FFC400"
+        (e) => e.iconcolor === "#53BF8B"
       );
       const missedWall = this.secondEscalatedDetails.find(
         (e) => e.iconcolor === "#FF0000"
@@ -920,8 +987,8 @@ refreshInterval = 5; // default to 5 minutes
           { iconPath: "assets/cam.svg", count: camera?.value || 0 },
         ],
         colordot: [
-          { iconcolor: "#53BF8B", count: manualWall?.value || 0 },
-          { iconcolor: "#FFC400", count: eventWall?.value || 0 },
+          { iconcolor: "#FFC400", count: manualWall?.value || 0 },
+          { iconcolor: "#53BF8B", count: eventWall?.value || 0 },
           { iconcolor: "#FF0000", count: missedWall?.value || 0 },
         ],
       });

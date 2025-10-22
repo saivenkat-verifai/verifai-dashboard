@@ -104,11 +104,12 @@ export class GroupsComponent implements OnInit, OnDestroy {
   };
 
   columnDefs: ColDef[] = [
-    { headerName: "ID", field: "id", sortable: true },
+    { headerName: "ID", field: "id", sortable: true , cellStyle: { opacity: "0.5" }},
     { headerName: "NAME", field: "name", sortable: true },
     {
       headerName: "LEVEL",
       field: "level",
+      cellStyle: { opacity: "0.5" },
       valueGetter: (params) => {
         const levelMap: { [key: string]: string } = {
           "1": "Q",
@@ -120,9 +121,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
       },
       sortable: true,
     },
-    { headerName: "SITE", field: "site" },
-    { headerName: "CAMERAS", field: "cameras" },
-    { headerName: "EMPLOYEES", field: "employees" },
+    { headerName: "SITE", field: "site", cellStyle: { opacity: "0.5" } },
+    { headerName: "CAMERAS", field: "cameras", cellStyle: { opacity: "0.5" } },
+    { headerName: "EMPLOYEES", field: "employees", cellStyle: { opacity: "0.5" } },
     {
       headerName: "STATUS",
       field: "status",

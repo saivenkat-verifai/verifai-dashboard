@@ -29,6 +29,8 @@
   src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
 }
 
+
+
 @font-face {
   font-family: 'Neometric Regular';
   font-style: normal;
@@ -45,6 +47,11 @@
 font-family: 'Neometric Bold';
 font-weight: 500;
     font-size: 12px;
+}
+
+.calenderimage.inverted {
+  transform: scaleX(-1);
+  transition: transform 0.3s; /* optional smooth effect */
 }
 
 /* PrimeNG Overrides for Design Match */

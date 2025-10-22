@@ -147,31 +147,30 @@ export class EscalationPopupComponent implements OnChanges {
           container.appendChild(cancelBtn);
         } else {
           // Edit button
-       // Edit button
-const editBtn = document.createElement("button");
-editBtn.className = "action-btn1 edit-btn1";
+          // Edit button
+          const editBtn = document.createElement("button");
+          editBtn.className = "action-btn1 edit-btn1";
 
-// Create an image element for the pencil icon
-const pencilIcon = document.createElement("img");
-pencilIcon.src = "assets/pencil.svg"; // replace with the correct path to your SVG
-pencilIcon.alt = "Edit";
-pencilIcon.style.width = "16px"; // adjust size as needed
-pencilIcon.style.height = "16px";
+          // Create an image element for the pencil icon
+          const pencilIcon = document.createElement("img");
+          pencilIcon.src = "assets/pencil.svg"; // replace with the correct path to your SVG
+          pencilIcon.alt = "Edit";
+          pencilIcon.style.width = "16px"; // adjust size as needed
+          pencilIcon.style.height = "16px";
 
-// Append the image to the button
-editBtn.appendChild(pencilIcon);
+          // Append the image to the button
+          editBtn.appendChild(pencilIcon);
 
-editBtn.addEventListener("click", () => {
-  params.data.isEditing = true;
-  params.api.refreshCells({ rowNodes: [params.node], force: true });
-  params.api.startEditingCell({
-    rowIndex: params.node.rowIndex,
-    colKey: "userLevel", // Start editing on USER LEVEL column
-  });
-});
+          editBtn.addEventListener("click", () => {
+            params.data.isEditing = true;
+            params.api.refreshCells({ rowNodes: [params.node], force: true });
+            params.api.startEditingCell({
+              rowIndex: params.node.rowIndex,
+              colKey: "userLevel", // Start editing on USER LEVEL column
+            });
+          });
 
-container.appendChild(editBtn);
-
+          container.appendChild(editBtn);
         }
 
         return container;
@@ -224,8 +223,8 @@ container.appendChild(editBtn);
   // Column Definitions for alarm events
   alarmColumnDefs: ColDef[] = [
     {
-      headerName: "LEVEL",
-      field: "userLevel",
+      headerName: "Time",
+      field: "deterredTime",
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
@@ -234,25 +233,51 @@ container.appendChild(editBtn);
       field: "user",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-    },
-    {
-      headerName: "USER NAME",
-      field: "userName",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
+      cellRenderer: (params: any) => {
+        const imgUrl = params.data.userName
+          ? `https://i.pravatar.cc/30?u=${params.data.userName}`
+          : "https://i.pravatar.cc/30?img=1"; // fallback image
+
+        return `<img src="${imgUrl}" alt="user" style="width:30px; height:30px; border-radius:50%;" />`;
+      },
     },
     {
       headerName: "DESCRIPTION",
       field: "description",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      cellRenderer: (params: any) => {
+        const value = params.value;
+        let iconUrl = "";
+
+        switch (value) {
+          case "N":
+            // iconUrl = "assets/alarm-warning-fill-copy.svg"; // replace with your actual image path or URL
+             iconUrl = "assets/alarm-warning-fill-copy.svg"; 
+            break;
+          case "P":
+             iconUrl = "assets/na-alarm-warning-fill-copy.svg"; 
+            break;
+             case "":
+             iconUrl = ""; 
+            break;
+         
+        }
+
+        return `<img src="${iconUrl}" alt="${value}" style="width:17px; height:17px;" />`;
+      },
     },
-    {
-      headerName: "deterredTime",
-      field: "deterredTime",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-    },
+{
+  headerName: "STATUS",
+  field: "status",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  valueGetter: (params: any) => {
+    if (params.data.description === "P") return "No Action";
+    if (params.data.description === "N") return "Failed";
+    return ""; // leave empty for others
+  },
+},
   ];
 
   // Inside EscalationPopupComponent

@@ -357,6 +357,13 @@ table th {
   height: 300px;
 }
 
+.alarm-warning-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
 .ag-theme-alpine {
   --ag-header-background-color: #fafafa;
   --ag-odd-row-background-color: #fcfcfc;

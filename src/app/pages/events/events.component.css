@@ -84,7 +84,7 @@
     transform: translate(-50%, -50%);
     background: #fff;
     width: 400px;
-    padding: 20px;
+    /* padding: 20px; */
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -531,6 +531,14 @@ display: flex;
 }
 
 
+.play-text1 {
+  font-family: 'Neometric Regular';
+    font-size: 8px;
+    margin: 0px;
+    opacity: 50%;
+    color: black;
+}
+
 .play-text {
     font-family: 'Neometric Bold';
     font-size: 14px;
@@ -542,6 +550,8 @@ display: flex;
     background-color: white;
     border: 1px solid #0000001A;
     border-radius: 5px;
+       display: flex;
+    align-items: center;
 }
 
 .refresh-interval-select{
@@ -549,6 +559,8 @@ display: flex;
     background-color: white;
     border: 1px solid #0000001A;
     border-radius: 5px;
+    display: flex;
+    align-items: center;
 }
 
 .dot-item {
@@ -589,11 +601,11 @@ display: flex;
 
 .play-popup-header {
     padding: 16px;
-    background: #ED3237;
-    color: #fff;
+    /* background: #ED3237; */
+    color: #000000;
 
 
-    border-bottom: 1px solid #ddd;
+    /* border-bottom: 1px solid #ddd; */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -745,6 +757,7 @@ display: flex;
     gap: 16px;
     padding: 0;
     width: 100%;
+      justify-content: flex-end;
 }
 
 .calender-escalated-card {
@@ -766,8 +779,13 @@ display: flex;
 }
 
 .escalated-icon {
-    height: 18px;
-    width: 18px;
+      height: 14px;
+    width: 14px;
+    margin-left: 10px;
+}
+
+.refresh-icon{
+    margin-right: 15px;
 }
 
 .calender-escalated-card h4 {
@@ -879,6 +897,7 @@ border: 1px solid #ED3237;
     display: grid;
     grid-template-columns: repeat(12, 1fr);
     gap: 16px;
+  
 }
 
 .first-section {

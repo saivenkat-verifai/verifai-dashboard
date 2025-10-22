@@ -1,65 +1,131 @@
 <div class="calendar-header">
-  <p-dropdown 
-      [options]="viewOptions" 
-      [(ngModel)]="viewMode" 
-      placeholder="DAY" 
-      class="view-select" 
-      styleClass="w-12"
-      [showClear]="false"
-      (onChange)="onViewModeChange($event.value)">
+  <p-dropdown
+    *ngIf="showViewDropdown"
+    [options]="viewOptions"
+    [(ngModel)]="viewMode"
+    placeholder="DAY"
+    class="view-select"
+    styleClass="w-12"
+    [showClear]="false"
+    (onChange)="onViewModeChange($event.value)"
+  >
   </p-dropdown>
 
   <p-button label="TODAY" class="today-btn" (onClick)="goToday()"> </p-button>
 
   <ng-container *ngIf="viewMode !== 'week' && viewMode !== 'month'">
-    <button class="circle-btn" (click)="prevMonth()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+    <button
+      class="circle-btn"
+      (click)="viewMode === 'day' ? prevDay() : prevMonth()"
+    >
+      <img
+        class="calenderimage"
+        src="../../../assets/arrow-circle-left.svg"
+        alt=""
+      />
     </button>
 
-    <span class="selected-range font-Neometric-Bold" #rangeTrigger (click)="op.toggle($event)">
+    <span
+      class="selected-range font-Neometric-Bold"
+      #rangeTrigger
+      (click)="op.toggle($event)"
+    >
       {{ startDate | date : "dd MMM, yyyy HH:mm a" | uppercase }} -
       {{ endDate | date : "dd MMM, yyyy HH:mm a" | uppercase }}
     </span>
 
-    <button class="circle-btn" (click)="nextMonth()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+    <button
+      class="circle-btn"
+      (click)="viewMode === 'day' ? nextDay() : nextMonth()"
+    >
+      <img
+        *ngIf="viewMode === 'day' && !canNavigateNextDay"
+        class="calenderimage"
+        src="../../../assets/arrow-circle-right.svg"
+      />
+      <img
+        *ngIf="viewMode === 'day' && canNavigateNextDay"
+        class="calenderimage inverted"
+        src="../../../assets/arrow-circle-right-fill.svg"
+      />
     </button>
   </ng-container>
-
-  <div class="week-cards" *ngIf="viewMode === 'week'">
+ <div class="week-cards" *ngIf="viewMode === 'week'">
+    <!-- Left arrow -->
     <button class="circle-btn" (click)="prevWeekWindow()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+      <img
+        *ngIf="canNavigatePrevWeek"
+        class="calenderimage"
+        src="../../../assets/arrow-circle-left.svg"
+      />
+      <img
+        *ngIf="!canNavigatePrevWeek"
+        class="calenderimage inverted"
+        src="../../../assets/arrow-circle-left-fill.svg"
+      />
     </button>
 
-    <div class="week-card" 
-         *ngFor="let week of visibleWeekWindow()" 
-         (click)="selectWeek(week)" 
-         [class.active]="currentWeekIndex === weeks.indexOf(week)">
+    <div
+      class="week-card"
+      *ngFor="let week of visibleWeekWindow()"
+      (click)="selectWeek(week)"
+      [class.active]="currentWeekIndex === weeks.indexOf(week)"
+    >
       {{ week.label }}
     </div>
 
+    <!-- Right arrow -->
     <button class="circle-btn" (click)="nextWeekWindow()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+      <img
+        *ngIf="!canNavigateNextWeek"
+        class="calenderimage"
+        src="../../../assets/arrow-circle-right.svg"
+      />
+      <img
+        *ngIf="canNavigateNextWeek"
+        class="calenderimage inverted"
+        src="../../../assets/arrow-circle-right-fill.svg"
+      />
     </button>
   </div>
-
   <div class="month-cards" *ngIf="viewMode === 'month'">
+    <!-- Left arrow -->
     <button class="circle-btn" (click)="prevMonthWindow()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-left.svg" alt="" />
+      <img
+        *ngIf="canNavigatePrevMonth"
+        class="calenderimage"
+        src="../../../assets/arrow-circle-left.svg"
+      />
+      <img
+        *ngIf="!canNavigatePrevMonth"
+        class="calenderimage inverted"
+        src="../../../assets/arrow-circle-left-fill.svg"
+      />
     </button>
 
-    <div class="month-card"
-         *ngFor="let month of visibleMonthWindow()"
-         (click)="selectMonth(month)"
-         [class.active]="currentMonthIndex === months.indexOf(month)">
+    <div
+      class="month-card"
+      *ngFor="let month of visibleMonthWindow()"
+      (click)="selectMonth(month)"
+      [class.active]="currentMonthIndex === months.indexOf(month)"
+    >
       {{ month.label }}
     </div>
 
+    <!-- Right arrow -->
     <button class="circle-btn" (click)="nextMonthWindow()">
-      <img class="calenderimage" src="../../../assets/arrow-circle-right.svg" alt="" />
+      <img
+        *ngIf="canNavigateNextMonth"
+        class="calenderimage"
+        src="../../../assets/arrow-circle-right.svg"
+      />
+      <img
+        *ngIf="!canNavigateNextMonth"
+        class="calenderimage inverted"
+        src="../../../assets/arrow-circle-right-fill.svg"
+      />
     </button>
   </div>
-
   <p-button class="custom-today-btn" (click)="op.toggle($event)">
     <ng-template pTemplate="icon">
       <img class="calenderimage" src="../../../assets/calender.svg" alt="" />
@@ -75,23 +141,25 @@
           <div class="date-time-inputs">
             <div class="input-group">
               <div class="p-field-checkbox">
-                <p-checkbox 
-                  name="dateRange" 
-                  label="Date Range" 
-                  [(ngModel)]="dateRange" 
-                  [binary]="true" 
-                  (onChange)="toggleDateRange()">
+                <p-checkbox
+                  name="dateRange"
+                  label="Date Range"
+                  [(ngModel)]="dateRange"
+                  [binary]="true"
+                  (onChange)="toggleDateRange()"
+                >
                 </p-checkbox>
               </div>
             </div>
             <div class="input-group">
               <div class="p-field-checkbox">
-                <p-checkbox 
-                  name="wholeDay" 
-                  label="Whole Day" 
-                  [(ngModel)]="wholeDay" 
+                <p-checkbox
+                  name="wholeDay"
+                  label="Whole Day"
+                  [(ngModel)]="wholeDay"
                   [binary]="true"
-                  (onChange)="toggleWholeDay()">
+                  (onChange)="toggleWholeDay()"
+                >
                 </p-checkbox>
               </div>
             </div>
@@ -101,23 +169,50 @@
 
       <div class="date-time-inputs">
         <div class="input-group">
-          <label for="startDateTime" class="label p-b-10">Start Date & Time</label>
-          <p-calendar id="startDateTime" [(ngModel)]="startDate" [showTime]="true" [hourFormat]="'12'"
-            dateFormat="dd/mm/yy" [timeOnly]="false" inputId="start" class="inputdatetime" [readonlyInput]="true"
-            appendTo="body" [maxDate]="today">
+          <label for="startDateTime" class="label p-b-10"
+            >Start Date & Time</label
+          >
+          <p-calendar
+            id="startDateTime"
+            [(ngModel)]="startDate"
+            [showTime]="true"
+            [hourFormat]="'12'"
+            dateFormat="dd/mm/yy"
+            [timeOnly]="false"
+            inputId="start"
+            class="inputdatetime"
+            [readonlyInput]="true"
+            appendTo="body"
+            [maxDate]="today"
+          >
           </p-calendar>
         </div>
 
         <div class="input-group">
           <label for="endDateTime" class="label p-b-10">End Date & Time</label>
-          <p-calendar id="endDateTime" [(ngModel)]="endDate" [showTime]="true" [hourFormat]="'12'" dateFormat="dd/mm/yy"
-            [timeOnly]="false" inputId="end" class="inputdatetime" [readonlyInput]="true" appendTo="body"
-            [maxDate]="today">
+          <p-calendar
+            id="endDateTime"
+            [(ngModel)]="endDate"
+            [showTime]="true"
+            [hourFormat]="'12'"
+            dateFormat="dd/mm/yy"
+            [timeOnly]="false"
+            inputId="end"
+            class="inputdatetime"
+            [readonlyInput]="true"
+            appendTo="body"
+            [maxDate]="today"
+          >
           </p-calendar>
         </div>
 
         <div class="popup-footer">
-          <p-button label="Confirm" severity="danger" (onClick)="confirmSelection(op)" class="submitdate">
+          <p-button
+            label="Confirm"
+            severity="danger"
+            (onClick)="confirmSelection(op)"
+            class="submitdate"
+          >
           </p-button>
         </div>
       </div>
@@ -125,7 +220,7 @@
       <div class="custom-calendar" *ngIf="viewMode === 'month'">
         <div class="month-header">
           <button class="circle-btn" (click)="prevMonth()">&lt;</button>
-          <span>{{ currentMonth | date : "MMMM yyyy"  | uppercase }}</span>
+          <span>{{ currentMonth | date : "MMMM yyyy" | uppercase }}</span>
           <button class="circle-btn" (click)="nextMonth()">&gt;</button>
         </div>
         <div class="weekdays">
@@ -138,8 +233,13 @@
           <div>S</div>
         </div>
         <div class="days-grid">
-          <div *ngFor="let day of daysInMonth" class="day" [class.empty]="!day.date"
-            [class.selected]="day.date && isSelected(day.date)" (click)="day.date && selectDate(day.date)">
+          <div
+            *ngFor="let day of daysInMonth"
+            class="day"
+            [class.empty]="!day.date"
+            [class.selected]="day.date && isSelected(day.date)"
+            (click)="day.date && selectDate(day.date)"
+          >
             {{ day.date ? (day.date | date : "d") : "" }}
           </div>
         </div>

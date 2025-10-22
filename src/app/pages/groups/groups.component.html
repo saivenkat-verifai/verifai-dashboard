@@ -21,7 +21,7 @@
             [ngClass]="{ 'hidden-card': i >= 3 }"
             [ngStyle]="{ 'background-color': i === 0 ? 'red' : 'white' }"
           >
-            <span class="label" [ngStyle]="{ color: i === 0 ? 'white' : '#ccc' }">
+            <span class="label" [ngStyle]="{ color: i === 0 ? 'white' : '#000000',opacity: i === 0 ? '1' : '0.6' }">
               {{ e.label }}
             </span>
             <span class="value" [ngStyle]="{ color: i === 0 ? 'white' : 'red' }">

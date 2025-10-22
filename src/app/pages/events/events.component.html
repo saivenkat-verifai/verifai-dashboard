@@ -143,36 +143,40 @@
         </div>
 
         <!-- ===================== Centered Play Popup ===================== -->
-        <div class="center-popup" *ngIf="isPlayPopupVisible">
-          <div class="popup-overlay" (click)="closePlayPopup()"></div>
-          <div class="popup-content">
-            <div class="play-popup-header">
-              <p class="play-text">
-                <strong>DEVICE ID:</strong> {{ selectedPlayItem?.siteId }}
-              </p>
-              <button class="close-btn" (click)="closePlayPopup()">×</button>
-            </div>
-            <div class="popup-body">
-              <div *ngIf="selectedPlayItem?.videoFile?.length; else noVideo">
-                <div class="carousel">
-                  <button class="carousel-btn" (click)="prevSlide()">‹</button>
-                  <img
-                    [src]="selectedPlayItem.videoFile[currentSlideIndex]"
-                    alt="Slide Image"
-                  />
-                  <button class="carousel-btn" (click)="nextSlide()">›</button>
-                </div>
-                <p class="slide-counter">
-                  {{ currentSlideIndex + 1 }} /
-                  {{ selectedPlayItem.videoFile.length }}
-                </p>
-              </div>
-              <ng-template #noVideo>
-                <p>No video available</p>
-              </ng-template>
-            </div>
-          </div>
-        </div>
+       <div class="center-popup" *ngIf="isPlayPopupVisible">
+  <div class="popup-overlay" (click)="closePlayPopup()"></div>
+  <div class="popup-content">
+    <div class="play-popup-header">
+      <div class="play-popup-header-content">
+        <p class="play-text">{{ selectedPlayItem?.siteId }}</p>
+        <p class="play-text1">
+          {{ selectedPlayItem?.siteName }} | {{ selectedPlayItem?.cameraId }}
+        </p>
+      </div>
+
+      <button class="close-btn" (click)="closePlayPopup()">
+        <img src="../../../assets/Dounload.svg" alt="download" class="escalated-icon" />
+        <img src="../../../assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+      </button>
+    </div>
+
+    <div class="popup-body">
+      <!-- Safe video URL -->
+      <iframe
+        *ngIf="safeVideoUrl; else noVideo"
+        [src]="safeVideoUrl"
+        width="100%"
+        height="276px"
+        style="border:0;"
+        allow="autoplay; fullscreen; camera; microphone"
+      ></iframe>
+
+      <ng-template #noVideo>
+        <p>No video available</p>
+      </ng-template>
+    </div>
+  </div>
+</div>
 
         <!-- ===================== Calendar Popup ===================== -->
         <div
@@ -366,28 +370,35 @@
             >
             </ag-grid-angular>
           </div>
-              <!-- Hidden template for pagination controls -->
-     
+          <!-- Hidden template for pagination controls -->
 
-        <div
-          #paginationControls
-          class="pagination-controls"
-          style="display: none"
-        >
-            <div class="dot-eventwall"></div>
-          <label class="event-wall-label">Event Wall</label>
-            <div class="dot-manualwall"></div>
-          <label class="manual-wall-label">Manual Wall</label>
-          <button class="refreshbutton" (click)="refreshData()">🔄 Refresh</button>
-          <select class="refresh-interval-select"
-            [(ngModel)]="refreshInterval"
-            (change)="onIntervalChange(refreshInterval)"
+          <div
+            #paginationControls
+            class="pagination-controls"
+            style="display: none"
           >
-            <option *ngFor="let min of [1, 5, 10, 15, 30]" [value]="min">
-              {{ min }} min
-            </option>
-          </select>
-        </div>
+            <div class="dot-eventwall"></div>
+            <label class="event-wall-label">Event Wall</label>
+            <div class="dot-manualwall"></div>
+            <label class="manual-wall-label">Manual Wall</label>
+            <button class="refreshbutton" (click)="refreshData()">
+              <img
+                src="../../../assets/refresh-circle-sharp.svg"
+                alt="icon"
+                class="escalated-icon refresh-icon"
+              />
+              Refresh
+            </button>
+            <select
+              class="refresh-interval-select"
+              [(ngModel)]="refreshInterval"
+              (change)="onIntervalChange(refreshInterval)"
+            >
+              <option *ngFor="let min of [1, 5, 10, 15, 30]" [value]="min">
+                {{ min }} min
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -414,7 +425,6 @@
             (cellClicked)="onCellClicked($event)"
           ></ag-grid-angular>
         </div>
-    
       </div>
     </div>
   </div>
