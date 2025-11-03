@@ -10,16 +10,17 @@
   <div class="dashboard-content" [class.loading]="isLoading">
     <!-- Dashboard Header -->
     <div class="dashboard-content-section">
-      <div class="main-section-header ">
+      <div class="main-section-header">
         <h2>DASHBOARD</h2>
       </div>
 
       <!-- Calendar Section -->
       <div class="calendar-section-wrapper">
-    <app-calendar
-  [showViewDropdown]="false"
-  (dateRangeSelected)="onDateRangeSelected($event)">
-</app-calendar>
+        <app-calendar
+          [showViewDropdown]="false"
+          (dateRangeSelected)="onDateRangeSelected($event)"
+        >
+        </app-calendar>
       </div>
 
       <!-- Dashboard Cards -->
@@ -50,10 +51,19 @@
               </div>
               <div class="card-top-right" *ngIf="card.percentage !== undefined">
                 <div class="circle-chart">
-                  <div
-                    class="circle-bg"
-                    [style.background]="getCircleGradient(card.percentage)"
-                  ></div>
+                  <svg class="progress-ring" viewBox="0 0 36 36">
+                    <circle class="bg" cx="18" cy="18" r="16" />
+                    <circle
+                      class="progress"
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      [attr.stroke-dasharray]="100"
+                      [attr.stroke-dashoffset]="
+                        100 - getSafePercent(card.percentage)
+                      "
+                    />
+                  </svg>
                   <div class="circle-text">{{ card.percentage }}%</div>
                 </div>
               </div>
@@ -72,7 +82,7 @@
             <div class="icons-group icon-counts">
               <div class="icon" *ngFor="let icon of card.icons">
                 <img [src]="icon.iconPath" alt="icon" />
-                <span >{{ icon.count }}</span>
+                <span>{{ icon.count }}</span>
               </div>
             </div>
           </div>
@@ -114,7 +124,7 @@
                       'cam-icon': icon.iconPath.includes('cam.svg')
                     }"
                   />
-                  <span >{{ icon.count }}</span>
+                  <span>{{ icon.count }}</span>
                 </div>
               </div>
             </div>

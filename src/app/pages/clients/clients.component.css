@@ -1,0 +1,407 @@
+/* === FONT FACES === */
+@import url('https://fonts.cdnfonts.com/css/neometric-2');
+
+@font-face {
+    font-family: 'Neometric Bold';
+    font-style: normal;
+    font-weight: 600;
+    src: url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'Neometric Medium';
+    font-style: normal;
+    font-weight: 500;
+    src: url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+}
+
+@font-face {
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
+}
+
+/* === BASE CONTAINER === */
+.dashboard-container {
+    font-family: 'Neometric Regular';
+    background-color: #f6f6f6;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+/* === ESCALATED CARDS === */
+.clients-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.clients-escalated-card {
+    grid-column: span 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background: #fff;
+    font-family: 'Neometric Medium';
+    border-radius: 5px;
+    height: 35px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.clients-escalated-card:hover {
+    transform: scale(1.02);
+}
+
+label {
+    font-family: 'Neometric Regular';
+    font-size: 10px;
+    color: #000000;
+    opacity: 0.5;
+    /* Use 0.5, not 50% */
+}
+
+.clients-escalated-card .label {
+    font-family: 'Neometric Regular';
+
+    font-size: 10px;
+    color: #000000;
+    opacity: 50%;
+
+}
+
+.clients-escalated-card .value {
+    font-weight: bold;
+}
+
+.hidden-card {
+    display: none;
+}
+
+.blank-space {
+    grid-column: span 6;
+}
+
+.clients-search {
+    grid-column: span 2;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 35px 8px 10px;
+    border: 1px solid #ED3237;
+    border-radius: 20px;
+    font-size: 14px;
+    background-color: white;
+    background: white url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='red' viewBox='0 0 24 24'><path d='M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zM9.5 14C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/></svg>") no-repeat right 10px center;
+    background-size: 18px;
+    outline: none;
+}
+
+
+.createbutton {
+    height: 30px;
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    border-radius: 3px;
+    font-family: 'Neometric Medium';
+}
+
+.section-header {
+    font-family: 'Neometric Bold';
+    display: flex;
+    justify-content: space-between;
+}
+
+.section-header h2 {
+    opacity: 0.15;
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* === AG GRID === */
+:host ::ng-deep .ag-theme-alpine {
+    --ag-font-family: 'Neometric Medium' !important;
+    --ag-font-size: 12px !important;
+    font-family: var(--ag-font-family) !important;
+    font-size: var(--ag-font-size) !important;
+}
+
+:host ::ng-deep .ag-theme-alpine .ag-header-cell-label,
+:host ::ng-deep .ag-theme-alpine .ag-cell-value,
+:host ::ng-deep .ag-theme-alpine .ag-paging-panel {
+    font-family: 'Neometric Medium' !important;
+    font-size: 12px !important;
+}
+
+/* === UTILITIES === */
+.m-t-20 {
+    margin-top: 20px;
+}
+
+
+/* === Right Panel Customizations === */
+
+.right-panel {
+    position: fixed;
+    top: 0;
+    right: -750px;
+    /* hide by default */
+    width: 750px;
+    height: 100%;
+    background: transparent linear-gradient(180deg, #FFFFFF 0%, #EEEEEE 100%) 0% 0% no-repeat padding-box;
+    box-shadow: -10px 0px 10px #00000026;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+}
+
+.right-panel.open {
+    right: 0;
+    /* slide in */
+}
+
+/* Panel header */
+.panel-header {
+    background-color: #ED3237;
+    color: #FFFFFF;
+    padding: 0px 20px;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.calenderimage {
+    width: 20px;
+    height: 20px;
+}
+
+.header-title {
+    margin: 0;
+    font-size: 14px;
+    font-family: 'Neometric Bold';
+
+}
+
+
+
+/* Panel body */
+.panel-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    background: transparent linear-gradient(180deg, #FFFFFF 0%, #EEEEEE 100%) 0% 0% no-repeat padding-box;
+}
+
+/* Close button */
+.close-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 25px;
+    color: white;
+}
+
+
+/* panel body */
+
+/* .create-client-form {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 15px;
+} */
+
+/* Section wrapper */
+.form-section {
+    grid-column: span 12;
+    margin-bottom: 5px;
+}
+
+/* Section title with bottom border */
+.section-title {
+
+    margin: 0px 10px;
+    font-family: 'Neometric Bold';
+    opacity: 100%;
+    border-bottom: 1px solid #C4C4C4;
+    font-size: 10px;
+}
+
+/* Form row */
+.form-row {
+
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+}
+
+/* Columns */
+.form-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-with-icon {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* .email-icons{
+    display: flex;
+    d: var(--unnamed-color-ffffff) 0% 0% no-repeat padding-box;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 0.5px solid #0000001A;
+    border-radius: 5px 0px 0px 5px;
+    opacity: 1;
+    height: 30px;
+    width: 30px;
+    align-items: center;
+    justify-content: space-around;
+} */
+
+.email-switch {
+    display: flex;
+    width: 60px;
+    /* container width */
+    height: 30px;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+/* each side (half) */
+.switch-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.2s ease;
+    background: transparent linear-gradient(180deg, #EEEEEE 0%, #EEEEEE 100%) 0% 0% no-repeat padding-box;
+}
+
+/* left rounded edges */
+.switch-btn.left {
+    border-right: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 5px 0 0 5px;
+}
+
+/* right rounded edges */
+.switch-btn.right {
+    border-radius: 0 5px 5px 0;
+}
+
+/* active background */
+.switch-btn.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 100%) 0% 0% no-repeat padding-box;
+    /* red gradient */
+}
+
+.add-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 25px;
+    color: white;
+}
+
+.email-input,
+.phone-input {
+    width: 70%;
+
+}
+
+.form-col input,
+.form-col select,
+.form-col textarea {
+    padding: 8px;
+    font-size: 10px;
+    height: 35px;
+    background: #FFFFFF 0% 0% no-repeat padding-box;
+    border: 0.5px solid #0000001A;
+    border-radius: 5px;
+    opacity: 1;
+    font-family: Neometric Regular;
+    color: #000000;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Column spans */
+.col-4 {
+    grid-column: span 4;
+}
+
+.col-6 {
+    grid-column: span 6;
+}
+
+.col-8 {
+    grid-column: span 8;
+}
+
+.col-12 {
+    grid-column: span 12;
+}
+
+/* Buttons */
+.form-buttons {
+    grid-column: span 12;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 50px;
+}
+
+.cancel-button {
+    background-color: #ffffff;
+    border: 1px solid #ED3237;
+    color: #ff0000;
+    width: 195px;
+    height: 35px;
+    font-family: 'Neometric Bold';
+    font-size: 12px;
+    border-radius: 5px;
+    opacity: 1;
+}
+
+.create-button {
+    background-color: #ED3237;
+    color: white;
+    width: 195px;
+    border: 1px solid #ED3237;
+    height: 35px;
+    font-family: 'Neometric Bold';
+    font-size: 12px;
+    border-radius: 5px;
+    opacity: 1;
+}
+
+
+/* === RESPONSIVE === */
+@media (max-width: 1024px) {
+    .clients-row {
+        grid-template-columns: 1fr;
+    }
+}

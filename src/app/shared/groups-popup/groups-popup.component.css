@@ -186,7 +186,7 @@ h2 {
 .switch {
     position: relative;
     display: inline-block;
-    width: 40px;
+    width: 35px;
     height: 20px;
 }
 
@@ -196,43 +196,119 @@ h2 {
     height: 0;
 }
 
+.right-align {
+  text-align: right !important;
+  justify-content: flex-end !important; /* for flex-based cell layouts */
+  display: flex;
+}
+
+:host ::ng-deep  .camera-delete-btn {
+  /* background-color: transparent;
+  border: none;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 16px; */
+  
+    width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0);
+  color: rgb(0, 0, 0);
+  border: none;
+  font-weight: 900;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.delete-btn {
+  background-color: transparent;
+  border: none;
+  color: red;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+
+.delete-btn:hover {
+  color: darkred;
+}
+
+/* Slider track */
 .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: white;
-    transition: 0.3s;
-    border: 0.5px solid black;
-    border-radius: 24px;
-    height: 20px;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: white; /* track background */
+    border: 0.5px solid #00000026;
+  border-radius: 20px;
+  transition: 0.3s;
 }
 
-input:checked+.slider {
-    /* background-color: #4caf50; */
-     background-color: white;
-    
-
-}
-
-input:checked+.slider:before {
-    transform: translateX(18px);
-        background-color: #ED3237;
-}
-
-
+/* Circle (thumb) */
 .slider:before {
-    position: absolute;
-    content: "";
-  height: 14px;
-    width: 14px;
-    left: 3px;
-    bottom: 3px;
-    background-color: #ccc;
-    transition: 0.3s;
-    border-radius: 50%;
+  content: "";
+  position: absolute;
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: gray; /* OFF color */
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.ag-cell .custom-cell {
+  display: flex;
+  align-items: center;
+}
+
+.ag-cell img {
+  border-radius: 50%;
+}
+
+/* Checked state */
+input:checked + .slider:before {
+  background-color: #53BF8B; /* ON color */
+}
+
+/* Keep track background white when checked */
+input:checked + .slider {
+  background-color: white;
+}
+
+/* Optional: round shape */
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+/* Move thumb when ON */
+input:checked + .slider:before {
+  transform: translateX(15px);
+}
+
+
+
+/* Make unchecked toggle faded */
+.switch input:not(:checked) + .slider {
+  opacity: 0.5; /* adjust between 0.3–0.7 depending on preference */
+}
+
+/* Keep checked toggle fully visible */
+.switch input:checked + .slider {
+  opacity: 5;
 }
 
 .section {

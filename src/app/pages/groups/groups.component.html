@@ -1,19 +1,18 @@
 <div class="dashboard-container">
   <div class="dashboard-content grid-layout">
-    
     <!-- === LEFT SECTION (8 columns) === -->
     <div class="left-section">
-      
       <!-- Section Header -->
       <div class="section-header">
         <h2>QUEUES</h2>
-        <button class="createbutton" (click)="onCreateQueueClick()">+ CREATE QUEUE</button>
+        <button class="createbutton" (click)="onCreateQueueClick()">
+          + CREATE QUEUE
+        </button>
       </div>
 
       <!-- Escalated Cards & Search -->
       <div class="calender-section-body">
         <div class="escalated-row">
-          
           <!-- Escalated Cards -->
           <div
             class="calender-escalated-card"
@@ -21,10 +20,19 @@
             [ngClass]="{ 'hidden-card': i >= 3 }"
             [ngStyle]="{ 'background-color': i === 0 ? 'red' : 'white' }"
           >
-            <span class="label" [ngStyle]="{ color: i === 0 ? 'white' : '#000000',opacity: i === 0 ? '1' : '0.6' }">
+            <span
+              class="label"
+              [ngStyle]="{
+                color: i === 0 ? 'white' : '#000000',
+                opacity: i === 0 ? '1' : '0.6'
+              }"
+            >
               {{ e.label }}
             </span>
-            <span class="value" [ngStyle]="{ color: i === 0 ? 'white' : 'red' }">
+            <span
+              class="value"
+              [ngStyle]="{ color: i === 0 ? 'white' : 'red' }"
+            >
               {{ e.value }}
             </span>
           </div>
@@ -42,7 +50,6 @@
               (input)="onFilterTextBoxChanged()"
             />
           </div>
-          
         </div>
       </div>
 
@@ -56,26 +63,26 @@
           [columnDefs]="columnDefs"
           [defaultColDef]="defaultColDef"
           [pagination]="true"
-          [paginationPageSize]="10"
+          [paginationPageSize]="15"
+          [rowHeight]="30"
+          [headerHeight]="30"
           [enableCellTextSelection]="true"
           [enableRangeSelection]="true"
           [copyHeadersToClipboard]="true"
           domLayout="autoHeight"
-          [paginationPageSizeSelector]="[10, 20, 50, 100]"
+          [paginationPageSizeSelector]="[15, 50, 100]"
           [localeText]="localeText"
           [quickFilterMatcher]="quickFilterMatcher"
           (gridReady)="onGridReady($event)"
           (cellClicked)="onCellClicked($event)"
         ></ag-grid-angular>
       </div>
-
     </div>
 
     <!-- === RIGHT SECTION (4 columns) === -->
-    
+
     <!-- Default Right Section -->
     <div class="right-section" *ngIf="currentSection === 'default'">
-      
       <!-- Popup Header -->
       <div class="popup-header">
         <div class="popup-header-grid">
@@ -122,12 +129,14 @@
           ></app-groups-popup>
         </div>
       </div>
-
     </div>
 
     <!-- ADD Section (Dynamic for Site/Camera/Employee/Queue) -->
-    <div class="right-section" *ngIf="currentSection !== 'default'" [ngClass]="'add-section'">
-      
+    <div
+      class="right-section"
+      *ngIf="currentSection !== 'default'"
+      [ngClass]="'add-section'"
+    >
       <!-- Header -->
       <div class="popup-header">
         <p class="label nomargin">
@@ -149,13 +158,17 @@
 
       <!-- Popup Body -->
       <div class="popup-body">
-
         <!-- ADD Site / Camera Form -->
-        <form class="add-form" *ngIf="currentSection === 'site' || currentSection === 'camera'">
+        <form
+          class="add-form"
+          *ngIf="currentSection === 'site' || currentSection === 'camera'"
+        >
           <div class="form-group">
             <label for="group">Select Group</label>
             <select id="group" class="form-control" disabled>
-              <option [value]="selectedItem?.id">{{ selectedItem?.name }}</option>
+              <option [value]="selectedItem?.id">
+                {{ selectedItem?.name }}
+              </option>
             </select>
           </div>
 
@@ -172,24 +185,28 @@
               [style]="{ width: '100%' }"
             ></p-dropdown>
           </div>
-
           <div class="form-group" *ngIf="currentSection === 'camera'">
-            <label for="camera">Select Camera</label>
-            <p-dropdown
+            <label for="camera">Select Cameras</label>
+            <p-multiSelect
               [options]="camerasDropdown"
-              placeholder="Select Camera"
-              [(ngModel)]="selectedCameraId"
+              placeholder="Select Cameras"
+              [(ngModel)]="selectedCameraIds"
               [ngModelOptions]="{ standalone: true }"
               optionLabel="label"
               optionValue="value"
               [disabled]="!selectedSiteId"
               [style]="{ width: '100%' }"
-            ></p-dropdown>
+              display="chip"
+            ></p-multiSelect>
           </div>
 
           <div class="form-actions">
-            <button type="button" class="btn cancel-btn" (click)="goBack()">Cancel</button>
-            <button type="submit" (click)="addSiteCamera()" class="btn add-btn">Add</button>
+            <button type="button" class="btn cancel-btn" (click)="goBack()">
+              Cancel
+            </button>
+            <button type="submit" (click)="addSiteCamera()" class="btn add-btn">
+              Add
+            </button>
           </div>
         </form>
 
@@ -199,7 +216,9 @@
             <div class="form-group">
               <label for="group">Select Group</label>
               <select id="group" class="form-control" disabled>
-                <option [value]="selectedItem?.id">{{ selectedItem?.name }}</option>
+                <option [value]="selectedItem?.id">
+                  {{ selectedItem?.name }}
+                </option>
               </select>
             </div>
 
@@ -215,12 +234,8 @@
             </div>
 
             <div class="form-groups select-all">
-              <label>
-                Employee ({{ users.length }})
-                
-              </label>
-                <label class="selectall-text">
-             
+              <label> Employee ({{ users.length }}) </label>
+              <label class="selectall-text">
                 <input
                   type="checkbox"
                   #selectAllCheckbox
@@ -231,38 +246,67 @@
               </label>
             </div>
 
-            <div class="escalated-card-container" style="max-height: 400px; overflow-y: auto">
+            <div
+              class="escalated-card-container"
+              style="max-height: 400px; overflow-y: auto"
+            >
               <div class="escalated-card" *ngFor="let user of filteredUsers">
                 <div class="escalated-card-content">
                   <input
                     #checkbox
                     type="checkbox"
                     [checked]="selectedUserIds.includes(user.userId)"
-                    (change)="toggleUserSelection(user.userId, checkbox.checked)"
+                    (change)="
+                      toggleUserSelection(user.userId, checkbox.checked)
+                    "
                   />
                   <div>
-                    <img class="imground" [src]="'../../../assets/user1.png'" alt="{{ user.userName }}" />
+                    <img
+                      class="imground"
+                      [src]="'../../../assets/user1.png'"
+                      alt="{{ user.userName }}"
+                    />
                   </div>
                   <div class="nameemail">
                     <h4 class="labelmargin">{{ user.userName }}</h4>
-                    <p class="labelmail">{{ user.email }} | {{ user.userContact }}</p>
+                    <p class="labelmail">
+                      {{ user.email }} | {{ user.userContact }}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="button" class="btn cancel-btn" (click)="goBack()">Cancel</button>
-              <button type="submit" (click)="addSelectedUsers()" class="btn add-btn">Add</button>
+              <button type="button" class="btn cancel-btn" (click)="goBack()">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                (click)="addSelectedUsers()"
+                class="btn add-btn"
+              >
+                Add
+              </button>
             </div>
           </form>
         </div>
 
         <!-- ADD Queue Form -->
-        <form class="add-form" *ngIf="currentSection === 'queue'" (ngSubmit)="createQueue()">
+        <form
+          class="add-form"
+          *ngIf="currentSection === 'queue'"
+          (ngSubmit)="createQueue()"
+        >
           <div class="form-group">
             <label for="queueName">Queue Name</label>
-            <input id="queueName" name="queueName" class="form-control" [(ngModel)]="newQueue.queueName" required />
+            <input
+              id="queueName"
+              name="queueName"
+              class="form-control"
+              [(ngModel)]="newQueue.queueName"
+              required
+            />
           </div>
 
           <div class="form-group">
@@ -280,16 +324,26 @@
 
           <div class="form-actions row">
             <div class="col-6">
-              <button type="button" (click)="goBack()" class="btn cancel-btn w-100">Cancel</button>
+              <button
+                type="button"
+                (click)="goBack()"
+                class="btn cancel-btn w-100"
+              >
+                Cancel
+              </button>
             </div>
             <div class="col-6">
-              <button type="submit" (click)="createQueue()" class="btn add-btn w-100">Create</button>
+              <button
+                type="submit"
+                (click)="createQueue()"
+                class="btn add-btn w-100"
+              >
+                Create
+              </button>
             </div>
           </div>
         </form>
-
       </div>
     </div>
-
   </div>
 </div>

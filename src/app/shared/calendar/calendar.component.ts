@@ -56,7 +56,7 @@ export class CalendarComponent implements OnInit {
   daterange: boolean = true;
   wholeDay: boolean = false;
 
-  startTime: string = "00:00";
+  startTime: string = "00:00:00";
   endTime: string = "";
 
   months: any[] = [];
@@ -69,42 +69,38 @@ export class CalendarComponent implements OnInit {
   currentWeekIndex: number = 0;
   weekWindowStartIndex: number = 0;
 
-  ngOnInit() {
-    this.setTodayStartEndValues();
+ ngOnInit() {
+  this.setTodayStartEndValues(); // ✅ already emits once
 
-    const currentYear = new Date().getFullYear();
-    this.generateAllISOWeeks(currentYear - 5, currentYear + 5);
-    this.generateMonths(currentYear - 5, currentYear + 5);
+  const currentYear = new Date().getFullYear();
+  this.generateAllISOWeeks(currentYear - 5, currentYear + 5);
+  this.generateMonths(currentYear - 5, currentYear + 5);
 
-    this.today.setHours(23, 59, 59, 999);
+  this.today.setHours(23, 59, 59, 999);
+
+
+
+  // If week mode initialization is needed, keep this conditional
+  if (this.viewMode === "week") {
+    const currentWeek = this.weeks[this.currentWeekIndex];
+    const now = new Date();
+    const endDate = currentWeek.end >= now ? now : currentWeek.end;
 
     this.dateRangeSelected.emit({
-      startDate: this.startDate,
-      startTime: this.startTime,
-      endDate: this.endDate,
-      endTime: this.endTime,
+      startDate: currentWeek.start,
+      startTime: "00:00:00",
+      endDate: endDate,
+      endTime:
+        endDate === now
+          ? now.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+            
+            })
+          : "23:59:59",
     });
-
-    if (this.viewMode === "week") {
-      const currentWeek = this.weeks[this.currentWeekIndex];
-      const now = new Date();
-      const endDate = currentWeek.end >= now ? now : currentWeek.end;
-
-      this.dateRangeSelected.emit({
-        startDate: currentWeek.start,
-        startTime: "00:00",
-        endDate: endDate,
-        endTime:
-          endDate === now
-            ? now.toLocaleTimeString("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-              })
-            : "23:59",
-      });
-    }
   }
+}
 
   // ✅ Helper: prevent future navigation
   private isFutureDate(date: Date): boolean {
@@ -164,16 +160,16 @@ nextMonthWindow() {
 
     this.dateRangeSelected.emit({
       startDate: month.start,
-      startTime: "00:00",
+      startTime: "00:00:00",
       endDate: endDate,
       endTime:
         endDate === now
           ? now.toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
-              hour12: true,
+              // hour12: true,
             })
-          : "23:59",
+          : "23:59:59",
     });
   }
 generateMonths(startYear: number, endYear: number) {
@@ -261,76 +257,55 @@ setInitialWeekWindow() {
   this.weekWindowStartIndex = Math.max(0, this.currentWeekIndex - 2);
 }
 
-  generateAllISOWeeks(startYear: number, endYear: number) {
+generateAllISOWeeks(startYear: number, endYear: number) {
   const weeks: any[] = [];
   const today = new Date();
+  const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate()); // normalized midnight local
+
+  // Get current local Monday (start of week)
+  const currentMonday = new Date(todayLocal);
+  const dayOfWeek = currentMonday.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const diffToMonday = (dayOfWeek + 6) % 7; // number of days to go back to Monday
+  currentMonday.setDate(currentMonday.getDate() - diffToMonday);
+  currentMonday.setHours(0, 0, 0, 0);
+
+  const lastWeekMonday = new Date(currentMonday);
+  lastWeekMonday.setDate(lastWeekMonday.getDate() - 7);
 
   for (let year = startYear; year <= endYear; year++) {
-    let d = new Date(year, 0, 4);
-    d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); // Align to Monday
-    let weekNumber = 1;
+    let d = new Date(year, 0, 1);
 
-    while (
-      d.getFullYear() < year + 1 ||
-      (d.getFullYear() === year + 1 && d.getMonth() === 0 && weekNumber <= 52)
-    ) {
+    // find first Monday of this year
+    while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+
+    while (d.getFullYear() <= year) {
       const weekStart = new Date(d);
       const weekEnd = new Date(d);
       weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
 
-      if (weekStart <= today) {
-        // Format for regular weeks
-        const startLabel = weekStart.toLocaleString("default", {
-          month: "short",
-          day: "numeric",
-        });
-        const endLabel = weekEnd.toLocaleString("default", {
-          month: "short",
-          day: "numeric",
-        });
-
+      if (weekStart <= todayLocal) {
+        const startLabel = weekStart.toLocaleString("default", { month: "short", day: "numeric" });
+        const endLabel = weekEnd.toLocaleString("default", { month: "short", day: "numeric" });
         const rangeLabel =
           weekStart.getMonth() === weekEnd.getMonth()
             ? `${startLabel} - ${endLabel.split(" ")[1]}`
             : `${startLabel} - ${endLabel}`;
 
-        // Determine "This Week" or "Last Week"
-        const currentWeekStart = new Date(today);
-        currentWeekStart.setDate(today.getDate() - today.getDay() + 1); // Monday start
-        currentWeekStart.setHours(0, 0, 0, 0);
-
-        const lastWeekStart = new Date(currentWeekStart);
-        lastWeekStart.setDate(lastWeekStart.getDate() - 7);
-
         let label = rangeLabel;
+        if (weekStart.getTime() === currentMonday.getTime()) label = "This Week";
+        else if (weekStart.getTime() === lastWeekMonday.getTime()) label = "Last Week";
 
-        if (
-          today >= weekStart &&
-          today <= weekEnd
-        ) {
-          label = "This Week";
-        } else if (
-          weekStart.getTime() === lastWeekStart.getTime()
-        ) {
-          label = "Last Week";
-        }
-
-        weeks.push({
-          label,
-          start: new Date(weekStart),
-          end: new Date(weekEnd),
-          range: rangeLabel, // optional: keep actual range for reference
-        });
+        weeks.push({ label, start: weekStart, end: weekEnd, range: rangeLabel });
       }
 
       d.setDate(d.getDate() + 7);
-      weekNumber++;
     }
   }
 
   this.weeks = weeks;
-  this.currentWeekIndex = this.weeks.findIndex(
-    (w) => today >= w.start && today <= w.end
+  this.currentWeekIndex = weeks.findIndex(
+    (w) => todayLocal >= w.start && todayLocal <= w.end
   );
   this.weekWindowStartIndex = Math.max(0, this.currentWeekIndex - 2);
 }
@@ -422,16 +397,16 @@ get canNavigatePrevMonth(): boolean {
 
     this.dateRangeSelected.emit({
       startDate: week.start,
-      startTime: "00:00",
+      startTime: "00:00:00",
       endDate: endDate,
       endTime:
         endDate === now
           ? now.toLocaleTimeString("en-US", {
               hour: "2-digit",
               minute: "2-digit",
-              hour12: true,
+              // hour12: true,
             })
-          : "23:59",
+          : "23:59:59",
     });
   }
 
@@ -476,25 +451,25 @@ get canNavigatePrevMonth(): boolean {
       );
       this.startDate = todayStart;
       this.endDate = todayNoon;
-      this.startTime = "12:00 AM";
-      this.endTime = "12:00 PM";
+      this.startTime = "00:00:00 AM";
+      this.endTime = "11:59:59 PM";
     } else if (this.dateRange) {
       this.startDate = todayStart;
       this.endDate = now;
-      this.startTime = "12:00 AM";
+      this.startTime = "00:00:00 AM";
       this.endTime = now.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: true,
+        // hour12: true,
       });
     } else {
       this.startDate = todayStart;
       this.endDate = now;
-      this.startTime = "12:00 AM";
+      this.startTime = "00:00:00 AM";
       this.endTime = now.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
-        hour12: true,
+        // hour12: true,
       });
     }
 
@@ -512,11 +487,11 @@ get canNavigatePrevMonth(): boolean {
 
   confirmSelection(op: any) {
     this.startTime = this.wholeDay
-      ? "00:00"
+      ? "00:00:00"
       : this.startDate.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true,
+          // hour12: true,
         });
 
     this.endTime = this.wholeDay
@@ -524,7 +499,7 @@ get canNavigatePrevMonth(): boolean {
       : this.endDate.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
-          hour12: true,
+          // hour12: true,
         });
 
     this.dateRangeSelected.emit({
@@ -592,11 +567,11 @@ get canNavigatePrevMonth(): boolean {
       0
     );
     this.endDate = now;
-    this.startTime = "00:00";
+    this.startTime = "00:00:00";
     this.endTime = now.toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      // hour12: true,
     });
     this.dateRangeSelected.emit({
       startDate: this.startDate,
@@ -613,8 +588,8 @@ get canNavigatePrevMonth(): boolean {
     this.endDate = new Date(this.startDate);
     this.endDate.setHours(23, 59, 59, 999);
     this.currentMonth = new Date(this.startDate);
-    this.startTime = "12:00 AM";
-    this.endTime = "11:59 PM";
+    this.startTime = "00:00:00 AM";
+    this.endTime = "11:59:59 PM";
     this.dateRangeSelected.emit({
       startDate: this.startDate,
       startTime: this.startTime,
@@ -638,8 +613,8 @@ get canNavigatePrevMonth(): boolean {
     this.endDate = new Date(this.startDate);
     this.endDate.setHours(23, 59, 59, 999);
     this.currentMonth = new Date(this.startDate);
-    this.startTime = "12:00 AM";
-    this.endTime = "11:59 PM";
+    this.startTime = "00:00:00 AM";
+    this.endTime = "11:59.59 PM";
     this.dateRangeSelected.emit({
       startDate: this.startDate,
       startTime: this.startTime,

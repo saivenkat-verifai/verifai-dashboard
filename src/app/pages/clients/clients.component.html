@@ -1,1 +1,258 @@
-<p>clients works!</p>
+<div class="dashboard-container">
+  <!-- Section Header -->
+  <div class="section-header">
+    <h2>CLIENTS</h2>
+    <button class="createbutton" (click)="openCreateClientPanel()">
+      + CREATE CLIENT
+    </button>
+  </div>
+
+  <!-- Right Slide Panel -->
+  <div class="right-panel" [class.open]="isCreateClientPanelOpen">
+    <div class="panel-header">
+      <h3 class="header-title">CREATE CLIENT</h3>
+      <button class="close-btn" (click)="closeCreateClientPanel()">
+        <img
+          class="calenderimage"
+          src="../../../assets/close-filled.svg"
+          alt=""
+        />
+      </button>
+    </div>
+    <div class="panel-body">
+      <!-- Put your form or content here -->
+      <!-- <p>Client form goes here...</p> -->
+      <form class="create-client-form">
+        <!-- Section 1 -->
+        <div class="form-section">
+          <!-- <h4 class="section-title">Section 1</h4> -->
+          <div class="form-row">
+            <div class="form-col col-4">
+              <label for="firstName">First Name</label>
+              <input type="text" id="firstName" name="firstName" />
+            </div>
+            <div class="form-col col-4">
+              <label for="lastName">Last Name</label>
+              <input type="text" id="lastName" name="lastName" />
+            </div>
+            <div class="form-col col-4">
+              <label for="type">Type</label>
+              <select id="type" name="type">
+                <option>Client</option>
+                <option>Organization</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Address Section -->
+        <div class="form-section">
+          <h4 class="section-title">Address</h4>
+          <div class="form-row">
+            <div class="form-col col-4">
+              <label for="country">Country</label>
+              <select id="country" name="country">
+                <option>USA</option>
+                <option>India</option>
+              </select>
+            </div>
+            <div class="form-col col-4">
+              <label for="state">State</label>
+              <select id="state" name="state">
+                <option>California</option>
+                <option>Texas</option>
+              </select>
+            </div>
+            <div class="form-col col-4">
+              <label for="city">City</label>
+              <select id="city" name="city">
+                <option>San Francisco</option>
+                <option>Austin</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col col-8">
+              <label for="area">Area</label>
+              <input type="text" id="area" name="area" />
+            </div>
+            <div class="form-col col-4">
+              <label for="zipcode">Zip Code</label>
+              <input type="text" id="zipcode" name="zipcode" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Section -->
+        <div class="form-section">
+          <h4 class="section-title">Contact</h4>
+          <div class="form-row">
+            <div class="form-col col-6">
+              <label for="personName">Person Name</label>
+              <input type="text" id="personName" name="personName" />
+            </div>
+            <div class="form-col col-6">
+              <label for="designation">Designation</label>
+              <select id="designation" name="designation">
+                <option>Manager</option>
+                <option>Engineer</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-col col-6 contact-field">
+              <label>Phone</label>
+              <div class="input-with-icon">
+                <div class="email-switch">
+                  <div
+                    class="switch-btn left"
+                    [class.active]="activeSide === 'left'"
+                    (click)="setActiveSide('left')"
+                  >
+                    <img src="../../../assets/add-icon.svg" alt="email" />
+                  </div>
+                  <div
+                    class="switch-btn right"
+                    [class.active]="activeSide === 'right'"
+                    (click)="setActiveSide('right')"
+                  >
+                    <img src="../../../assets/add-icon.svg" alt="email" />
+                  </div>
+                </div>
+
+                <input
+                  class="phone-input"
+                  type="text"
+                  placeholder="Enter phone"
+                />
+                <button class="add-button" type="button">
+                  <img src="../../../assets/add-icon.svg" alt="email" />
+                </button>
+              </div>
+            </div>
+            <div class="form-col col-6 contact-field">
+              <label>Email</label>
+              <div class="input-with-icon">
+                <div class="email-switch">
+                  <div
+                    class="switch-btn left"
+                    [class.active]="activeSide === 'left'"
+                    (click)="setActiveSide('left')"
+                  >
+                    <img src="../../../assets/add-icon.svg" alt="email" />
+                  </div>
+                  <div
+                    class="switch-btn right"
+                    [class.active]="activeSide === 'right'"
+                    (click)="setActiveSide('right')"
+                  >
+                    <img src="../../../assets/add-icon.svg" alt="email" />
+                  </div>
+                </div>
+                <input
+                  class="email-input"
+                  type="text"
+                  placeholder="Enter email"
+                />
+                <button class="add-button" type="button">
+                  <img src="../../../assets/add-icon.svg" alt="email" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Remarks Section -->
+        <div class="form-section">
+          <h4 class="section-title">Remarks</h4>
+          <div class="form-row">
+            <div class="form-col col-12">
+              <textarea
+                id="remarks"
+                name="remarks"
+                placeholder="Enter remarks"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="form-row form-buttons">
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeCreateClientPanel()"
+          >
+            CANCEL
+          </button>
+          <button type="submit" class="create-button">CREATE</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- === Escalated Cards & Search === -->
+  <div class="clients-section-body">
+    <div class="clients-row">
+      <!-- Escalated Cards -->
+      <div
+        class="clients-escalated-card"
+        *ngFor="let e of clientEscalatedDetails; let i = index"
+        [ngClass]="{ 'hidden-card': i >= 4 }"
+        [ngStyle]="{ 'background-color': i === 0 ? 'red' : 'white' }"
+      >
+        <span
+          class="label"
+          [ngStyle]="{
+            color: i === 0 ? 'white' : '#000000',
+            opacity: i === 0 ? '1' : '0.6'
+          }"
+        >
+          {{ e.label }}
+        </span>
+        <span class="value" [ngStyle]="{ color: i === 0 ? 'white' : 'red' }">
+          {{ e.value }}
+        </span>
+      </div>
+
+      <!-- Blank Space -->
+      <div class="blank-space"></div>
+
+      <!-- Search Box -->
+      <div class="clients-search">
+        <input
+          type="text"
+          placeholder="Search clients..."
+          class="search-input"
+          [(ngModel)]="searchTerm"
+          (input)="onFilterTextBoxChanged()"
+        />
+      </div>
+    </div>
+  </div>
+
+  <!-- === AG Grid Table === -->
+  <div class="table-section m-t-20">
+    <ag-grid-angular
+      style="width: 100%; height: 100%"
+      class="ag-theme-alpine"
+      theme="legacy"
+      [rowData]="clientsRowData"
+      [columnDefs]="clientsColumnDefs"
+      [defaultColDef]="defaultColDef"
+      [pagination]="true"
+      [paginationPageSize]="15"
+      [rowHeight]="30"
+      [headerHeight]="30"
+      [enableCellTextSelection]="true"
+      [enableRangeSelection]="true"
+      [copyHeadersToClipboard]="true"
+      domLayout="autoHeight"
+      [paginationPageSizeSelector]="[15, 50, 100]"
+      [localeText]="localeText"
+      [quickFilterMatcher]="quickFilterMatcher"
+      (gridReady)="onGridReady($event)"
+      (cellClicked)="onCellClicked($event)"
+    ></ag-grid-angular>
+  </div>
+</div>

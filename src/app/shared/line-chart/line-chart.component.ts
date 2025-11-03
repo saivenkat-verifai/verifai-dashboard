@@ -46,7 +46,7 @@ export class LineChartComponent implements OnChanges {
       accessibility: { enabled: true },
 
       title: { text: "", align: "center" },
-      xAxis: { categories: this.categories },
+       xAxis: { categories: this.categories,  title: { text: "Hours" }, },
       yAxis: { title: { text: "Count" } },
       legend: { layout: "vertical", align: "right", verticalAlign: "middle" },
       plotOptions: {
@@ -57,6 +57,7 @@ export class LineChartComponent implements OnChanges {
         },
       },
       series: this.hourlyData,
+      credits: { enabled: false },
       tooltip: { enabled: true }, // optional: disables tooltips to reduce passive listener warnings
       responsive: {
         rules: [
@@ -90,7 +91,8 @@ export class LineChartComponent implements OnChanges {
       },
       accessibility: { enabled: true },
       title: { text: "No Data", align: "left" },
-      xAxis: { categories: this.categories },
+      credits: { enabled: false },
+      xAxis: { categories: this.categories,  title: { text: "Hours" }, },
       yAxis: { title: { text: "Count" } },
       series: [],
       plotOptions: {

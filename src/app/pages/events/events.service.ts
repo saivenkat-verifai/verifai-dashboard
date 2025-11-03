@@ -41,7 +41,7 @@ export class EventsService {
 
   getEventsPendingEventa(actionTag: number): Observable<any> {
     // Replace with the correct API endpoint if needed
-    return this.http.get<any>(`${this.pendingMessagesUrl}?level=${actionTag}`);
+    return this.http.get<any>(`${this.pendingMessagesUrl}`);
   }
   getActionTagCategories(): Observable<any> {
     return this.http.get<any>(this.actionTagCategoriesUrl);

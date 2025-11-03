@@ -30,8 +30,8 @@
       #rangeTrigger
       (click)="op.toggle($event)"
     >
-      {{ startDate | date : "dd MMM, yyyy HH:mm a" | uppercase }} -
-      {{ endDate | date : "dd MMM, yyyy HH:mm a" | uppercase }}
+      {{ startDate | date : "dd MMM, yyyy HH:mm:ss a" | uppercase }} -
+      {{ endDate | date : "dd MMM, yyyy HH:mm:ss a" | uppercase }}
     </span>
 
     <button
@@ -50,7 +50,7 @@
       />
     </button>
   </ng-container>
- <div class="week-cards" *ngIf="viewMode === 'week'">
+  <div class="week-cards" *ngIf="viewMode === 'week'">
     <!-- Left arrow -->
     <button class="circle-btn" (click)="prevWeekWindow()">
       <img
@@ -176,7 +176,7 @@
             id="startDateTime"
             [(ngModel)]="startDate"
             [showTime]="true"
-            [hourFormat]="'12'"
+            [hourFormat]="'24'"
             dateFormat="dd/mm/yy"
             [timeOnly]="false"
             inputId="start"
@@ -194,7 +194,7 @@
             id="endDateTime"
             [(ngModel)]="endDate"
             [showTime]="true"
-            [hourFormat]="'12'"
+            [hourFormat]="'24'"
             dateFormat="dd/mm/yy"
             [timeOnly]="false"
             inputId="end"

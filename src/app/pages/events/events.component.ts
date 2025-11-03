@@ -17,6 +17,8 @@ import { AgGridModule } from "ag-grid-angular";
 import { CalendarComponent } from "src/app/shared/calendar/calendar.component";
 import { EventsService } from "./events.service";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
+import { OverlayPanel } from "primeng/overlaypanel";
+import { OverlayPanelModule } from "primeng/overlaypanel";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -61,11 +63,15 @@ interface SecondEscalatedDetail {
     MatNativeDateModule,
     MatDatepickerModule,
     CalendarComponent,
+    OverlayPanelModule,
   ],
 })
 export class EventsComponent implements OnInit {
   @ViewChild("paginationControls")
   paginationControls!: ElementRef<HTMLDivElement>;
+  @ViewChild("playOverlay") playOverlay!: OverlayPanel;
+  safeVideoUrl!: SafeResourceUrl;
+  selectedPlayItem: any;
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
@@ -81,6 +87,8 @@ export class EventsComponent implements OnInit {
   searchTerm: string = "";
   showMore: boolean = false;
 
+  isLoading: boolean = false;
+
   /** -------------------- AG Grid APIs -------------------- */
   gridApi!: GridApi;
   closedGridApi: any;
@@ -92,7 +100,7 @@ export class EventsComponent implements OnInit {
   selectedItem: any = null;
 
   isPlayPopupVisible = false;
-  selectedPlayItem: any = null;
+  // selectedPlayItem: any = null;
   currentSlideIndex: number = 0;
 
   isCalendarPopupOpen = false;
@@ -138,21 +146,21 @@ export class EventsComponent implements OnInit {
   }
 
   /** -------------------- Filter & toggle actions -------------------- */
-  setFilter(filter: "CLOSED" | "PENDING") {
-    console.log("Setting filter to:", filter);
+setFilter(filter: "CLOSED" | "PENDING") {
     this.selectedFilter = filter;
     this.searchTerm = "";
 
     if (filter === "PENDING") {
-      this.loadPendingEvents();
-      this.pendingGridApi?.setQuickFilter("");
+        this.loadPendingEvents();
     } else {
-      this.suspiciousChecked = true;
-      this.falseChecked = false;
-      this.loadClosedAndEscalatedDetails();
-      this.closedGridApi?.setQuickFilter("");
+        this.suspiciousChecked = true;
+        this.falseChecked = false;
+
+        // Only call one API that returns both table + escalated data
+        this.loadClosedAndEscalatedDetails(); 
+        // Remove separate loadEscalatedDetails() here
     }
-  }
+}
 
   onSuspiciousToggle() {
     this.suspiciousChecked = true;
@@ -251,23 +259,44 @@ export class EventsComponent implements OnInit {
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- AG Grid cell click -------------------- */
+  // onCellClicked(event: any) {
+  //   const target = event.event.target as HTMLElement;
+
+  //   if (event.colDef.field === "more" && target.closest(".info-icon")) {
+  //     const eventId = event.data.eventId; // id from the table row
+
+  //     this.eventsService.getEventMoreInfo(eventId).subscribe({
+  //       next: (res) => {
+  //         this.openTablePopup(res); // pass the full object to popup
+  //       },
+  //     });
+  //   }
+
+  //   if (event.colDef.field === "more" && target.closest(".play-icon")) {
+  //     this.openPlayPopup(event.data);
+  //   }
+  // }
+
   onCellClicked(event: any) {
+  if (event.colDef.field === "more") {
     const target = event.event.target as HTMLElement;
 
-    if (event.colDef.field === "more" && target.closest(".info-icon")) {
-      const eventId = event.data.eventId; // id from the table row
+    // Play icon clicked
+    if (target.closest(".play-icon")) {
+      this.openPlayTooltip(event.event, event); // Pass event and params
+    }
 
+    // Info icon clicked
+    if (target.closest(".info-icon")) {
+      const eventId = event.data.eventId; // Get the row's ID
       this.eventsService.getEventMoreInfo(eventId).subscribe({
-        next: (res) => {
-          this.openTablePopup(res); // pass the full object to popup
-        },
+        next: (res) => this.openTablePopup(res),
+        error: (err) => console.error("Error fetching info:", err),
       });
     }
-
-    if (event.colDef.field === "more" && target.closest(".play-icon")) {
-      this.openPlayPopup(event.data);
-    }
   }
+}
+
 
   fetchMoreInfo(eventId: number) {
     this.eventsService.getEventMoreInfo(eventId).subscribe({
@@ -302,7 +331,7 @@ export class EventsComponent implements OnInit {
   //   this.selectedPlayItem = null;
   // }
 
-  safeVideoUrl: SafeResourceUrl | null = null;
+  // safeVideoUrl: SafeResourceUrl | null = null;
 
   openPlayPopup(item: any) {
     this.selectedPlayItem = item;
@@ -313,16 +342,37 @@ export class EventsComponent implements OnInit {
         item.httpUrl
       );
     } else {
-      this.safeVideoUrl = null;
+      // this.safeVideoUrl = null;
     }
 
     this.isPlayPopupVisible = true;
   }
 
+  openPlayTooltip(event: MouseEvent, params: any) {
+    const item = params.data; // AG Grid row data
+    this.selectedPlayItem = item;
+
+    if (item?.httpUrl) {
+      // ✅ Use your trusted backend video URL
+      this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+        item.httpUrl
+      );
+    } else {
+      // optional: handle missing video
+      this.safeVideoUrl = null as any;
+    }
+
+    // ✅ Show PrimeNG tooltip panel
+    this.playOverlay.show(event);
+
+    
+  }
+
   closePlayPopup() {
     this.isPlayPopupVisible = false;
     this.selectedPlayItem = null;
-    this.safeVideoUrl = null;
+    // this.safeVideoUrl = null;
+    this.playOverlay.hide();
   }
 
   openCalendarPopup() {
@@ -475,10 +525,12 @@ export class EventsComponent implements OnInit {
   }
 
   loadPendingEvents() {
+    this.isLoading = true;
     // Determine level based on selected filter
     const level = this.selectedpendingFilter === "CONSOLES" ? 1 : 2;
     this.eventsService.getEventsPendingEventa(level).subscribe({
       next: (res) => {
+        this.isLoading = false;
         // === Keep your summary cards as-is ===
         this.secondEscalatedDetails = [
           { label: "TOTAL", value: res.totalEvents || 0, color: "#ED3237" },
@@ -512,7 +564,10 @@ export class EventsComponent implements OnInit {
         // === Transform API queues into single array for AG Grid ===
         this.pendingRowData = this.transformQueuesMessages(res);
       },
-      error: (err) => console.error("Error fetching pending events:", err),
+      error: (err) => {
+        this.isLoading = false;
+        console.error("Error fetching pending events:", err);
+      },
     });
   }
 
@@ -528,6 +583,7 @@ export class EventsComponent implements OnInit {
   }
 
   loadClosedAndEscalatedDetails() {
+    this.isLoading = true;
     const actionTag = this.suspiciousChecked ? 2 : 1;
 
     const startDateStr = this.selectedStartDate
@@ -542,6 +598,7 @@ export class EventsComponent implements OnInit {
       .getSuspiciousEvents(actionTag, startDateStr, endDateStr)
       .subscribe({
         next: (res) => {
+          this.isLoading = false;
           // Closed events for table
           console.log(res, "responce");
           if (res?.eventData) {
@@ -549,9 +606,9 @@ export class EventsComponent implements OnInit {
               let alertColor = "#53BF8B"; // default green
 
               if (e.eventType === "Event_Wall") {
-                alertColor = "#FFC400"; // yellow
-              } else if (e.eventType === "Manual_Wall") {
                 alertColor = "#53BF8B"; // green
+              } else if (e.eventType === "Manual_Wall") {
+                alertColor = "#FFC400"; // yellow
               }
 
               return {
@@ -559,15 +616,12 @@ export class EventsComponent implements OnInit {
                 siteId: e.siteId,
                 siteName: e.siteName,
                 device: e.unitId,
-                cameraId: e.cameraId?.slice(-2) ?? "",
-                duration: `${Math.floor(e.eventDuration / 60)}m ${
-                  e.eventDuration % 60
-                }s`,
-                tz: "CT",
+                cameraId: e.cameraId,
+                duration: e.eventDuration,
+                tz: e.timezone,
                 eventStartTime: e.eventStartTime,
                 actionTag: e.actionTag,
                 employee: {
-                  name: e.employee || "Unknown",
                   avatar: "assets/user1.png",
                   level: e.userLevels || "N/A",
                 },
@@ -597,12 +651,13 @@ export class EventsComponent implements OnInit {
               },
               {
                 iconcolor: "#53BF8B",
-                value: res.counts.Manual_Wall || 0,
+                value: res.counts.Event_Wall || 0,
+
                 color: "#ED3237",
               },
               {
                 iconcolor: "#FFC400",
-                value: res.counts.Event_Wall || 0,
+                value: res.counts.Manual_Wall || 0,
                 color: "#ED3237",
               },
             ];
@@ -612,6 +667,7 @@ export class EventsComponent implements OnInit {
           console.error("Failed to load closed/escalated details", err);
           this.rowData = [];
           this.secondEscalatedDetails = [];
+          this.isLoading = false;
         },
       });
   }
@@ -635,8 +691,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -644,18 +700,19 @@ export class EventsComponent implements OnInit {
         field: "siteName",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
+       
       {
         headerName: "DEVICE",
         field: "device",
         cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -664,19 +721,28 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
+      // {
+      //   headerName: "CITY",
+      //   field: "city",
+      //   headerClass: "custom-header",
+      //   cellClass: "custom-cell",
+      //   // floatingFilter: true,
+      //   // filter: true,
+      //   suppressHeaderMenuButton: true,
+      // },
       {
         headerName: "EVENT TIME",
-        field: "eventStartDatetime",
+        field: "eventStartTime",
         headerClass: "custom-header",
         cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -685,8 +751,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -695,19 +761,19 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
 
       {
         headerName: "ACTION TAG",
-        field: "actionTag",
+        field: "subActionTag", 
         headerClass: "custom-header",
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -717,42 +783,98 @@ export class EventsComponent implements OnInit {
         cellClass: "custom-cell",
         valueFormatter: (params) => params.value?.name || "",
         cellRenderer: (params: any) =>
-          `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span> Level ${params.value.level}</span></div>`,
+          `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/><span>  ${params.value.level}</span></div>`,
         // `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span>${params.value.name} - Level ${params.value.level}</span></div>`,
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
-     {
-  headerName: "ALERT TYPE",
-  field: "alertType",
-  headerClass: "custom-header",
-  cellStyle: {
-    textAlign: "center",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cellRenderer: (params:any) =>
-    `<span style="display:inline-block; width:14px; height:14px; background:${params.value}; border-radius:50%;"></span>`,
-  floatingFilter: true,
-  filter: true,
-  suppressHeaderMenuButton: true,
-},
       {
-        headerName: "MORE",
-        field: "more",
+        headerName: "ALERT TYPE",
+        field: "alertType",
         headerClass: "custom-header",
-        cellClass: "custom-cell",
         cellStyle: {
           textAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
         },
-        cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/></span>`,
+        cellRenderer: (params: any) =>
+          `<span style="display:inline-block; width:14px; margin-top:10px;  height:14px; background:${params.value}; border-radius:50%;"></span>`,
+        // floatingFilter: true,
+        // filter: true,
+        suppressHeaderMenuButton: true,
       },
+      {
+  headerName: "MORE",
+  field: "more",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  cellStyle: {
+    textAlign: "center",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cellRenderer: () =>
+    `<span class="play-icon" style="margin-right:8px;">
+       <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
+     </span>
+     <span class="info-icon">
+       <img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/>
+     </span>`,
+}
+
+      // {
+      //   headerName: "MORE",
+      //   field: "more",
+      //   headerClass: "custom-header",
+      //   cellClass: "custom-cell",
+      //   cellStyle: {
+      //     textAlign: "center",
+      //     display: "flex",
+      //     justifyContent: "center",
+      //     alignItems: "center",
+      //   },
+      //   cellRenderer: () =>
+      //     `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px;  height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/></span>`,
+      // },
+      // {
+      //   headerName: "MORE",
+      //   field: "more",
+      //   cellStyle: {
+      //     textAlign: "center",
+      //     display: "flex",
+      //     justifyContent: "center",
+      //     alignItems: "center",
+      //   },
+      //   cellRenderer: (params: any) => {
+      //     const playIcon = document.createElement("img");
+      //     playIcon.src = "assets/play-circle-icon.svg";
+      //     playIcon.style.width = "20px";
+      //     playIcon.style.height = "20px";
+      //     playIcon.style.cursor = "pointer";
+      //     playIcon.style.marginRight = "8px";
+      //     playIcon.style.marginTop = "10px";
+      //     playIcon.title = "Play Video";
+
+      //     playIcon.addEventListener("click", (event) => {
+      //       this.openPlayTooltip(event, params);
+      //     });
+
+      //     const infoIcon = document.createElement("img");
+      //     infoIcon.src = "assets/information-icon.svg";
+      //     infoIcon.style.width = "20px";
+      //     infoIcon.style.height = "20px";
+      //     infoIcon.style.cursor = "pointer";
+
+
+      //     const div = document.createElement("div");
+      //     div.appendChild(playIcon);
+      //     div.appendChild(infoIcon);
+      //     return div;
+      //   },
+      // },
     ];
 
     // PENDING column definitions
@@ -764,8 +886,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -774,8 +896,8 @@ export class EventsComponent implements OnInit {
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -784,8 +906,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -794,8 +916,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -804,8 +926,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -816,8 +938,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -828,8 +950,8 @@ export class EventsComponent implements OnInit {
         cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
         valueFormatter: (params) => this.formatDateTime(params.value),
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -838,8 +960,8 @@ export class EventsComponent implements OnInit {
         cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -848,8 +970,8 @@ export class EventsComponent implements OnInit {
         headerClass: "custom-header",
         cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
-        floatingFilter: true,
-        filter: true,
+        // floatingFilter: true,
+        // filter: true,
         suppressHeaderMenuButton: true,
       },
       // {
@@ -860,19 +982,48 @@ export class EventsComponent implements OnInit {
       //   cellRenderer: (params: any) =>
       //     `<img src="${params.value.avatar}" style="width:30px; height:30px;" class="avatar-img" alt="Emp"/>`,
       // },
+      // {
+      //   headerName: "MORE",
+      //   field: "more",
+      //   headerClass: "custom-header",
+      //   cellStyle: {
+      //     textAlign: "center",
+      //     display: "flex",
+      //     justifyContent: "center",
+      //     alignItems: "center",
+      //   },
+      //   cellClass: "custom-cell",
+      //   cellRenderer: () =>
+      //     `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; margin-top:10px; cursor:pointer;" alt="Play"/></span> `,
+      // },
+
       {
         headerName: "MORE",
         field: "more",
-        headerClass: "custom-header",
         cellStyle: {
           textAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
         },
-        cellClass: "custom-cell",
-        cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Play"/></span> `,
+        cellRenderer: (params: any) => {
+          const playIcon = document.createElement("img");
+          playIcon.src = "assets/play-circle-icon.svg";
+          playIcon.style.width = "20px";
+          playIcon.style.height = "20px";
+          playIcon.style.cursor = "pointer";
+          playIcon.style.marginRight = "8px";
+          playIcon.style.marginTop = "10px";
+          playIcon.title = "Play Video";
+
+          playIcon.addEventListener("click", (event) => {
+            this.openPlayTooltip(event, params);
+          });
+
+          const div = document.createElement("div");
+          div.appendChild(playIcon);
+          return div;
+        },
       },
     ];
   }
@@ -919,9 +1070,9 @@ export class EventsComponent implements OnInit {
                   { iconPath: "assets/cam.svg", count: totalData.cameras || 0 },
                 ],
                 colordot: [
-                  { iconcolor: "#53BF8B", count: totalData.Manual_Wall || 0 },
+                  { iconcolor: "#53BF8B", count: totalData.Event_Wall || 0 },
                   // Add more dots if additional fields like Event_Wall are available
-                  // { iconcolor: "#FFC400", count: totalData.Event_Wall || 0 },
+                  { iconcolor: "#FFC400", count: totalData.Manual_Wall || 0 },
                 ],
               });
             }
@@ -938,9 +1089,9 @@ export class EventsComponent implements OnInit {
                     { iconPath: "assets/cam.svg", count: data.cameras || 0 },
                   ],
                   colordot: [
-                    { iconcolor: "#53BF8B", count: data.Manual_Wall || 0 },
+                    { iconcolor: "#53BF8B", count: data.Event_Wall || 0 },
                     // Add more dots if additional fields like Event_Wall are available
-                    // { iconcolor: "#FFC400", count: data.Event_Wall || 0 },
+                    { iconcolor: "#FFC400", count: data.Manual_Wall || 0 },
                   ],
                 });
               }

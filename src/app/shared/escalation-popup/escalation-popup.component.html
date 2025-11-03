@@ -62,16 +62,13 @@
   </div>
 
   <!-- DURATION -->
-  <div class="total-duration">
-    <!-- <div class="row1">
-      <div class="label1">Site Name</div>
-      <div class="colon1">:</div>
-      <div class="value1">KFC - Tadepally</div>
-    </div> -->
-    <span>TOTAL DURATION 0h 20m 18s</span>
-    <span>INDIA 0h 7m 27s</span>
-    <span>US 0h 1m 20s</span>
-  </div>
+<div class="total-duration" *ngIf="selectedEvent">
+  <span *ngIf="selectedEvent.eventDuration">
+    TOTAL DURATION : {{ selectedEvent.eventDuration }}
+  </span>
+  <span>INDIA {{ '00:00:00' }}</span>
+  <span>US {{  '00:00:00' }}</span>
+</div>
   <div class="div">
     <p class="borderline"></p>
   </div>
@@ -80,8 +77,8 @@
     <h2>ESCALATION REPORT</h2>
     <!-- TIMEZONE -->
     <div class="timezone">
-      <label><input type="radio" checked /> CT</label>
-      <label><input type="radio" /> Customer TZ (MT)</label>
+      <label><input type="radio"  /> CT</label>
+      <label><input type="radio" checked /> Customer TZ (MT)</label>
       <label><input type="radio" /> IST</label>
     </div>
   </div>

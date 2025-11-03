@@ -9,6 +9,8 @@ import { GroupsService } from "./groups.service"; // ✅ Import service
 import { QuickFilterModule, ModuleRegistry } from "ag-grid-community";
 import { DropdownModule } from "primeng/dropdown";
 import { ButtonModule } from "primeng/button";
+import { MultiSelectModule } from "primeng/multiselect";
+
 
 // Register module
 ModuleRegistry.registerModules([QuickFilterModule]);
@@ -32,6 +34,7 @@ interface SecondEscalatedDetail {
     DropdownModule,
     ButtonModule,
     GroupsPopupComponent,
+    MultiSelectModule,
   ],
 })
 export class GroupsComponent implements OnInit, OnDestroy {
@@ -121,7 +124,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
       },
       sortable: true,
     },
-    { headerName: "SITE", field: "site", cellStyle: { opacity: "0.5" } },
+    { headerName: "SITES", field: "site", cellStyle: { opacity: "0.5" } },
     { headerName: "CAMERAS", field: "cameras", cellStyle: { opacity: "0.5" } },
     { headerName: "EMPLOYEES", field: "employees", cellStyle: { opacity: "0.5" } },
     {
@@ -287,24 +290,25 @@ export class GroupsComponent implements OnInit, OnDestroy {
     // this.loadAllGroups(); // or whatever method reloads the table
   }
 
-  /** Load second API and send data to popup */
-  loadGroupDetails(queueId: number) {
-    this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-      next: (res) => {
-        // Merge second API data into selectedItem
-        const baseData = this.rowData.find((r) => r.id === queueId);
-        this.selectedItem = {
-          ...baseData,
-          groupSites: res.groupSites,
-          groupUsers: res.groupUsers,
-        };
+/** Load second API and send data to popup */
+loadGroupDetails(queueId: number) {
+  this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+    next: (res) => {
+      console.log("Raw API response:", res); // should now show the full JSON
 
-        // Show popup
-        this.isTablePopupVisible = true;
-      },
-      error: (err) => console.error("Failed to load group sites/users:", err),
-    });
-  }
+      const baseData = this.rowData.find((r) => r.id === queueId);
+      this.selectedItem = {
+        ...baseData,
+        groupSites: res.queuesData || [],
+        groupUsers: res.queueUsers || [],
+      };
+
+      console.log("Parsed data object:", this.selectedItem);
+      this.isTablePopupVisible = true;
+    },
+    error: (err) => console.error("Failed to load group sites/users:", err),
+  });
+}
 
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
@@ -420,36 +424,39 @@ get filteredUsers() {
     });
   }
 
+  selectedCameraIds: string[] = [];
+
+
   addSiteCamera() {
-    if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraId) {
-      console.warn("Form is incomplete: select queue, site, and camera");
-      return;
-    }
-
-    const payload = {
-      queueId: this.selectedItem.id,
-      siteId: this.selectedSiteId,
-      cameraId: this.selectedCameraId,
-      createdBy: 0, // dummy value
-    };
-
-    console.log("Payload for addSiteCamera:", payload);
-
-    this.groupsService.postSiteCamera(payload).subscribe({
-      next: (res) => {
-        console.log("Site & Camera added successfully:", res);
-        // Optional: reset selections
-        this.selectedSiteId = null;
-        this.selectedCameraId = null;
-        this.camerasDropdown = [];
-        this.goBack(); // close form
-        this.loadGroups(); //reload the queues api
-      },
-      error: (err) => {
-        console.error("Error adding site & camera:", err);
-      },
-    });
+  if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraIds.length) {
+    console.warn("Form is incomplete: select queue, site, and at least one camera");
+    return;
   }
+
+  const payload = {
+    queueId: this.selectedItem.id,
+    siteId: this.selectedSiteId,
+    cameraIds: this.selectedCameraIds, // <-- multiple cameras
+    createdBy: 0,
+  };
+
+  console.log("Payload for addSiteCamera:", payload);
+
+  this.groupsService.postSiteCamera(payload).subscribe({
+    next: (res) => {
+      console.log("Site & Cameras added successfully:", res);
+      // Reset selections
+      this.selectedSiteId = null;
+      this.selectedCameraIds = [];
+      this.camerasDropdown = [];
+      this.goBack(); // close form
+      this.loadGroups(); // reload
+    },
+    error: (err) => {
+      console.error("Error adding site & cameras:", err);
+    },
+  });
+}
 
   sites: any[] = []; // initially empty
   showPopup = false;

@@ -61,62 +61,122 @@ export class GroupsPopupComponent implements OnChanges {
   };
 
   /** Columns for Sites AG Grid */
- sitesColumnDefs: ColDef[] = [
-  {
-    headerName: "SITE / CAMERA NAME",
-    field: "siteName",
-    cellClass: "custom-cell",
-    valueGetter: (params) =>
-      params.data.isCamera ? params.data.cameraName : params.data.siteName,
-  },
-  {
-    headerName: "CAMERAS",
-    field: "totalCamerasCount",
-    cellClass: "custom-cell",
-    valueGetter: (params) =>
-      params.data.isCamera ? "" : params.data.totalCamerasCount,
-  },
-  { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
-  {
-    headerName: "ACTION",
-    field: "action",
-    cellRenderer: (params: any) => {
-      // Hide button if this specific site is inactive
-      if (
-        !params.data ||
-        params.data.status?.toLowerCase() !== "active"
-      ) {
-        return document.createTextNode(""); // no button rendered
-      }
-
-      const button = document.createElement("button");
-      button.innerHTML = "X";
-      button.className = "delete-btn";
-
-      button.addEventListener("click", () => {
-        params.context.componentParent.inactivateSite(
-          params.data.siteId,
-          params.context.componentParent.data.id
-        );
-      });
-
-      return button;
+  sitesColumnDefs: ColDef[] = [
+    {
+      headerName: "SITES / CAMERA NAME",
+      field: "siteName",
+      cellClass: "custom-cell",
+      valueGetter: (params) =>
+        params.data.isCamera ? params.data.cameraName : params.data.siteName,
     },
-    cellClass: "action-cell",
-  },
-];
+    {
+      headerName: "CAMERA'S",
+      field: "cameraCount",
+      cellClass: "custom-cell",
+      cellStyle: {
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "right",
+        alignItems: "center",
+      },
+      valueGetter: (params) => {
+        if (params.data.isCamera) return "";
+        const queueCount = params.data.queueCamerasCount ?? 0;
+        const totalCount = params.data.totalCamerasCount ?? 0;
+        return `${queueCount} / ${totalCount}`;
+      },
+    },
+    // { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
+    {
+      headerName: "ACTION",
+      field: "action",
+      cellRenderer: (params: any) => {
+        
+        const data = params.data;
+        console.log("Rendering ACTION button for data:", data);
+        if (!data) return document.createTextNode("");
+
+        // Create button element
+        const button = document.createElement("button");
+        button.innerHTML = "X";
+
+        // 🎨 Apply different styles for sites vs cameras
+        if (data.isCamera) {
+          button.className = "camera-delete-btn"; // black X, no background
+        } else {
+          button.className = "delete-btn"; // red X for sites
+        }
+
+       
+
+        // 🧩 Attach click event
+        button.addEventListener("click", () => {
+          const parent = params.context.componentParent;
+          console.log("parent:", parent.data);
+
+          if (data.isCamera) {
+            parent.inactivateCamera(
+              data.cameraId,
+              data.queueSitesId,
+              // parent.data.queueSitesId,
+              params.context.componentParent.data.id
+              
+            );
+
+          } else {
+            parent.inactivateSite(data.siteId,   params.context.componentParent.data.id );
+          }
+        });
+
+        return button;
+      },
+       cellStyle: {
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+    },
+  ];
+
+  inactivateCamera(cameraId: string, queueSitesId: number, queueId: number) {
+    const modifiedBy = 0; // replace with logged-in user ID if available
+// console.log("Inactivating camera:", cameraId, "from queueSitesId:", queueSitesId, );
+console.log(" queueid:", queueId, );
+    this.groupsService
+      .inactivateQueuesCamera(cameraId, queueSitesId, modifiedBy)
+      .subscribe({
+        next: (res) => {
+          console.log("✅ Camera inactivated successfully:", res);
+
+          // Refresh the data after successful inactivation
+          this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+            next: (updatedRes) => {
+              // console.log("🔄 Refreshed data:", updatedRes);
+              this.updateSitesAndUsers(updatedRes);
+            },
+            error: (err) => console.error("Error refreshing data:", err),
+          });
+        },
+        error: (err) => {
+          console.error("❌ Error inactivating camera:", err);
+        },
+      });
+  }
+
 
   inactivateSite(siteId: number, queueId: number) {
     const modifiedBy = 123; // replace with logged-in user ID
+    // console.log("Inactivating site:", siteId, "from queueId:", queueId);
 
-    this.groupsService.inactivateQueuesSite(siteId, modifiedBy).subscribe({
+    this.groupsService.inactivateQueuesSite(siteId, queueId, modifiedBy).subscribe({
       next: (response) => {
-        console.log("Site inactivated successfully", response);
+        // console.log("Site inactivated successfully", response);
 
         // Refresh sites & users data
         this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
           next: (res) => {
-            console.log("Updated sites and users for the queue:", res);
+            // console.log("Updated sites and users for the queue:", res);
             this.updateSitesAndUsers(res);
           },
           error: (err) => {
@@ -131,20 +191,46 @@ export class GroupsPopupComponent implements OnChanges {
   }
 
   /** Columns for Users AG Grid including X button */
-  usersColumnDefs: ColDef[] = [
-  { headerName: "USER ID", field: "userId", cellClass: "custom-cell" },
-  { headerName: "NAME", field: "User_Name", cellClass: "custom-cell" },
-  { headerName: "EMAIL", field: "email", cellClass: "custom-cell" },
-  { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
+usersColumnDefs: ColDef[] = [
+  {
+    headerName: "NAME",
+    field: "User_Name",
+    cellClass: "custom-cell",
+    cellRenderer: (params: any) => {
+      const container = document.createElement("div");
+      container.style.display = "flex";
+      container.style.alignItems = "center";
+      container.style.gap = "8px"; // spacing between image & text
+
+      // 👤 Create user profile image
+      const img = document.createElement("img");
+      img.src =
+        // params.data?.profileImage ||
+        "assets/user1.png"; // fallback image
+      img.alt = params.data?.User_Name || "User";
+      img.style.width = "28px";
+      img.style.height = "28px";
+      img.style.borderRadius = "50%";
+      img.style.objectFit = "cover";
+
+      // 🧑 Create username text
+      const name = document.createElement("span");
+      name.textContent = params.data?.User_Name || "";
+      name.style.whiteSpace = "nowrap";
+
+      // Append both to the container
+      container.appendChild(img);
+      container.appendChild(name);
+
+      return container;
+    },
+  },
   {
     headerName: "ACTION",
     field: "action",
     cellRenderer: (params: any) => {
-      // Hide button if this user is inactive
-      if (
-        !params.data ||
-        params.data.status?.toLowerCase() !== "active"
-      ) {
+      // Hide button if user is inactive
+      if (!params.data || params.data.status?.toLowerCase() !== "active") {
         return document.createTextNode("");
       }
 
@@ -165,20 +251,15 @@ export class GroupsPopupComponent implements OnChanges {
   },
 ];
 
-
-
   /** Default column definition */
-defaultColDef: ColDef = {
- resizable: true,
-  sortable: true,
-  filter: true,
-  wrapText: false,      // keep false so text stays on one line
-  autoHeight: false, 
-};
+  defaultColDef: ColDef = {
+    resizable: true,
+    sortable: true,
+    filter: true,
+    wrapText: false, // keep false so text stays on one line
+    autoHeight: false,
+  };
 
-
-
-  
   /** Row data arrays */
   sitesRowData: any[] = [];
   usersRowData: any[] = [];
@@ -218,10 +299,10 @@ defaultColDef: ColDef = {
       .subscribe({
         next: () => {
           this.data.status = status; // update local data
-          console.log("Queue status updated successfully");
+          // console.log("Queue status updated successfully");
         },
         error: (err) => {
-          console.error("Error updating queue status", err);
+          // console.error("Error updating queue status", err);
           // revert checkbox state if API fails
           input.checked = !isActive;
         },
@@ -258,7 +339,7 @@ defaultColDef: ColDef = {
   inactivateUser(userId: number, id: number) {
     const modifiedBy = 123; // replace with logged-in user id
 
-    this.groupsService.inactivateQueuesUser(userId, modifiedBy).subscribe({
+    this.groupsService.inactivateQueuesUser(userId, id, modifiedBy).subscribe({
       next: (response) => {
         console.log("User inactivated successfully", response);
 
@@ -282,44 +363,59 @@ defaultColDef: ColDef = {
 
   /** Update Sites and Users rowData from API response */
   private updateSitesAndUsers(res: any) {
-    // Users
-    if (Array.isArray(res.groupUsers)) {
-      this.usersRowData = res.groupUsers.map((user: any) => ({
-        userId: user.userId || "N/A",
-        User_Name: user.User_Name || "N/A",
-        email: user.email || "N/A",
-        status: user.status || "N/A",
-      }));
-    } else {
-      this.usersRowData = [];
-    }
+    console.log("Raw API response:", res);
 
-    // Sites
-    if (Array.isArray(res.groupSites)) {
-      this.sitesRowData = [];
-      res.groupSites.forEach((site: any) => {
-        const safeSiteId = site.siteId || "N/A";
+    // ✅ Match the actual keys from your API
+    const queueUsers = Array.isArray(res.groupUsers) ? res.groupUsers : [];
+    const queuesData = Array.isArray(res.groupSites) ? res.groupSites : [];
 
-        this.sitesRowData.push({
-          siteId: safeSiteId,
-          siteName: site.siteName || "N/A",
-          status: site.status || "N/A",
-          totalCamerasCount: site.totalCamerasCount || 0,
-          isCamera: false,
-        });
+    // ================== USERS ==================
+    this.usersRowData = queueUsers.map((user: any) => ({
+      userId: user.userId || "N/A",
+      User_Name: user.User_Name || "N/A",
+      email: user.email || "N/A",
+      status: user.status || "N/A",
+      profileImage: user.profileImage || null,
+    }));
 
-        const cameras = Array.from(
-          { length: site.totalCamerasCount || 0 },
-          (_, i) => ({
-            siteId: safeSiteId,
-            cameraName: site.cameras?.[i]?.cameraName || `mdx-cam${i + 1}`,
-            isCamera: true,
-          })
-        );
+    // ================== SITES (TREE STRUCTURE) ==================
+    this.sitesRowData = [];
 
-        this.sitesRowData.push(...cameras);
+    queuesData.forEach((site: any) => {
+      // ---- Parent: Site Row ----
+      this.sitesRowData.push({
+        isCamera: false,
+        siteId: site.siteId || "N/A",
+        siteName: site.siteName || "N/A",
+        queueId: site.queueId || "N/A",
+        queueName: site.queueName || "N/A",
+        status: site.status || "N/A",
+        queueCamerasCount: site.queueCamerasCount ?? 0, // ✅ Add this
+        totalCamerasCount: site.totalCamerasCount ?? 0, // ✅ Keep this
       });
-    }
+
+      // ---- Children: Cameras ----
+      if (Array.isArray(site.cameraInfo) && site.cameraInfo.length > 0) {
+        site.cameraInfo.forEach((cam: any) => {
+          this.sitesRowData.push({
+            isCamera: true,
+            siteId: site.siteId,
+            cameraId: cam.cameraId,
+            cameraName: cam.cameraName || "Unnamed Camera",
+            status: cam.status || "ACTIVE",
+             queueSitesId: cam.queueSitesId ?? site.queueSitesId, // ✅ Add this line
+             queueId: site.queueId ,
+          });
+        });
+      }
+    });
+
+    // ================== LOG SUMMARY ==================
+    console.log("✅ Sites & Users processed:", {
+      users: this.usersRowData.length,
+      sites: this.sitesRowData.filter((s) => !s.isCamera).length,
+      cameras: this.sitesRowData.filter((s) => s.isCamera).length,
+    });
   }
 
   /** ngOnChanges to initialize data on input change */
@@ -331,9 +427,7 @@ defaultColDef: ColDef = {
 
   /** AG Grid tree data hierarchy */
   getDataPath = (data: any) => {
-    const siteId =
-      data.siteId != null ? data.siteId.toString() : "unknown-site";
-
+    const siteId = data.siteId?.toString() || "unknown-site";
     if (data.isCamera) {
       return [siteId, data.cameraName || "unknown-camera"];
     } else {

@@ -27,13 +27,32 @@
 }
 
 
+
+
+:host ::ng-deep .ag-theme-alpine .ag-cell,
+:host ::ng-deep .ag-theme-alpine .ag-cell-wrapper,
+:host ::ng-deep .ag-theme-alpine .ag-cell-value {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100% !important;
+}
+
+:host ::ng-deep .ag-theme-alpine .ag-cell {
+  padding: 0 !important;
+}
+
+
+:host ::ng-deep .ag-theme-alpine .ag-cell-wrapper {
+  width: 100% !important;
+}
+
 .popup-container {
   max-width: 1200px;
   margin: auto;
   background: #fff;
   border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+background: transparent linear-gradient(181deg, var(--unnamed-color-ffffff) 0%, #F3F3F3 50%, #EEEEEE 100%) 0% 0% no-repeat padding-box;
 }
 
 h2 {
@@ -63,6 +82,17 @@ h2 {
 :host ::ng-deep .ag-paging-panel {
   font-family: 'Neometric Medium' !important;
   font-size: 12px !important;
+}
+
+/* 5-column for basic info, 7-column for alarm events */
+.basic-info {
+  flex: 0 0 41.66%; /* 5/12 = 41.66% */
+  max-width: 41.66%;
+}
+
+.alarm-events {
+  flex: 0 0 58.33%; /* 7/12 = 58.33% */
+  max-width: 58.33%;
 }
 
 .basic-info,
@@ -369,4 +399,16 @@ table th {
   --ag-odd-row-background-color: #fcfcfc;
   border-radius: 0px;
   overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .section {
+    flex-wrap: wrap;
+  }
+
+  .basic-info,
+  .alarm-events {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }

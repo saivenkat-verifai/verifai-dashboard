@@ -10,7 +10,6 @@ import { HighchartsChartModule } from "highcharts-angular";
 import { CommonModule } from "@angular/common";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 
-
 @Component({
   selector: "app-column-chart",
   templateUrl: "./column-chart.component.html",
@@ -54,8 +53,9 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
     if (this.compareData && this.compareData.length > 0) {
       this.chartOptions = {
         chart: { type: "column" },
-            accessibility: { enabled: true },
-        title: { text: '', align: 'center' },
+        accessibility: { enabled: true },
+        title: { text: "", align: "center" },
+        credits: { enabled: false },
         xAxis: { categories: this.compareData.map((d) => d.label) },
         yAxis: { title: { text: "Count" } },
         plotOptions: {
@@ -70,7 +70,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
               color: ESCALATED_COLORS[i % ESCALATED_COLORS.length],
             })),
           },
-          { 
+          {
             type: "column",
             name: "Previous",
             data: this.compareData.map((d, i) => ({
@@ -83,12 +83,14 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
     } else {
       this.chartOptions = {
         chart: { type: "column" },
-            accessibility: { enabled: true },
-         title: { text: '', align: 'center' },
+        accessibility: { enabled: true },
+        title: { text: "", align: "center" },
+        credits: { enabled: false },
         xAxis: { categories: this.chartData.map((d) => d.label) },
+        
         yAxis: { title: { text: "Count" } },
         plotOptions: {
-          column: { borderRadius: 25 , pointWidth: 25, },
+          column: { borderRadius: 25, pointWidth: 25 },
         },
         series: [
           {

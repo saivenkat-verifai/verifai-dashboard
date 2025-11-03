@@ -228,56 +228,65 @@ export class EscalationPopupComponent implements OnChanges {
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
-    {
-      headerName: "USER",
-      field: "user",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-      cellRenderer: (params: any) => {
-        const imgUrl = params.data.userName
-          ? `https://i.pravatar.cc/30?u=${params.data.userName}`
-          : "https://i.pravatar.cc/30?img=1"; // fallback image
+{
+  headerName: "USER",
+  field: "user",
+  headerClass: "custom-header",
+  cellStyle: {
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        cellClass: "custom-cell",
+  cellRenderer: (params: any) => {
+    const imgUrl = params.data.userName
+      ? `https://i.pravatar.cc/30?u=${params.data.userName}`
+      : "https://i.pravatar.cc/30?img=1";
 
-        return `<img src="${imgUrl}" alt="user" style="width:30px; height:30px; border-radius:50%;" />`;
-      },
-    },
+    return `
+      <img src="${imgUrl}" alt="user"
+       style="width: 24px; height: 24px; border-radius: 50%;  margin-top: 15px " />
+    `;
+  },
+},
     {
       headerName: "DESCRIPTION",
       field: "description",
       headerClass: "custom-header",
       cellClass: "custom-cell",
+      cellStyle: {
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      },
       cellRenderer: (params: any) => {
         const value = params.value;
         let iconUrl = "";
 
         switch (value) {
           case "N":
-            // iconUrl = "assets/alarm-warning-fill-copy.svg"; // replace with your actual image path or URL
-             iconUrl = "assets/alarm-warning-fill-copy.svg"; 
+            iconUrl = "assets/alarm-warning-fill-copy.svg";
             break;
           case "P":
-             iconUrl = "assets/na-alarm-warning-fill-copy.svg"; 
+            iconUrl = "assets/na-alarm-warning-fill-copy.svg";
             break;
-             case "":
-             iconUrl = ""; 
+          case "":
+            iconUrl = "";
             break;
-         
         }
 
-        return `<img src="${iconUrl}" alt="${value}" style="width:17px; height:17px;" />`;
+        return `<img src="${iconUrl}" alt="${value}" style="width:17px;  margin-top: 15px ;height:17px;" />`;
       },
     },
-{
-  headerName: "STATUS",
-  field: "status",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  valueGetter: (params: any) => {
-    if (params.data.description === "P") return "No Action";
-    if (params.data.description === "N") return "Failed";
-    return ""; // leave empty for others
-  },
-},
+    {
+      headerName: "STATUS",
+      field: "status",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+    
+    },
   ];
 
   // Inside EscalationPopupComponent
@@ -286,9 +295,9 @@ export class EscalationPopupComponent implements OnChanges {
     { label: "Ticket No.", field: "ticketNo", default: "--" },
     { label: "Site Name", field: "siteName" },
     { label: "Camera Name", field: "cameraName" },
-    { label: "Event Time (CT)", field: "eventStartTime" },
+    { label: "Event Time (CT)", field: "eventTime_CT" },
     { label: "Event Time Customer", field: "eventStartTime" }, // Can be converted if needed
-    { label: "Event Time (IN)", field: "eventStartTime" }, // Can be converted if needed
+    { label: "Event Time (IN)", field: "eventTime_IN" }, // Can be converted if needed
     { label: "Type", field: "eventType", default: "--" },
     { label: "City", field: "country" },
   ];
@@ -296,11 +305,11 @@ export class EscalationPopupComponent implements OnChanges {
   // Inside EscalationPopupComponent
   getEventDotColor(eventType: string): string {
     switch (eventType) {
-      case "Manual_Wall":
+      case "Manual Wall":
         return "#FFC400"; // yellow
-      case "Event_Wall":
+      case "Event Wall":
         return "#53BF8B"; // green
-      case "Missed_Wall":
+      case "Missed Wall":
         return "#FF0000"; // red
       default:
         return "#ccc"; // default gray

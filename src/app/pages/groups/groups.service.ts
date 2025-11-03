@@ -35,7 +35,7 @@ private addSiteCameraForQueue =
   private inActiveQueueUserMapping = 'https://usstaging.ivisecurity.com/events_data/inActiveQueueUserMapping_1_0';
   private inActiveQueueSiteMapping = 'https://usstaging.ivisecurity.com/events_data/inActiveQueueSiteMapping_1_0';
   private inActiveQueue = 'https://usstaging.ivisecurity.com/events_data/inActiveQueue_1_0';
-
+  private inActiveQueueCameraMapping = 'https://usstaging.ivisecurity.com/events_data/inActiveQueueCameraMapping_1_0';
 
   constructor(private http: HttpClient) {}
 
@@ -90,14 +90,14 @@ addUsersToQueue(payload: any): Observable<any> {
   return this.http.post(this.addQueueUsers, payload, { headers });
 }
 
-  inactivateQueuesUser(userId: number, modifiedBy: number): Observable<any> {
-    const url = `${this.inActiveQueueUserMapping}?userId=${userId}&modifiedBy=${modifiedBy}`;
+  inactivateQueuesUser(userId: number, queueId:number,modifiedBy: number): Observable<any> {
+    const url = `${this.inActiveQueueUserMapping}?userId=${userId}&queueId=${queueId}&modifiedBy=${modifiedBy}`;
     console.log('Calling API URL:', url);
     return this.http.put(url, null); // body is null
   }
 
-inactivateQueuesSite(siteId: number, modifiedBy: number): Observable<any> {
-    const url = `${this.inActiveQueueSiteMapping}?siteId=${siteId}&modifiedBy=${modifiedBy}`;
+inactivateQueuesSite(siteId: number, queueId:number, modifiedBy: number): Observable<any> {
+    const url = `${this.inActiveQueueSiteMapping}?siteId=${siteId}&queueId=${queueId}&modifiedBy=${modifiedBy}`;
     console.log('Calling API URL:', url);
     return this.http.put(url, null); // body is null
   }
@@ -108,6 +108,11 @@ inactivateQueuesSite(siteId: number, modifiedBy: number): Observable<any> {
   const url = `${this.inActiveQueue}?queueId=${queueId}&status=${status}&modifiedBy=${modifiedBy}`;
   console.log("Calling API URL:", url);
   return this.http.put(url, null);
+}
+
+inactivateQueuesCamera(cameraId: string, queueSitesId: number, modifiedBy: number) {
+  const url = `${this.inActiveQueueCameraMapping}?cameraId=${cameraId}&queueSitesId=${queueSitesId}&modifiedBy=${modifiedBy}`;
+  return this.http.put(url, {}); // body is empty per API spec
 }
 
 }

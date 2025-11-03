@@ -52,6 +52,8 @@
   font-family: 'Neometric Regular';
   font-size: 14px;
   color: #000000;
+      display: flex;
+        align-items: center;
 }
 
 .login-container {
@@ -192,13 +194,23 @@
   padding: 20px;
 }
 
-.p-card {
+input::placeholder {
+  color: #000000;
+  opacity: 20%;
+}
+
+ :host ::ng-deep  .p-card {
   text-align: center;
+  box-shadow: none !important;
 }
 
 .p-card .p-card-header {
   font-size: 24px;
   color: #333;
+}
+:host ::ng-deep .p-card-body{
+  box-shadow: none !important;
+
 }
 
 .p-card .p-card-subheader {

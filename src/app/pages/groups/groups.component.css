@@ -44,7 +44,7 @@
     flex: 1;
     display: grid;
     grid-template-columns: 7fr 5fr;
-    height: calc(100vh - 100px);
+    height: calc(100vh - 70px);
     overflow: scroll;
 }
 
@@ -95,6 +95,7 @@
     background: #fff;
     font-family: 'Neometric Medium';
     font-size: 14px;
+   border-radius: 5px;
     cursor: pointer;
     transition: transform 0.2s;
 }
@@ -148,7 +149,7 @@
 }
 
 .right-section .popup-header {
-    padding: 16px;
+    padding: 7px;
     background: #ED3237;
     color: #fff;
     align-items: center;

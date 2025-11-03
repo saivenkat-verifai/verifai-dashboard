@@ -52,10 +52,21 @@ export class DashboardComponent implements OnInit {
     const now = new Date();
   }
 
+  // getCircleGradient(percent: number): string {
+  //   const deg = percent * 3.6;
+  //   return `conic-gradient(#e53935 ${deg}deg, #fce4ec 0deg)`;
+  // }
+
   getCircleGradient(percent: number): string {
-    const deg = percent * 3.6;
-    return `conic-gradient(#e53935 ${deg}deg, #fce4ec 0deg)`;
-  }
+  const deg = percent * 3.6;
+  return `conic-gradient(#e53935 ${deg}deg, #fce4ec 0deg)`;
+}
+
+getSafePercent(percent: number): number {
+  // keep a minimal gap for near-complete rings
+  if (percent > 97) return 97; // cap visible fill at 97%
+  return percent;
+}
 
 onDateRangeSelected(event: {
   startDate: Date;

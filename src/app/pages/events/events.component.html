@@ -22,6 +22,12 @@
         </div>
       </div>
 
+      <!-- ===================== LOADER OVERLAY ===================== -->
+      <div class="loader-overlay" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <p class="font-Neometric-Medium">Loading data...</p>
+      </div>
+
       <!-- ===================== Calendar & Toggles Section ===================== -->
       <div class="calender-section-body">
         <!-- Calendar -->
@@ -143,40 +149,52 @@
         </div>
 
         <!-- ===================== Centered Play Popup ===================== -->
-       <div class="center-popup" *ngIf="isPlayPopupVisible">
-  <div class="popup-overlay" (click)="closePlayPopup()"></div>
-  <div class="popup-content">
-    <div class="play-popup-header">
-      <div class="play-popup-header-content">
-        <p class="play-text">{{ selectedPlayItem?.siteId }}</p>
-        <p class="play-text1">
-          {{ selectedPlayItem?.siteName }} | {{ selectedPlayItem?.cameraId }}
-        </p>
-      </div>
+        <p-overlayPanel
+          #playOverlay
+          [dismissable]="true"
+    appendTo="body"
+  styleClass="play-tooltip-left"
+        >
+          <div class="play-popup-content">
+            <div class="play-popup-header">
+              <div class="play-popup-header-content">
+                <p class="play-text">{{ selectedPlayItem?.siteId }}</p>
+                <p class="play-text1">
+                  {{ selectedPlayItem?.siteName }} |
+                  {{ selectedPlayItem?.cameraId }}
+                </p>
+              </div>
 
-      <button class="close-btn" (click)="closePlayPopup()">
-        <img src="../../../assets/Dounload.svg" alt="download" class="escalated-icon" />
-        <img src="../../../assets/close-filled-black.svg" alt="close" class="escalated-icon" />
-      </button>
-    </div>
+              <button class="close-btn" (click)="closePlayPopup()">
+                <img
+                  src="../../../assets/Dounload.svg"
+                  alt="download"
+                  class="escalated-icon"
+                />
+                <img
+                  src="../../../assets/close-filled-black.svg"
+                  alt="close"
+                  class="escalated-icon"
+                />
+              </button>
+            </div>
 
-    <div class="popup-body">
-      <!-- Safe video URL -->
-      <iframe
-        *ngIf="safeVideoUrl; else noVideo"
-        [src]="safeVideoUrl"
-        width="100%"
-        height="276px"
-        style="border:0;"
-        allow="autoplay; fullscreen; camera; microphone"
-      ></iframe>
+            <div class="popup-body">
+              <iframe
+                *ngIf="safeVideoUrl; else noVideo"
+                [src]="safeVideoUrl"
+                width="320"
+                height="180"
+                style="border: 0"
+                allow="autoplay; fullscreen"
+              ></iframe>
 
-      <ng-template #noVideo>
-        <p>No video available</p>
-      </ng-template>
-    </div>
-  </div>
-</div>
+              <ng-template #noVideo>
+                <p>No video available</p>
+              </ng-template>
+            </div>
+          </div>
+        </p-overlayPanel>
 
         <!-- ===================== Calendar Popup ===================== -->
         <div
@@ -357,13 +375,15 @@
               [columnDefs]="pendingColumnDefs"
               [defaultColDef]="defaultColDef"
               [pagination]="true"
-              [paginationPageSize]="10"
+              [paginationPageSize]="15"
+              [rowHeight]="30"
+              [headerHeight]="30"
               domLayout="autoHeight"
               [enableCellTextSelection]="true"
               [enableRangeSelection]="true"
               [copyHeadersToClipboard]="true"
               [quickFilterMatcher]="pendingQuickFilterMatcher"
-              [paginationPageSizeSelector]="[10, 20, 50, 100]"
+              [paginationPageSizeSelector]="[15, 20, 50, 100]"
               (gridReady)="onGridReady($event)"
               (cellClicked)="onCellClicked($event)"
               [statusBar]="statusBar"
@@ -416,8 +436,10 @@
             [enableCellTextSelection]="true"
             [enableRangeSelection]="true"
             [copyHeadersToClipboard]="true"
-            [paginationPageSize]="10"
-            [paginationPageSizeSelector]="[10, 20, 50, 100]"
+            [paginationPageSize]="15"
+            [rowHeight]="30"
+            [headerHeight]="30"
+            [paginationPageSizeSelector]="[15, 20, 50, 100]"
             [localeText]="localeText"
             domLayout="autoHeight"
             [quickFilterMatcher]="closedQuickFilterMatcher"

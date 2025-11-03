@@ -105,21 +105,24 @@ nav a {
  
   display: inline-flex;
   font-weight: 500; 
-  align-items: center;
+    align-items: flex-start;
   margin: 0 10px;
   text-decoration: none;
-  color: #444;
+  color: #000000;
+    opacity: 25%;
     font-family: 'Neometric Medium' !important;
   font-size: 12px !important;
 }
 
 nav a.active {
-  color: red;
+  color: #000000;
+   opacity: 100%;
 }
 
-nav a:hover {
-  color: darkred;
-}
+/* nav a:hover {
+  color: #000000;
+  opacity: 25%;
+} */
 
 .user {
   display: flex;
