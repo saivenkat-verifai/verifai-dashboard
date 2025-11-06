@@ -10,6 +10,7 @@ import { CommonModule } from "@angular/common";
 import { AgGridModule } from "ag-grid-angular";
 import { ColDef } from "ag-grid-community";
 import { DialogModule } from "primeng/dialog";
+import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { GridApi, Column } from "ag-grid-community";
 import { EventsService } from "../../pages/events/events.service"; // adjust path
@@ -19,7 +20,13 @@ import { EventsService } from "../../pages/events/events.service"; // adjust pat
   templateUrl: "./escalation-popup.component.html",
   styleUrls: ["./escalation-popup.component.css"],
   standalone: true,
-  imports: [CommonModule, AgGridModule, DialogModule, ButtonModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    AgGridModule,
+    DialogModule,
+    ButtonModule,
+  ],
 })
 export class EscalationPopupComponent implements OnChanges {
   @Input() isVisible = false;
@@ -39,6 +46,52 @@ export class EscalationPopupComponent implements OnChanges {
   // Row data for escalation and alarm events
   escalationRowData: any[] = [];
   alarmRowData: any[] = [];
+  selectedTZ: "MT" | "CT" | "IST" = "MT";
+
+  onTzChange(tz: "MT" | "CT" | "IST") {
+    this.selectedTZ = tz;
+    this.refreshTimeColumns();
+  }
+  /**
+   * Returns the appropriate datetime string for the given base field
+   * based on the currently selected timezone.
+   * baseField is one of: 'receiveAt' | 'reviewStart' | 'reviewEnd'
+   */
+  // 1) Keep the function signature narrow for call-sites
+  private getTimeValue =
+    (baseField: "receiveAt" | "reviewStart" | "reviewEnd") => (params: any) => {
+      // 2) key must be a string (not the narrow union)
+      let key: string = baseField;
+      if (this.selectedTZ === "CT") key = `${baseField}(CT)`;
+      else if (this.selectedTZ === "IST") key = `${baseField}(IST)`;
+
+      // 3) index with a string index; provide fallbacks
+      const row = (params?.data ?? {}) as Record<string, unknown>;
+      const raw =
+        (row[key] as string | Date | undefined) ??
+        (row[baseField] as string | Date | undefined) ??
+        "";
+
+      const full = this.formatDateTime(raw); // "dd-mm-yyyy HH:MM:SS"
+      return full.split(" ")[1] || ""; // only "HH:MM:SS"
+    };
+
+  private refreshTimeColumns() {
+    if (this.escalationGridApi) {
+      this.escalationGridApi.refreshCells({
+        force: true,
+        columns: ["receiveAt", "reviewStart", "reviewEnd"],
+      });
+    }
+  }
+
+  // add this helper in the class
+private normalizeAvatarUrl(url?: string): string | undefined {
+  if (!url) return url;
+  // encode only assetName value so spaces like "Screenshot 2025-05-07 111143.png" work
+  return url.replace(/assetName=([^&]+)/, (_m, v) => `assetName=${encodeURIComponent(v)}`);
+}
+
 
   // Column Definitions for escalation
   escalationColumnDefs: ColDef[] = [
@@ -62,29 +115,24 @@ export class EscalationPopupComponent implements OnChanges {
       field: "receiveAt",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-      valueFormatter: (params) => {
-        const full = this.formatDateTime(params.value); // "dd-mm-yyyy HH:MM:SS"
-        return full.split(" ")[1]; // return only "HH:MM:SS"
-      },
+      editable: (p) => p.data.isEditing,
+      valueGetter: this.getTimeValue("receiveAt"),
     },
     {
       headerName: "REVIEW START",
       field: "reviewStart",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-      valueFormatter: (params) =>
-        this.formatDateTime(params.value).split(" ")[1],
+      editable: (p) => p.data.isEditing,
+      valueGetter: this.getTimeValue("reviewStart"),
     },
     {
       headerName: "REVIEW END",
       field: "reviewEnd",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
-      valueFormatter: (params) =>
-        this.formatDateTime(params.value).split(" ")[1],
+      editable: (p) => p.data.isEditing,
+      valueGetter: this.getTimeValue("reviewEnd"),
     },
     {
       headerName: "DURATION",
@@ -228,28 +276,28 @@ export class EscalationPopupComponent implements OnChanges {
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
-{
-  headerName: "USER",
-  field: "user",
-  headerClass: "custom-header",
-  cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        cellClass: "custom-cell",
-  cellRenderer: (params: any) => {
-    const imgUrl = params.data.userName
-      ? `https://i.pravatar.cc/30?u=${params.data.userName}`
-      : "https://i.pravatar.cc/30?img=1";
+    {
+      headerName: "USER",
+      field: "user",
+      headerClass: "custom-header",
+      cellStyle: {
+        textAlign: "center",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      },
+      cellClass: "custom-cell",
+      cellRenderer: (params: any) => {
+        const imgUrl = params.data.userName
+          ? `https://i.pravatar.cc/30?u=${params.data.userName}`
+          : "https://i.pravatar.cc/30?img=1";
 
-    return `
+        return `
       <img src="${imgUrl}" alt="user"
        style="width: 24px; height: 24px; border-radius: 50%;  margin-top: 15px " />
     `;
-  },
-},
+      },
+    },
     {
       headerName: "DESCRIPTION",
       field: "description",
@@ -285,7 +333,6 @@ export class EscalationPopupComponent implements OnChanges {
       field: "status",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-    
     },
   ];
 
@@ -327,16 +374,21 @@ export class EscalationPopupComponent implements OnChanges {
 
   // Update row data when selectedItem changes
   ngOnChanges(changes: SimpleChanges) {
+
+
+
     if (changes["selectedItem"] && this.selectedItem) {
       console.log("API Data received in popup:", this.selectedItem);
 
       // Escalation
-      this.escalationRowData = (
-        this.selectedItem.eventEscalationInfo || []
-      ).map((item: any) => ({
-        ...item,
-        user: item.user || { img: "https://i.pravatar.cc/30?img=1" },
-      }));
+  this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map((item: any) => ({
+  ...item,
+  user: {
+    img: "https://i.pravatar.cc/30?img=1",  // 👈 fixed placeholder image,
+    name: item.userName ?? String(item.user ?? ''),
+    id: item.user ?? null,
+  },
+}));
 
       // Alarm
       this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
@@ -392,9 +444,10 @@ export class EscalationPopupComponent implements OnChanges {
   }
   // Grid ready handler
   onGridReady(params: any) {
+    this.escalationGridApi = params.api; // 👈 keep a handle for refresh
     params.api.sizeColumnsToFit();
     params.columnApi.autoSizeAllColumns();
-    this.commentGridApi = params.api;
+    this.commentGridApi = params.api; // (If this was intended for a different grid, leave that in its own ready handler)
   }
 
   commentGridApi!: GridApi;
@@ -407,13 +460,14 @@ export class EscalationPopupComponent implements OnChanges {
 
   // Column definitions for comments
   commentColumnDefs: ColDef[] = [
-    {
-      headerName: "USER",
-      field: "user",
-      cellRenderer: this.userCellRenderer.bind(this),
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-    },
+ {
+  headerName: "USER",
+  field: "user",
+  headerClass: "custom-header",
+  cellClass: "custom-cell",
+  cellRenderer: this.userCellRenderer.bind(this),
+  editable: false,
+},
     {
       headerName: "NAME",
       field: "name",
@@ -541,14 +595,16 @@ export class EscalationPopupComponent implements OnChanges {
   commentRowData: any[] = [];
 
   // Custom cell renderer for user (avatar + optional name)
-  userCellRenderer(params: any) {
-    if (params.value && params.value.img) {
-      return `
-        <div style="display:flex;align-items:center;gap:6px;">
-          <img src="${params.value.img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
-        </div>
-      `;
-    }
-    return params.value?.name || "";
+userCellRenderer(params: any) {
+  const u = params.value;
+  if (u?.img) {
+    return `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <img src="${u.img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
+        ${u.name ? `<span>${u.name}</span>` : ''}
+      </div>
+    `;
   }
+  return u?.name || '';
+}
 }

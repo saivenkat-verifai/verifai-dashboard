@@ -164,7 +164,7 @@
           *ngIf="currentSection === 'site' || currentSection === 'camera'"
         >
           <div class="form-group">
-            <label for="group">Select Group</label>
+            <label for="group">Select Queue</label>
             <select id="group" class="form-control" disabled>
               <option [value]="selectedItem?.id">
                 {{ selectedItem?.name }}
@@ -183,6 +183,10 @@
               optionValue="value"
               (onChange)="onSiteChange($event.value)"
               [style]="{ width: '100%' }"
+              [filter]="true"
+              filterBy="label"
+              [showClear]="true"
+              filterPlaceholder="Search site"
             ></p-dropdown>
           </div>
           <div class="form-group" *ngIf="currentSection === 'camera'">
@@ -214,7 +218,7 @@
         <div *ngIf="currentSection === 'employee'">
           <form class="add-form">
             <div class="form-group">
-              <label for="group">Select Group</label>
+              <label for="group">Select Queue</label>
               <select id="group" class="form-control" disabled>
                 <option [value]="selectedItem?.id">
                   {{ selectedItem?.name }}

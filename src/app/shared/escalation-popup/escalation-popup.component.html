@@ -62,26 +62,56 @@
   </div>
 
   <!-- DURATION -->
-<div class="total-duration" *ngIf="selectedEvent">
-  <span *ngIf="selectedEvent.eventDuration">
-    TOTAL DURATION : {{ selectedEvent.eventDuration }}
-  </span>
-  <span>INDIA {{ '00:00:00' }}</span>
-  <span>US {{  '00:00:00' }}</span>
-</div>
+  <div class="total-duration" *ngIf="selectedEvent">
+    <span *ngIf="selectedEvent.eventDuration">
+      TOTAL DURATION : {{ selectedEvent.eventDuration }}
+    </span>
+    <span>INDIA {{ "00:00:00" }}</span>
+    <span>US {{ "00:00:00" }}</span>
+  </div>
   <div class="div">
     <p class="borderline"></p>
   </div>
 
-  <div class="report-header">
-    <h2>ESCALATION REPORT</h2>
-    <!-- TIMEZONE -->
-    <div class="timezone">
-      <label><input type="radio"  /> CT</label>
-      <label><input type="radio" checked /> Customer TZ (MT)</label>
-      <label><input type="radio" /> IST</label>
-    </div>
+<div class="report-header">
+  <h2>ESCALATION REPORT</h2>
+  <!-- TIMEZONE -->
+  <div class="timezone">
+    <label>
+      <input
+        type="radio"
+        name="tz"
+        value="CT"
+        [(ngModel)]="selectedTZ"
+        (change)="onTzChange(selectedTZ)"
+      />
+      CT
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        name="tz"
+        value="MT"
+        [(ngModel)]="selectedTZ"
+        (change)="onTzChange(selectedTZ)"
+        checked
+      />
+      Customer TZ (MT)
+    </label>
+
+    <label>
+      <input
+        type="radio"
+        name="tz"
+        value="IST"
+        [(ngModel)]="selectedTZ"
+        (change)="onTzChange(selectedTZ)"
+      />
+      IST
+    </label>
   </div>
+</div>
 
   <div class="div">
     <p class="borderline"></p>
@@ -106,7 +136,7 @@
   </ag-grid-angular> -->
   <ag-grid-angular
     style="width: 100%"
-   theme="legacy"
+    theme="legacy"
     class="ag-theme-alpine"
     [rowData]="escalationRowData"
     [columnDefs]="escalationColumnDefs"

@@ -19,6 +19,8 @@ import { EventsService } from "./events.service";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 import { OverlayPanel } from "primeng/overlaypanel";
 import { OverlayPanelModule } from "primeng/overlaypanel";
+// ADD these imports
+import { Subscription, interval } from "rxjs";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -67,53 +69,68 @@ interface SecondEscalatedDetail {
   ],
 })
 export class EventsComponent implements OnInit {
+  /** -------------------- Template refs -------------------- */
   @ViewChild("paginationControls")
   paginationControls!: ElementRef<HTMLDivElement>;
   @ViewChild("playOverlay") playOverlay!: OverlayPanel;
+
+  /** -------------------- Media/overlay state -------------------- */
   safeVideoUrl!: SafeResourceUrl;
   selectedPlayItem: any;
+
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
   currentDateTime: Date = new Date();
 
+  /** Date range (CalendarComponent output) */
+  selectedStartDate: Date | null = null;
+  selectedEndDate: Date | null = null;
+
+  /** Last emitted range (to suppress duplicate API calls) */
+  lastStartDateTime?: string;
+  lastEndDateTime?: string;
+
   /** -------------------- Filters & toggles -------------------- */
   selectedFilter: "CLOSED" | "PENDING" = "PENDING";
   selectedpendingFilter: "CONSOLES" | "QUEUES" = "CONSOLES";
-  consolesChecked: boolean = true;
-  queuesChecked: boolean = false;
-  suspiciousChecked: boolean = true;
-  falseChecked: boolean = false;
-  searchTerm: string = "";
-  showMore: boolean = false;
+  consolesChecked = true;
+  queuesChecked = false;
+  suspiciousChecked = true;
+  falseChecked = false;
+  searchTerm = "";
+  showMore = false;
 
-  isLoading: boolean = false;
+  /** Loading flag for top‑level data fetches */
+  isLoading = false;
 
   /** -------------------- AG Grid APIs -------------------- */
   gridApi!: GridApi;
-  closedGridApi: any;
-  pendingGridApi: any;
+  closedGridApi: GridApi | undefined;
+  pendingGridApi: GridApi | undefined;
 
   /** -------------------- Popup handling -------------------- */
   isTablePopupVisible = false;
-  isPopupVisible = false;
-  selectedItem: any = null;
+  isPopupVisible = false; // generic overlay toggle
+  selectedItem: any = null; // row data for info popup
 
-  isPlayPopupVisible = false;
-  // selectedPlayItem: any = null;
-  currentSlideIndex: number = 0;
+  isPlayPopupVisible = false; // video popup
+  currentSlideIndex = 0; // carousel index inside play popup
 
+  /** Calendar popup visibility */
   isCalendarPopupOpen = false;
 
   /** -------------------- Dashboard data -------------------- */
-  rowData: any[] = [];
-  pendingRowData: any[] = [];
-  secondEscalatedDetails: SecondEscalatedDetail[] = [];
+  rowData: any[] = []; // CLOSED table data
+  pendingRowData: any[] = []; // PENDING table data
+  secondEscalatedDetails: SecondEscalatedDetail[] = []; // small stat cards
 
   /** -------------------- Column definitions -------------------- */
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
   defaultColDef: ColDef = { resizable: true };
+
+  /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
     sortAscending: "",
     sortDescending: "",
@@ -131,91 +148,115 @@ export class EventsComponent implements OnInit {
     private sanitizer: DomSanitizer
   ) {}
 
-  /** -------------------- Lifecycle -------------------- */
-  ngOnInit() {
+  /**
+   * Angular lifecycle: initialize default dates, build column defs, and load initial data.
+   * Also sets up a 1‑minute ticker to refresh the displayed clock.
+   */
+  ngOnInit(): void {
     this.selectedDate = new Date();
     this.selectedStartDate = this.selectedDate;
     this.selectedEndDate = this.selectedDate;
+
     this.setupColumnDefs();
     this.loadPendingEvents();
 
-    // auto-refresh the displayed clock every 1 min
+    // Auto‑refresh the displayed clock every 1 min
     setInterval(() => {
       this.currentDateTime = new Date();
-    }, 60000);
+    }, 60_000);
   }
 
   /** -------------------- Filter & toggle actions -------------------- */
-setFilter(filter: "CLOSED" | "PENDING") {
+  /**
+   * Switch between CLOSED and PENDING views.
+   * Clears quick search and triggers the relevant data load.
+   */
+  setFilter(filter: "CLOSED" | "PENDING"): void {
     this.selectedFilter = filter;
     this.searchTerm = "";
 
-    if (filter === "PENDING") {
-        this.loadPendingEvents();
+    // Stop any running timer when leaving PENDING
+    if (filter === "CLOSED") {
+      this.stopAutoRefresh();
+      this.hasStartedAutoRefresh = false; // so timer starts again next time we fetch pending
+      this.suspiciousChecked = true;
+      this.falseChecked = false;
+      this.loadClosedAndEscalatedDetails();
     } else {
-        this.suspiciousChecked = true;
-        this.falseChecked = false;
-
-        // Only call one API that returns both table + escalated data
-        this.loadClosedAndEscalatedDetails(); 
-        // Remove separate loadEscalatedDetails() here
+      // PENDING
+      this.loadPendingEvents();
+      // `loadPendingEvents` will start the auto refresh after the first success
     }
-}
+  }
 
-  onSuspiciousToggle() {
+  ngOnDestroy(): void {
+    this.stopAutoRefresh();
+  }
+
+  /** Enable Suspicious filter for CLOSED view and reload data. */
+  onSuspiciousToggle(): void {
     this.suspiciousChecked = true;
     this.falseChecked = false;
     this.loadClosedAndEscalatedDetails();
     if (this.showMore) this.loadEscalatedDetails();
   }
 
-  onFalseToggle() {
+  /** Enable False filter for CLOSED view and reload data. */
+  onFalseToggle(): void {
     this.suspiciousChecked = false;
     this.falseChecked = true;
     this.loadClosedAndEscalatedDetails();
     if (this.showMore) this.loadEscalatedDetails();
   }
 
-  onconsolesToggle() {
+  /** Switch to CONSOLES in PENDING view and reload. */
+  onconsolesToggle(): void {
     this.consolesChecked = true;
     this.queuesChecked = false;
     this.selectedpendingFilter = "CONSOLES";
     this.loadPendingEvents();
   }
 
-  onqueuesToggle() {
+  /** Switch to QUEUES in PENDING view and reload. */
+  onqueuesToggle(): void {
     this.consolesChecked = false;
     this.queuesChecked = true;
     this.selectedpendingFilter = "QUEUES";
     this.loadPendingEvents();
   }
 
-  toggleMore() {
+  /** Toggle the secondary stats section; fetch data when expanding. */
+  toggleMore(): void {
     this.showMore = !this.showMore;
     if (this.showMore) {
-      this.loadEscalatedDetails(); // Load data for "More" section
+      this.loadEscalatedDetails();
     }
   }
 
   /** -------------------- AG Grid setup -------------------- */
-  onGridReady(params: GridReadyEvent) {
+  /**
+   * AG Grid init: capture API, attach responsive column sizing, and prepend
+   * custom pagination controls to the paging panel after first render.
+   */
+  onGridReady(params: GridReadyEvent): void {
     this.gridApi = params.api;
+
     const resizeAll = () => {
       const ids = this.gridApi.getColumns()?.map((col) => col.getColId()) ?? [];
       this.gridApi.autoSizeColumns(ids, false);
       this.gridApi.sizeColumnsToFit();
     };
+
     setTimeout(resizeAll);
     this.gridApi.addEventListener("firstDataRendered", resizeAll);
     window.addEventListener("resize", resizeAll);
 
-    // Wait until AG Grid renders pagination
+    // Wait until AG Grid renders pagination, then inject our controls
     setTimeout(() => {
       const paginationPanel = document.querySelector(
         ".ag-paging-panel"
-      ) as HTMLElement;
+      ) as HTMLElement | null;
       if (paginationPanel && this.paginationControls) {
-        // Clone the HTML from template
         const controlsClone = this.paginationControls.nativeElement.cloneNode(
           true
         ) as HTMLElement;
@@ -223,204 +264,222 @@ setFilter(filter: "CLOSED" | "PENDING") {
         controlsClone.style.alignItems = "center";
         controlsClone.style.gap = "12px";
         controlsClone.style.marginRight = "35%"; // spacing between your controls and pagination
-        paginationPanel.prepend(controlsClone); // prepend to left
+        paginationPanel.prepend(controlsClone);
       }
     }, 100);
   }
 
-  refreshInterval = 5; // default to 5 minutes
+  /** Interval (minutes) for optional auto refresh. */
+  // ADD these fields inside the class
+  /** -------------------- Auto-refresh state -------------------- */
+  refreshInterval = 1; // minutes; default 1 (dropdown already exists)
+  private refreshSub?: Subscription;
+  private hasStartedAutoRefresh = false; // start only after the first successful fetch
 
-  refreshData() {
-    console.log("Refreshing grid data...");
-    // Call your data reload logic here
+  /** Placeholder for manual refresh hook. */
+  refreshData(): void {
+    // Immediate fetch
+    this.loadPendingEvents({ silent: false });
+
+    // Re-anchor the schedule to “now”
+    if (this.selectedFilter === "PENDING") {
+      this.scheduleAutoRefresh(this.refreshInterval);
+      this.hasStartedAutoRefresh = true; // (optional) mark started
+    }
   }
 
-  onIntervalChange(interval: number) {
-    console.log("Selected refresh interval:", interval, "minutes");
-    // Optional: setup auto refresh logic
+  /** Start/restart auto-refresh with a new interval (in minutes). */
+  private scheduleAutoRefresh(minutes: number): void {
+    this.stopAutoRefresh(); // clear previous timer if any
+    if (!minutes || minutes <= 0) return;
+
+    this.refreshSub = interval(minutes * 60_000).subscribe(() => {
+      // Silent refresh (no overlay spinner)
+      if (this.selectedFilter === "PENDING") {
+        this.loadPendingEvents({ silent: true });
+      }
+    });
   }
 
-  onClosedGridReady(params: any) {
+  /** Stop auto-refresh (e.g., when leaving PENDING tab). */
+  private stopAutoRefresh(): void {
+    if (this.refreshSub) {
+      this.refreshSub.unsubscribe();
+      this.refreshSub = undefined;
+    }
+  }
+
+  /** Update chosen auto‑refresh interval (not yet scheduling). */
+  onIntervalChange(intervalMin: number): void {
+    this.refreshInterval = Number(intervalMin) || 1;
+    // Do NOT schedule here; the user must click Refresh to start/re-anchor
+  }
+
+  /** Capture CLOSED grid API. */
+  onClosedGridReady(params: any): void {
     this.closedGridApi = params.api;
   }
 
-  onPendingGridReady(params: any) {
+  /** Capture PENDING grid API. */
+  onPendingGridReady(params: any): void {
     this.pendingGridApi = params.api;
   }
 
-  onFilterTextBoxChanged() {
+  /**
+   * Apply quick filter text to the active grid.
+   */
+  onFilterTextBoxChanged(): void {
     this.gridApi?.setGridOption("quickFilterText", this.searchTerm);
   }
 
+  /** Custom quick filter matcher for CLOSED table. */
   closedQuickFilterMatcher = (quickFilterParts: string[], rowText: string) =>
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
+  /** Custom quick filter matcher for PENDING table. */
   pendingQuickFilterMatcher = (quickFilterParts: string[], rowText: string) =>
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- AG Grid cell click -------------------- */
-  // onCellClicked(event: any) {
-  //   const target = event.event.target as HTMLElement;
+  /**
+   * Delegated cell click handler for the "MORE" column.
+   * - Play icon: opens a PrimeNG overlay panel with the video.
+   * - Info icon: fetches additional row details and opens the table popup.
+   */
+  onCellClicked(event: any): void {
+    if (event.colDef.field !== "more") return;
 
-  //   if (event.colDef.field === "more" && target.closest(".info-icon")) {
-  //     const eventId = event.data.eventId; // id from the table row
-
-  //     this.eventsService.getEventMoreInfo(eventId).subscribe({
-  //       next: (res) => {
-  //         this.openTablePopup(res); // pass the full object to popup
-  //       },
-  //     });
-  //   }
-
-  //   if (event.colDef.field === "more" && target.closest(".play-icon")) {
-  //     this.openPlayPopup(event.data);
-  //   }
-  // }
-
-  onCellClicked(event: any) {
-  if (event.colDef.field === "more") {
     const target = event.event.target as HTMLElement;
 
     // Play icon clicked
     if (target.closest(".play-icon")) {
-      this.openPlayTooltip(event.event, event); // Pass event and params
+      this.openPlayTooltip(event.event as MouseEvent, event);
     }
 
     // Info icon clicked
     if (target.closest(".info-icon")) {
-      const eventId = event.data.eventId; // Get the row's ID
+      const eventId = event.data.eventId as number;
       this.eventsService.getEventMoreInfo(eventId).subscribe({
         next: (res) => this.openTablePopup(res),
         error: (err) => console.error("Error fetching info:", err),
       });
     }
   }
-}
 
-
-  fetchMoreInfo(eventId: number) {
+  /** Fetch row details by id and open the info popup. */
+  fetchMoreInfo(eventId: number): void {
     this.eventsService.getEventMoreInfo(eventId).subscribe({
       next: (res) => {
-        this.selectedItem = res; // set popup data
-        this.isTablePopupVisible = true; // open popup
+        this.selectedItem = res;
+        this.isTablePopupVisible = true;
       },
-      error: (err) => {
-        console.error("Error fetching more info:", err);
-      },
+      error: (err) => console.error("Error fetching more info:", err),
     });
   }
 
   /** -------------------- Popup handling -------------------- */
-  openTablePopup(item: any) {
+  /** Open the info popup with a prepared object. */
+  openTablePopup(item: any): void {
     this.selectedItem = item;
     this.isTablePopupVisible = true;
   }
 
-  closePopup() {
+  /** Close all popups. */
+  closePopup(): void {
     this.isPopupVisible = false;
     this.isTablePopupVisible = false;
   }
 
-  // openPlayPopup(item: any) {
-  //   this.selectedPlayItem = item;
-  //   this.isPlayPopupVisible = true;
-  // }
-
-  // closePlayPopup() {
-  //   this.isPlayPopupVisible = false;
-  //   this.selectedPlayItem = null;
-  // }
-
-  // safeVideoUrl: SafeResourceUrl | null = null;
-
-  openPlayPopup(item: any) {
+  /**
+   * Open the full play popup dialog using selected row item.
+   * Trusts and assigns the media URL when available.
+   */
+  openPlayPopup(item: any): void {
     this.selectedPlayItem = item;
-
     if (item?.httpUrl) {
-      // Trust the URL so Angular doesn’t block it
       this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
         item.httpUrl
       );
-    } else {
-      // this.safeVideoUrl = null;
     }
-
     this.isPlayPopupVisible = true;
   }
 
-  openPlayTooltip(event: MouseEvent, params: any) {
-    const item = params.data; // AG Grid row data
+  /**
+   * Open a compact PrimeNG overlay with the video player (tooltip‑like).
+   * Uses the AG Grid row data (params.data) to derive media URL.
+   */
+  openPlayTooltip(event: MouseEvent, params: any): void {
+    const item = params.data;
     this.selectedPlayItem = item;
 
     if (item?.httpUrl) {
-      // ✅ Use your trusted backend video URL
       this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
         item.httpUrl
       );
     } else {
-      // optional: handle missing video
       this.safeVideoUrl = null as any;
     }
 
-    // ✅ Show PrimeNG tooltip panel
     this.playOverlay.show(event);
-
-    
   }
 
-  closePlayPopup() {
+  /** Close the play popup and hide overlay panel. */
+  closePlayPopup(): void {
     this.isPlayPopupVisible = false;
     this.selectedPlayItem = null;
-    // this.safeVideoUrl = null;
     this.playOverlay.hide();
   }
 
-  openCalendarPopup() {
+  /** Open the date picker popup (wrapping CalendarComponent). */
+  openCalendarPopup(): void {
     this.isCalendarPopupOpen = true;
   }
 
-  closeCalendarPopup() {
+  /** Close the date picker popup. */
+  closeCalendarPopup(): void {
     this.isCalendarPopupOpen = false;
   }
 
-  onDateSelected(date: Date) {
+  /** Callback from CalendarComponent when a single date is chosen. */
+  onDateSelected(date: Date): void {
     this.selectedDate = date;
     console.log(this.selectedDate, "selected dates");
     this.closeCalendarPopup();
   }
 
-  changeDate(offset: number) {
-    if (this.selectedDate) {
-      const updatedDate = new Date(this.selectedDate);
-      updatedDate.setDate(updatedDate.getDate() + offset);
-      this.selectedDate = updatedDate;
-    }
+  /** Change selectedDate by a day offset (e.g., prev/next). */
+  changeDate(offset: number): void {
+    if (!this.selectedDate) return;
+    const updatedDate = new Date(this.selectedDate);
+    updatedDate.setDate(updatedDate.getDate() + offset);
+    this.selectedDate = updatedDate;
   }
 
+  /** Set selectedDate to today. */
   setToday(): void {
     this.currentDate = new Date();
     this.selectedDate = this.currentDate;
   }
 
   /** -------------------- Play popup carousel -------------------- */
-  prevSlide() {
-    if (this.selectedPlayItem?.videoFile?.length) {
-      this.currentSlideIndex =
-        (this.currentSlideIndex - 1 + this.selectedPlayItem.videoFile.length) %
-        this.selectedPlayItem.videoFile.length;
-    }
+  /** Go to previous video slide within the current item. */
+  prevSlide(): void {
+    if (!this.selectedPlayItem?.videoFile?.length) return;
+    const len = this.selectedPlayItem.videoFile.length;
+    this.currentSlideIndex = (this.currentSlideIndex - 1 + len) % len;
   }
 
-  nextSlide() {
-    if (this.selectedPlayItem?.videoFile?.length) {
-      this.currentSlideIndex =
-        (this.currentSlideIndex + 1) % this.selectedPlayItem.videoFile.length;
-    }
+  /** Go to next video slide within the current item. */
+  nextSlide(): void {
+    if (!this.selectedPlayItem?.videoFile?.length) return;
+    const len = this.selectedPlayItem.videoFile.length;
+    this.currentSlideIndex = (this.currentSlideIndex + 1) % len;
   }
 
   /** -------------------- Helper functions -------------------- */
+  /** Map icon path to a human‑readable label for cards. */
   getIconLabel(iconPath?: string): string {
-    const map: { [key: string]: string } = {
+    const map: Record<string, string> = {
       "assets/home.svg": "SITE EVENTS",
       "assets/cam.svg": "CAMERA EVENTS",
       "assets/direction.svg": "GROUP EVENTS",
@@ -429,7 +488,11 @@ setFilter(filter: "CLOSED" | "PENDING") {
     return iconPath ? map[iconPath] || "" : "";
   }
 
-  formatDateTime(value: string) {
+  /**
+   * Parse compact server timestamps (e.g., 2025-01-01_12-30-00) and return
+   * a normalized string in "YYYY-MM-DD HH:mm:ss".
+   */
+  formatDateTime(value: string): string {
     if (!value) return "";
     const isoString = value
       .replace("_", "T")
@@ -445,34 +508,45 @@ setFilter(filter: "CLOSED" | "PENDING") {
   }
 
   /** -------------------- API calls -------------------- */
-
-  selectedStartDate: Date | null = null;
-  selectedEndDate: Date | null = null;
+  /**
+   * Receive a date range from CalendarComponent and (only when changed)
+   * trigger the CLOSED view fetch. Prevents duplicate API calls.
+   */
   onDateRangeSelected(event: {
     startDate: Date;
     startTime: string;
     endDate: Date;
     endTime: string;
-  }) {
-    // Merge into full Date objects
-    this.selectedStartDate = this.combineDateAndTime(
-      event.startDate,
-      event.startTime
-    );
-    this.selectedEndDate = this.combineDateAndTime(
-      event.endDate,
-      event.endTime
-    );
+  }): void {
+    const newStart = this.combineDateAndTime(event.startDate, event.startTime);
+    const newEnd = this.combineDateAndTime(event.endDate, event.endTime);
 
-    console.log("Start DateTime:", this.selectedStartDate);
-    console.log("End DateTime:", this.selectedEndDate);
+    const startStr = this.formatDateTimeFull(newStart);
+    const endStr = this.formatDateTimeFull(newEnd);
+
+    // Prevent duplicate call if same date/time range as last
+    if (
+      this.lastStartDateTime === startStr &&
+      this.lastEndDateTime === endStr
+    ) {
+      console.log("⏸️ Duplicate range ignored:", startStr, endStr);
+      return;
+    }
+
+    this.lastStartDateTime = startStr;
+    this.lastEndDateTime = endStr;
+
+    this.selectedStartDate = newStart;
+    this.selectedEndDate = newEnd;
+
+    console.log("✅ Date range updated:", startStr, "to", endStr);
 
     if (this.selectedFilter === "CLOSED") {
       this.loadClosedAndEscalatedDetails();
     }
   }
 
-  /** Utility: combine Date + time string into formatted string */
+  /** Utility: combine a date and a HH:mm:ss string into a Date object. */
   private combineDateAndTime(date: Date, time: string): Date {
     const [hours, minutes, seconds] = time.split(":").map(Number);
     const combined = new Date(date);
@@ -480,6 +554,7 @@ setFilter(filter: "CLOSED" | "PENDING") {
     return combined;
   }
 
+  /** Format date as YYYY-MM-DD. */
   formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
@@ -487,51 +562,94 @@ setFilter(filter: "CLOSED" | "PENDING") {
     )}`;
   }
 
-  private transformQueuesMessages(res: any) {
+  /**
+   * Flatten queue structures (eventWallQueues, manualWallQueues, missedWallQueues)
+   * into a single array for PENDING table consumption.
+   */
+  private transformQueuesMessages(res: any): any[] {
+    // Gather all queue groups
     const allQueues = [
-      ...(res.eventWallQueues?.queues || []),
-      ...(res.manualWallQueues?.queues || []),
-      ...(res.missedWallQueues?.queues || []),
-    ];
+      ...(res?.eventWallQueues?.queues || []),
+      ...(res?.manualWallQueues?.queues || []),
+      ...(res?.missedWallQueues?.queues || []),
+    ].filter(Boolean);
 
-    const queuesMessages = allQueues.map((queue: any) => {
-      if (!queue.messages || queue.messages.length === 0) {
-        // Add placeholder if no messages
-        return {
-          siteName: "-",
-          siteId: "-",
-          cameraId: "-",
-          objectName: "-",
-          eventTag: "-",
-          actionTag: "-",
-          eventTime: "-",
-          actionTime: "-",
-          httpUrl: "-",
-          imageUrl: "-",
-          noOfImages: 0,
-          queueName: queue.queueName,
-          queueLevel: queue.queueLevel,
-        };
-      }
-
-      return queue.messages.map((msg: any) => ({
-        ...msg,
-        queueName: queue.queueName,
-        queueLevel: queue.queueLevel,
-      }));
-    });
-
-    return queuesMessages.flat();
+    // Skip any queue whose "messages" is [] or not present
+    return allQueues
+      .filter((q: any) => Array.isArray(q?.messages) && q.messages.length > 0)
+      .flatMap((q: any) =>
+        q.messages.map((msg: any) => ({
+          ...msg,
+          queueName: q.queueName,
+          queueLevel: q.queueLevel,
+        }))
+      );
   }
 
-  loadPendingEvents() {
-    this.isLoading = true;
-    // Determine level based on selected filter
+  /**
+   * Fetch PENDING view data (level 1 = CONSOLES, level 2 = QUEUES) and
+   * populate both the stat cards and the table rows.
+   */
+  // loadPendingEvents(): void {
+  //   this.isLoading = true;
+  //   const level = this.selectedpendingFilter === "CONSOLES" ? 1 : 2;
+
+  //   this.eventsService.getEventsPendingEventa(level).subscribe({
+  //     next: (res) => {
+  //       this.isLoading = false;
+
+  //       // Summary cards (top row)
+  //       this.secondEscalatedDetails = [
+  //         { label: "TOTAL", value: res.totalEvents || 0, color: "#ED3237" },
+  //         {
+  //           iconPath: "assets/home.svg",
+  //           value: res.siteCount || 0,
+  //           color: "#ED3237",
+  //         },
+  //         {
+  //           iconPath: "assets/cam.svg",
+  //           value: res.cameraCount || 0,
+  //           color: "#ED3237",
+  //         },
+  //         {
+  //           iconcolor: "#FFC400",
+  //           value: res.manualWallCount || 0,
+  //           color: "#ED3237",
+  //         },
+  //         {
+  //           iconcolor: "#53BF8B",
+  //           value: res.eventWallCount || 0,
+  //           color: "#ED3237",
+  //         },
+  //         {
+  //           iconcolor: "#FF0000",
+  //           value: res.missedWallCount || 0,
+  //           color: "#ED3237",
+  //         },
+  //       ];
+
+  //       // Table rows
+  //       this.pendingRowData = this.transformQueuesMessages(res);
+  //     },
+  //     error: (err) => {
+  //       this.isLoading = false;
+  //       console.error("Error fetching pending events:", err);
+  //     },
+  //   });
+  // }
+
+  // CHANGE signature to accept an optional { silent } flag
+  loadPendingEvents(opts: { silent?: boolean } = {}): void {
+    const { silent = false } = opts;
+
+    if (!silent) this.isLoading = true;
     const level = this.selectedpendingFilter === "CONSOLES" ? 1 : 2;
+
     this.eventsService.getEventsPendingEventa(level).subscribe({
       next: (res) => {
-        this.isLoading = false;
-        // === Keep your summary cards as-is ===
+        if (!silent) this.isLoading = false;
+
+        // ---------------- cards ----------------
         this.secondEscalatedDetails = [
           { label: "TOTAL", value: res.totalEvents || 0, color: "#ED3237" },
           {
@@ -561,18 +679,24 @@ setFilter(filter: "CLOSED" | "PENDING") {
           },
         ];
 
-        // === Transform API queues into single array for AG Grid ===
+        // ---------------- table ----------------
         this.pendingRowData = this.transformQueuesMessages(res);
+
+        // ✅ Start the timer AFTER the very first successful fetch of PENDING
+        if (!this.hasStartedAutoRefresh && this.selectedFilter === "PENDING") {
+          this.hasStartedAutoRefresh = true;
+          this.scheduleAutoRefresh(this.refreshInterval); // minutes
+        }
       },
       error: (err) => {
-        this.isLoading = false;
+        if (!silent) this.isLoading = false;
         console.error("Error fetching pending events:", err);
       },
     });
   }
 
-  /** -------------------- Load closed and escalated details -------------------- */
-
+  /** -------------------- CLOSED view: table + escalated details -------------------- */
+  /** Format a Date as YYYY-MM-DD HH:mm:ss. */
   private formatDateTimeFull(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
@@ -582,34 +706,35 @@ setFilter(filter: "CLOSED" | "PENDING") {
     )}`;
   }
 
-  loadClosedAndEscalatedDetails() {
+  /**
+   * Fetch CLOSED table data and top stat cards in a single request, honoring
+   * actionTag (2 = Suspicious, 1 = False) and optional date range.
+   */
+  loadClosedAndEscalatedDetails(): void {
     this.isLoading = true;
     const actionTag = this.suspiciousChecked ? 2 : 1;
 
     const startDateStr = this.selectedStartDate
       ? this.formatDateTimeFull(this.selectedStartDate)
       : undefined;
-
     const endDateStr = this.selectedEndDate
       ? this.formatDateTimeFull(this.selectedEndDate)
       : undefined;
+
+    console.log(endDateStr, "endDateStr");
 
     this.eventsService
       .getSuspiciousEvents(actionTag, startDateStr, endDateStr)
       .subscribe({
         next: (res) => {
           this.isLoading = false;
-          // Closed events for table
-          console.log(res, "responce");
+
+          // CLOSED table rows
           if (res?.eventData) {
             this.rowData = res.eventData.map((e: any) => {
               let alertColor = "#53BF8B"; // default green
-
-              if (e.eventType === "Event_Wall") {
-                alertColor = "#53BF8B"; // green
-              } else if (e.eventType === "Manual_Wall") {
-                alertColor = "#FFC400"; // yellow
-              }
+              if (e.eventType === "Event_Wall") alertColor = "#53BF8B"; // green
+              else if (e.eventType === "Manual_Wall") alertColor = "#FFC400"; // yellow
 
               return {
                 ...e,
@@ -631,7 +756,7 @@ setFilter(filter: "CLOSED" | "PENDING") {
             });
           }
 
-          // Escalated cards for top section
+          // Top summary cards for CLOSED
           if (res?.counts) {
             this.secondEscalatedDetails = [
               {
@@ -652,7 +777,6 @@ setFilter(filter: "CLOSED" | "PENDING") {
               {
                 iconcolor: "#53BF8B",
                 value: res.counts.Event_Wall || 0,
-
                 color: "#ED3237",
               },
               {
@@ -673,16 +797,19 @@ setFilter(filter: "CLOSED" | "PENDING") {
   }
 
   /** -------------------- AG Grid utility -------------------- */
-  autoSizeColumn(colKey: string) {
+  /** Auto‑size a specific column key. */
+  autoSizeColumn(colKey: string): void {
     this.gridApi?.autoSizeColumns([colKey], true);
   }
 
-  autoSizeColumns(colKeys: string[]) {
+  /** Auto‑size multiple column keys. */
+  autoSizeColumns(colKeys: string[]): void {
     this.gridApi?.autoSizeColumns(colKeys, true);
   }
 
   /** -------------------- Column definitions -------------------- */
-  setupColumnDefs() {
+  /** Build column definitions for CLOSED and PENDING tables. */
+  setupColumnDefs(): void {
     // CLOSED column definitions
     this.closedColumnDefs = [
       {
@@ -691,8 +818,6 @@ setFilter(filter: "CLOSED" | "PENDING") {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -700,19 +825,14 @@ setFilter(filter: "CLOSED" | "PENDING") {
         field: "siteName",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
-       
       {
         headerName: "DEVICE",
         field: "device",
-        cellStyle: { opacity: "0.5" },
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
+        cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
       },
       {
@@ -721,38 +841,23 @@ setFilter(filter: "CLOSED" | "PENDING") {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
-      // {
-      //   headerName: "CITY",
-      //   field: "city",
-      //   headerClass: "custom-header",
-      //   cellClass: "custom-cell",
-      //   // floatingFilter: true,
-      //   // filter: true,
-      //   suppressHeaderMenuButton: true,
-      // },
       {
         headerName: "EVENT TIME",
         field: "eventStartTime",
         headerClass: "custom-header",
-        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
-        valueFormatter: (params) => this.formatDateTime(params.value),
-        // floatingFilter: true,
-        // filter: true,
+        cellStyle: { opacity: "0.5" },
+        valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
       },
       {
         headerName: "DURATION",
         field: "duration",
         headerClass: "custom-header",
-        cellStyle: { opacity: "0.5" },
         cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
+        cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
       },
       {
@@ -761,19 +866,14 @@ setFilter(filter: "CLOSED" | "PENDING") {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
-
       {
         headerName: "ACTION TAG",
-        field: "subActionTag", 
+        field: "subActionTag",
         headerClass: "custom-header",
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
@@ -784,15 +884,13 @@ setFilter(filter: "CLOSED" | "PENDING") {
         valueFormatter: (params) => params.value?.name || "",
         cellRenderer: (params: any) =>
           `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/><span>  ${params.value.level}</span></div>`,
-        // `<div style="display:flex; align-items:center; gap:8px;"><img src="${params.value.avatar}" style="width:30px; height:30px; border-radius:50%;" alt="Emp"/><span>${params.value.name} - Level ${params.value.level}</span></div>`,
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
         headerName: "ALERT TYPE",
         field: "alertType",
         headerClass: "custom-header",
+        cellClass: "custom-cell",
         cellStyle: {
           textAlign: "center",
           display: "flex",
@@ -801,47 +899,127 @@ setFilter(filter: "CLOSED" | "PENDING") {
         },
         cellRenderer: (params: any) =>
           `<span style="display:inline-block; width:14px; margin-top:10px;  height:14px; background:${params.value}; border-radius:50%;"></span>`,
-        // floatingFilter: true,
-        // filter: true,
         suppressHeaderMenuButton: true,
       },
       {
-  headerName: "MORE",
-  field: "more",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  cellStyle: {
-    textAlign: "center",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  cellRenderer: () =>
-    `<span class="play-icon" style="margin-right:8px;">
+        headerName: "MORE",
+        field: "more",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: {
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        },
+        cellRenderer: () =>
+          `<span class="play-icon" style="margin-right:8px;">
        <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
      </span>
      <span class="info-icon">
        <img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/>
      </span>`,
-}
-
+      },
+      // If you want icons in CLOSED as in PENDING, uncomment and adjust the renderer below
       // {
       //   headerName: "MORE",
       //   field: "more",
       //   headerClass: "custom-header",
       //   cellClass: "custom-cell",
-      //   cellStyle: {
-      //     textAlign: "center",
-      //     display: "flex",
-      //     justifyContent: "center",
-      //     alignItems: "center",
-      //   },
-      //   cellRenderer: () =>
-      //     `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px;  height:20px; cursor:pointer;" alt="Play"/></span><span class="info-icon"><img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/></span>`,
+      //   cellStyle: { textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center" },
+      //   cellRenderer: () => `
+      //     <span class="play-icon" style="margin-right:8px;">
+      //       <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
+      //     </span>
+      //     <span class="info-icon">
+      //       <img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/>
+      //     </span>`
       // },
+    ];
+
+    // PENDING column definitions
+    this.pendingColumnDefs = [
+      {
+        headerName: "ID",
+        field: "siteId",
+        sortable: true,
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "SITE NAME",
+        field: "siteName",
+        sortable: true,
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "CAMERA ID",
+        field: "cameraId",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "EVENT TAG",
+        field: "eventTag",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "ACTION TAG",
+        field: "actionTag",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "EVENT TIME",
+        field: "eventTime",
+        sortable: true,
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        valueFormatter: (p) => this.formatDateTime(p.value),
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "ACTION TIME",
+        field: "actionTime",
+        sortable: true,
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        valueFormatter: (p) => this.formatDateTime(p.value),
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "QUEUE NAME",
+        field: "queueName",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "QUEUE LEVEL",
+        field: "queueLevel",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
       // {
       //   headerName: "MORE",
       //   field: "more",
+      //   cellClass: "custom-cell",
       //   cellStyle: {
       //     textAlign: "center",
       //     display: "flex",
@@ -857,177 +1035,21 @@ setFilter(filter: "CLOSED" | "PENDING") {
       //     playIcon.style.marginRight = "8px";
       //     playIcon.style.marginTop = "10px";
       //     playIcon.title = "Play Video";
+      //     playIcon.classList.add("play-icon");
 
       //     playIcon.addEventListener("click", (event) => {
-      //       this.openPlayTooltip(event, params);
+      //       this.openPlayTooltip(event as unknown as MouseEvent, params);
       //     });
-
-      //     const infoIcon = document.createElement("img");
-      //     infoIcon.src = "assets/information-icon.svg";
-      //     infoIcon.style.width = "20px";
-      //     infoIcon.style.height = "20px";
-      //     infoIcon.style.cursor = "pointer";
-
 
       //     const div = document.createElement("div");
       //     div.appendChild(playIcon);
-      //     div.appendChild(infoIcon);
       //     return div;
       //   },
       // },
     ];
-
-    // PENDING column definitions
-    this.pendingColumnDefs = [
-      {
-        headerName: "ID",
-        field: "siteId",
-        sortable: true,
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "SITE NAME",
-        field: "siteName",
-        sortable: true,
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "CAMERA ID",
-        field: "cameraId",
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "EVENT TAG",
-        field: "eventTag",
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "ACTION TAG",
-        field: "actionTag",
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        cellStyle: { opacity: "0.5" },
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "EVENT TIME",
-        field: "eventTime",
-        sortable: true,
-        cellStyle: { opacity: "0.5" },
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        valueFormatter: (params) => this.formatDateTime(params.value),
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "ACTION TIME",
-        field: "actionTime",
-        sortable: true,
-        headerClass: "custom-header",
-        cellStyle: { opacity: "0.5" },
-        cellClass: "custom-cell",
-        valueFormatter: (params) => this.formatDateTime(params.value),
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "QUEUE NAME",
-        field: "queueName",
-        cellStyle: { opacity: "0.5" },
-        headerClass: "custom-header",
-        cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      {
-        headerName: "QUEUE LEVEL",
-        field: "queueLevel",
-        headerClass: "custom-header",
-        cellStyle: { opacity: "0.5" },
-        cellClass: "custom-cell",
-        // floatingFilter: true,
-        // filter: true,
-        suppressHeaderMenuButton: true,
-      },
-      // {
-      //   headerName: "EMP.",
-      //   field: "employee",
-      //   headerClass: "custom-header",
-      //   cellClass: "custom-cell",
-      //   cellRenderer: (params: any) =>
-      //     `<img src="${params.value.avatar}" style="width:30px; height:30px;" class="avatar-img" alt="Emp"/>`,
-      // },
-      // {
-      //   headerName: "MORE",
-      //   field: "more",
-      //   headerClass: "custom-header",
-      //   cellStyle: {
-      //     textAlign: "center",
-      //     display: "flex",
-      //     justifyContent: "center",
-      //     alignItems: "center",
-      //   },
-      //   cellClass: "custom-cell",
-      //   cellRenderer: () =>
-      //     `<span class="play-icon" style="margin-right:8px;"><img src="assets/play-circle-icon.svg" style="width:20px; height:20px; margin-top:10px; cursor:pointer;" alt="Play"/></span> `,
-      // },
-
-      {
-        headerName: "MORE",
-        field: "more",
-        cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        },
-        cellRenderer: (params: any) => {
-          const playIcon = document.createElement("img");
-          playIcon.src = "assets/play-circle-icon.svg";
-          playIcon.style.width = "20px";
-          playIcon.style.height = "20px";
-          playIcon.style.cursor = "pointer";
-          playIcon.style.marginRight = "8px";
-          playIcon.style.marginTop = "10px";
-          playIcon.title = "Play Video";
-
-          playIcon.addEventListener("click", (event) => {
-            this.openPlayTooltip(event, params);
-          });
-
-          const div = document.createElement("div");
-          div.appendChild(playIcon);
-          return div;
-        },
-      },
-    ];
   }
 
+  /** Custom status bar configuration for AG Grid (if used). */
   statusBar = {
     statusPanels: [
       { statusPanel: "agTotalRowCountComponent", align: "left" },
@@ -1036,18 +1058,23 @@ setFilter(filter: "CLOSED" | "PENDING") {
     ],
   };
 
-  /** -------------------- New method for loading escalated details -------------------- */
-  loadEscalatedDetails() {
+  /** -------------------- "More" section (expanded stats) -------------------- */
+  /**
+   * Load additional escalated details for either CLOSED or PENDING view.
+   * - CLOSED: fetch categorized counts for the current actionTag and date range.
+   * - PENDING: map existing secondEscalatedDetails to the EscalatedDetail shape.
+   */
+  loadEscalatedDetails(): void {
     if (this.selectedFilter === "CLOSED") {
       const actionTag = this.suspiciousChecked ? 2 : 1;
-      // const dateStr = this.formatDate(this.selectedDate || new Date());
+
       const startDateStr = this.selectedStartDate
         ? this.formatDateTimeFull(this.selectedStartDate)
         : undefined;
-
       const endDateStr = this.selectedEndDate
         ? this.formatDateTimeFull(this.selectedEndDate)
         : undefined;
+
       const categoryName = actionTag === 1 ? "False Activity" : "Suspicious";
       const displayCategoryLabel = actionTag === 1 ? "False" : "Suspicious";
 
@@ -1058,7 +1085,7 @@ setFilter(filter: "CLOSED" | "PENDING") {
             const counts = res.counts || {};
             const details: EscalatedDetail[] = [];
 
-            // Add total card for the category
+            // Main total card for the category
             const totalData = counts[categoryName];
             if (totalData) {
               details.push({
@@ -1071,17 +1098,16 @@ setFilter(filter: "CLOSED" | "PENDING") {
                 ],
                 colordot: [
                   { iconcolor: "#53BF8B", count: totalData.Event_Wall || 0 },
-                  // Add more dots if additional fields like Event_Wall are available
                   { iconcolor: "#FFC400", count: totalData.Manual_Wall || 0 },
                 ],
               });
             }
 
-            // Add cards for each subcategory
+            // One card per subcategory
             Object.entries(counts).forEach(([label, data]: [string, any]) => {
               if (label !== categoryName) {
                 details.push({
-                  label: label,
+                  label,
                   value: data.totalCount || 0,
                   color: ESCALATED_COLORS[0],
                   icons: [
@@ -1090,7 +1116,6 @@ setFilter(filter: "CLOSED" | "PENDING") {
                   ],
                   colordot: [
                     { iconcolor: "#53BF8B", count: data.Event_Wall || 0 },
-                    // Add more dots if additional fields like Event_Wall are available
                     { iconcolor: "#FFC400", count: data.Manual_Wall || 0 },
                   ],
                 });
@@ -1105,10 +1130,9 @@ setFilter(filter: "CLOSED" | "PENDING") {
           },
         });
     } else {
-      // PENDING filter: Use secondEscalatedDetails from loadPendingEvents
+      // PENDING view: project the already fetched small stat cards
       const details: EscalatedDetail[] = [];
 
-      // Map secondEscalatedDetails to escalatedDetailsPending format
       const total = this.secondEscalatedDetails.find(
         (e) => e.label === "Total"
       );
@@ -1128,7 +1152,6 @@ setFilter(filter: "CLOSED" | "PENDING") {
         (e) => e.iconcolor === "#FF0000"
       );
 
-      // Main card for "False"
       details.push({
         label: "False",
         value: total?.value || 0,
@@ -1148,6 +1171,7 @@ setFilter(filter: "CLOSED" | "PENDING") {
     }
   }
 
+  /** Storage for expanded stats by tab */
   escalatedDetailsClosed: EscalatedDetail[] = [];
   escalatedDetailsPending: EscalatedDetail[] = [];
 }

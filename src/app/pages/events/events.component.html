@@ -40,7 +40,7 @@
 
           <!-- Show current datetime if PENDING -->
           <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
-            {{ currentDateTime | date : "dd MMM, yyyy HH:mm a" | uppercase }}
+            {{ currentDateTime | date : "dd MMM, yyyy HH:mm " | uppercase }}
           </div>
         </div>
 

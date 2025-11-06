@@ -324,26 +324,26 @@ loadGroupDetails(queueId: number) {
   }
 
   onCellClicked(event: any) {
-    // If "more" column clicked, open popup
-    if (event.colDef.field === "more") {
-      const target = event.event.target as HTMLElement;
-      if (target.closest(".info-icon")) {
-        this.loadGroupDetails(event.data.id);
-      }
-    }
+  if (!event?.data) return;
 
-    // Update currentIndex based on clicked row
-    const clickedIndex = this.rowData.findIndex((r) => r.id === event.data.id);
-    if (clickedIndex !== -1) {
-      this.currentIndex = clickedIndex;
-    }
+  const target = event.event?.target as HTMLElement | null;
+  const clickedMoreIcon = !!target?.closest(".info-icon");
+
+  this.currentIndex = event.rowIndex ?? this.rowData.findIndex(r => r.id === event.data.id);
+
+  // If they hit the "more" icon, you could do extra work here…
+  if (clickedMoreIcon) {
+    // e.g., open a context menu, then load details
+    // openContextMenu(event);
   }
+
+  // Always load details on any cell click
+  this.loadGroupDetails(event.data.id);
+}
 
   users: any[] = [];
   selectedUserIds: number[] = [];
-
   userselect: boolean = true;
-
   toggleUserSelection(userId: number, isChecked: boolean) {
     if (isChecked) {
       if (!this.selectedUserIds.includes(userId))

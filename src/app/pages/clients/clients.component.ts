@@ -7,6 +7,10 @@ import { DropdownModule } from "primeng/dropdown";
 import { ButtonModule } from "primeng/button";
 import { MultiSelectModule } from "primeng/multiselect";
 
+// ⬇️ add this import
+import { ClientInfoPanelComponent } from "./client-info-panel/client-info-panel.component";
+
+
 @Component({
   selector: "app-clients",
   templateUrl: "./clients.component.html",
@@ -19,9 +23,83 @@ import { MultiSelectModule } from "primeng/multiselect";
     DropdownModule,
     ButtonModule,
     MultiSelectModule,
+    ClientInfoPanelComponent
   ],
 })
 export class ClientsComponent implements OnInit {
+
+  // Right slide info panel state
+  isInfoPanelOpen = false;
+  selectedClient: any | null = null;
+
+  onCellClicked(event: any) {
+    // If the "MORE INFO" column was clicked, open the info panel
+    if (event?.colDef?.field === 'moreINFO') {
+      this.openInfoPanel(event.data);
+      return;
+    }
+
+    // (keep your existing default log if you want)
+    // console.log('Clicked cell:', event.data);
+  }
+
+  openInfoPanel(row: any) {
+  this.selectedClient = {
+    ...row,
+    sitesList: [
+      { id: '01234567', name: 'Lewis Management - Benz Circle', vertical: 'Shopping Center', devices: 2, cameras: '8/12',  status: 'Live' },
+      { id: '01234568', name: 'Lewis Management - MG Road',      vertical: 'Shopping Center', devices: 2, cameras: '6/6',   status: 'Live' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      { id: '01234569', name: 'Lewis Management - Elur Road',    vertical: 'Shopping Center', devices: 2, cameras: '10/12', status: 'Inprogress' },
+      // ...
+    ],
+    usersList: [
+      { id: '01234567', fullName: 'First Name & Last Name', designation: 'Designation', deptRole: 'Client - Admin', sites: 'ALL', phone: '+91 9090909090', email: 'useridname@mail.com', status: 'Active' },
+      { id: '01234568', fullName: 'First Name & Last Name', designation: 'Designation', deptRole: 'Client - Member', sites: 3,    phone: '+91 9090909090', email: 'useridname@mail.com', status: 'Active' },
+      // ...
+    ]
+  };
+  this.isInfoPanelOpen = true;
+}
+
+  // openInfoPanel(rowData: any) {
+  //   this.selectedClient = rowData;
+  //   this.isInfoPanelOpen = true;
+  // }
+
+  closeInfoPanel() {
+    this.isInfoPanelOpen = false;
+    this.selectedClient = null;
+  }
+
+
+
   /** ==============================
    *        TOP CARD DATA
    * ============================== */
@@ -51,15 +129,27 @@ export class ClientsComponent implements OnInit {
     { headerName: "DEVICES", field: "devices", flex: 1 },
     { headerName: "CAMERAS", field: "cameras", flex: 1 },
     { headerName: "STATUS", field: "status", flex: 1 },
+  //   {
+  //     headerName: "MORE INFO",
+  //     field: "moreINFO",
+  //     cellRenderer: () => `
+  //   <span class="info-icon">
+  //     <img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/>
+  //   </span>
+  // `,
+  //   },
     {
-      headerName: "MORE INFO",
-      field: "moreINFO",
-      cellRenderer: () => `
-    <span class="info-icon">
-      <img src="assets/information-icon.svg" style="width:20px; height:20px; cursor:pointer;" alt="Info"/>
-    </span>
-  `,
-    },
+    headerName: 'MORE INFO',
+    field: 'moreINFO',
+    width: 120,
+    cellStyle: { cursor: 'pointer', textAlign: 'center' },
+    cellRenderer: () => `
+      <span class="info-icon" title="View client">
+        <img src="assets/information-icon.svg" style="width:20px;height:20px;" alt="Info"/>
+      </span>
+    `,
+  },
+    
   ];
 
   defaultColDef: ColDef = {
@@ -203,9 +293,6 @@ export class ClientsComponent implements OnInit {
     this.gridApi.sizeColumnsToFit();
   }
 
-  onCellClicked(event: any) {
-    console.log("Clicked cell:", event.data);
-  }
 
   onFilterTextBoxChanged() {
     if (this.gridApi) {

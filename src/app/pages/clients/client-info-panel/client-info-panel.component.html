@@ -1,0 +1,142 @@
+<!-- STATUS PILL IN THE TOP RIGHT (under the red header from parent) -->
+<div class="top-strip">
+  <span class="status-pill" [ngClass]="(client?.status || '').toLowerCase()">
+    {{ client?.status }}
+  </span>
+</div>
+
+<!-- SUMMARY BLOCK (simple two-row layout) -->
+<section class="summary-card simple">
+  <div class="list-header1">
+    <h4>CLIENT INFO</h4>
+  </div>
+
+  <div class="kv-row">
+    <div class="k">Client Name</div>
+    <div class="v">
+      {{ client?.client }}
+      <span class="muted">({{ client?.id }})</span>
+    </div>
+
+    <div class="k">Contact</div>
+    <div class="v">
+      <button type="button" class="view-btn">View</button>
+    </div>
+  </div>
+
+  <div class="kv-row">
+    <div class="k">Type</div>
+    <div class="v">{{ client?.type }}</div>
+
+    <div class="k">Remarks</div>
+    <div class="v value--light">—</div>
+  </div>
+
+  <!-- optional edit icon in the card corner -->
+  <button class="icon-btn edit-btn" title="Edit summary">
+    <img src="../../../assets/pencil.svg" class="edit-icon" alt="edit" />
+  </button>
+</section>
+
+<!-- LIST OF SITES -->
+<section class="list-card">
+  <div class="list-header">
+    <h4>LIST OF SITES - {{ sitesCount }}</h4>
+    <button type="button" class="add-btn">+ ADD</button>
+  </div>
+
+  <div class="table sites-table">
+    <div class="thead">
+      <div class="th">SITE ID</div>
+      <div class="th">SITE NAME</div>
+      <div class="th">VERTICAL</div>
+      <div class="th">DEVICES</div>
+      <div class="th">CAMERA'S</div>
+      <div class="th">STATUS</div>
+      <div class="th">REMARKS</div>
+      <div class="th actions-col"></div>
+    </div>
+
+    <div class="tbody" *ngIf="sitesList?.length; else noSites">
+      <div class="tr" *ngFor="let s of sitesList">
+        <div class="td mono">{{ s.id }}</div>
+        <div class="td">{{ s.name }}</div>
+        <div class="td">{{ s.vertical }}</div>
+        <div class="td">{{ s.devices }}</div>
+        <div class="td">{{ s.cameras }}</div>
+        <div class="td">
+          <span class="status-text" [ngClass]="s.status.toLowerCase()">{{
+            s.status
+          }}</span>
+        </div>
+        <div class="td">{{ s.remarks || "" }}</div>
+        <div class="td actions-col">
+          <button class="icon-btn row-edit" title="Edit site">
+            <img
+              src="../../../assets/pencil.svg"
+              class="edit-icon"
+              alt="edit"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+    <ng-template #noSites>
+      <div class="empty">No sites added.</div>
+    </ng-template>
+  </div>
+</section>
+
+<!-- LIST OF USERS -->
+<section class="list-card">
+  <div class="list-header">
+    <h4>LIST OF USERS - {{ usersCount }}</h4>
+    <button type="button" class="add-btn">+ ADD</button>
+  </div>
+
+  <div class="table users-table">
+    <div class="thead">
+      <div class="th">USER ID</div>
+      <div class="th">NAME &amp; DESIGNATION</div>
+      <div class="th">DEPARTMENT - ROLE</div>
+      <div class="th">SITES</div>
+      <div class="th">PHONE</div>
+      <div class="th">USER ID/EMAIL</div>
+      <div class="th">STATUS</div>
+      <div class="th actions-col"></div>
+    </div>
+
+    <div class="tbody" *ngIf="usersList?.length; else noUsers">
+      <div class="tr" *ngFor="let u of usersList">
+        <div class="td mono">{{ u.id }}</div>
+        <div class="td">
+          <div class="stack">
+            <div class="strong">{{ u.fullName }}</div>
+            <div class="muted small">{{ u.designation }}</div>
+          </div>
+        </div>
+        <div class="td">{{ u.deptRole }}</div>
+        <div class="td">{{ u.sites }}</div>
+        <div class="td">{{ u.phone }}</div>
+        <div class="td">{{ u.email }}</div>
+        <div class="td">
+          <span class="status-text" [ngClass]="u.status.toLowerCase()">{{
+            u.status
+          }}</span>
+        </div>
+        <div class="td actions-col">
+          <button class="icon-btn row-edit" title="Edit user">
+            <img
+              src="../../../assets/pencil.svg"
+              class="edit-icon"
+              alt="edit"
+            />
+          </button>
+        </div>
+      </div>
+    </div>
+    <ng-template #noUsers>
+      <div class="empty">No users added.</div>
+    </ng-template>
+  </div>
+</section>

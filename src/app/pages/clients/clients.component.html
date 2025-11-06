@@ -7,6 +7,36 @@
     </button>
   </div>
 
+
+<!-- Right Slide Panel: CLIENT INFO -->
+<div class="right-panel info" [class.open]="isInfoPanelOpen" [style.width.px]="'90%'">
+<div class="panel-header">
+  <!-- Left: icon + client name -->
+  <h3 class="header-title" *ngIf="selectedClient">
+    <img class="header-icon" src="../../../assets/clients-icon-white.svg" alt="client" />
+    {{ selectedClient.client }}
+  </h3>
+
+  <!-- Right: actions (edit, close) -->
+  <div class="panel-actions">
+    <button class="icon-btn edit-btn" type="button">
+      <img class="pencilimage" src="../../../assets/pencil.svg" alt="edit" />
+    </button>
+    <button class="icon-btn close-btn" type="button" (click)="closeInfoPanel()">
+      <img class="calenderimage" src="../../../assets/close-filled.svg" alt="close" />
+    </button>
+  </div>
+</div>
+
+  <div class="panel-body">
+    <app-client-info-panel
+      *ngIf="selectedClient"
+      [client]="selectedClient"
+      (close)="closeInfoPanel()"
+    ></app-client-info-panel>
+  </div>
+</div>
+
   <!-- Right Slide Panel -->
   <div class="right-panel" [class.open]="isCreateClientPanelOpen">
     <div class="panel-header">
