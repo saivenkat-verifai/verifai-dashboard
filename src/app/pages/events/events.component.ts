@@ -171,23 +171,22 @@ export class EventsComponent implements OnInit {
    * Switch between CLOSED and PENDING views.
    * Clears quick search and triggers the relevant data load.
    */
-  setFilter(filter: "CLOSED" | "PENDING"): void {
-    this.selectedFilter = filter;
-    this.searchTerm = "";
+setFilter(filter: 'CLOSED' | 'PENDING'): void {
+  this.selectedFilter = filter;
+  this.searchTerm = '';
 
-    // Stop any running timer when leaving PENDING
-    if (filter === "CLOSED") {
-      this.stopAutoRefresh();
-      this.hasStartedAutoRefresh = false; // so timer starts again next time we fetch pending
-      this.suspiciousChecked = true;
-      this.falseChecked = false;
-      this.loadClosedAndEscalatedDetails();
-    } else {
-      // PENDING
-      this.loadPendingEvents();
-      // `loadPendingEvents` will start the auto refresh after the first success
-    }
+  if (filter === 'CLOSED') {
+    this.stopAutoRefresh();
+    this.hasStartedAutoRefresh = false;
+    this.suspiciousChecked = true;
+    this.falseChecked = false;
+
+    // ⛔️ Do NOT call loadClosedAndEscalatedDetails() here
+    // Wait for (dateRangeSelected) from the Calendar (on Confirm)
+  } else {
+    this.loadPendingEvents();
   }
+}
 
   ngOnDestroy(): void {
     this.stopAutoRefresh();
@@ -288,6 +287,19 @@ export class EventsComponent implements OnInit {
     }
   }
 
+toastMessages: any[] = [];
+
+onToastClose(event: any) {
+  // remove closed message (optional cleanup)
+  this.toastMessages = this.toastMessages.filter(m => m !== event.message);
+}
+showToast(severity: string, summary: string, detail: string, life = 3000) {
+  this.toastMessages = [
+    ...this.toastMessages,
+    { severity, summary, detail, life }
+  ];
+}
+
   /** Start/restart auto-refresh with a new interval (in minutes). */
   private scheduleAutoRefresh(minutes: number): void {
     this.stopAutoRefresh(); // clear previous timer if any
@@ -313,7 +325,14 @@ export class EventsComponent implements OnInit {
   onIntervalChange(intervalMin: number): void {
     this.refreshInterval = Number(intervalMin) || 1;
     // Do NOT schedule here; the user must click Refresh to start/re-anchor
+    this.showToast(
+    'info',
+    'Auto-refresh Interval Updated',
+    `Refresh will occur every ${this.refreshInterval} minute(s).`
+  );
   }
+
+
 
   /** Capture CLOSED grid API. */
   onClosedGridReady(params: any): void {

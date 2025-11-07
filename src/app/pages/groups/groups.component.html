@@ -121,12 +121,13 @@
       <!-- Popup Body -->
       <div class="popup-body">
         <div class="escalated-content-section">
-          <app-groups-popup
-            *ngIf="selectedItem"
-            [data]="selectedItem"
-            [sites]="sites"
-            (sectionChange)="onSectionChange($event)"
-          ></app-groups-popup>
+   <app-groups-popup
+  *ngIf="selectedItem"
+  [data]="selectedItem"
+  [sites]="sites"
+  (sectionChange)="onSectionChange($event)"
+  (refreshRequested)="onQueueStatusChanged($event)" 
+></app-groups-popup>
         </div>
       </div>
     </div>

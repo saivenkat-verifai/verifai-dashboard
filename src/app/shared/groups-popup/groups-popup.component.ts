@@ -44,6 +44,13 @@ export class GroupsPopupComponent implements OnChanges {
   @Output() sectionChange = new EventEmitter<string>();
   @Output() close = new EventEmitter<void>();
   @Output() openPopupEvent = new EventEmitter<any>();
+  @Output() refreshRequested = new EventEmitter<number>(); // queueId
+  
+
+
+   get isActive(): boolean {
+    return (this.data?.status ?? '').toString().toLowerCase() === 'active';
+  }
 
   showPopup = false;
 
@@ -139,56 +146,39 @@ export class GroupsPopupComponent implements OnChanges {
     },
   ];
 
-  inactivateCamera(cameraId: string, queueSitesId: number, queueId: number) {
-    const modifiedBy = 0; // replace with logged-in user ID if available
-// console.log("Inactivating camera:", cameraId, "from queueSitesId:", queueSitesId, );
-console.log(" queueid:", queueId, );
-    this.groupsService
-      .inactivateQueuesCamera(cameraId, queueSitesId, modifiedBy)
-      .subscribe({
+  
+inactivateCamera(cameraId: string, queueSitesId: number, queueId: number) {
+  const modifiedBy = 0;
+  this.groupsService.inactivateQueuesCamera(cameraId, queueSitesId, modifiedBy).subscribe({
+    next: () => {
+      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
         next: (res) => {
-          console.log("✅ Camera inactivated successfully:", res);
-
-          // Refresh the data after successful inactivation
-          this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-            next: (updatedRes) => {
-              // console.log("🔄 Refreshed data:", updatedRes);
-              this.updateSitesAndUsers(updatedRes);
-            },
-            error: (err) => console.error("Error refreshing data:", err),
-          });
+          this.updateSitesAndUsers(res);
+          this.refreshRequested.emit(queueId); // 👈
         },
-        error: (err) => {
-          console.error("❌ Error inactivating camera:", err);
-        },
+        error: (err) => console.error("Error refreshing data:", err),
       });
-  }
+    },
+    error: (err) => console.error("Error inactivating camera", err),
+  });
+}
 
 
-  inactivateSite(siteId: number, queueId: number) {
-    const modifiedBy = 123; // replace with logged-in user ID
-    // console.log("Inactivating site:", siteId, "from queueId:", queueId);
-
-    this.groupsService.inactivateQueuesSite(siteId, queueId, modifiedBy).subscribe({
-      next: (response) => {
-        // console.log("Site inactivated successfully", response);
-
-        // Refresh sites & users data
-        this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-          next: (res) => {
-            // console.log("Updated sites and users for the queue:", res);
-            this.updateSitesAndUsers(res);
-          },
-          error: (err) => {
-            console.error("Error fetching sites and users:", err);
-          },
-        });
-      },
-      error: (error) => {
-        console.error("Error inactivating site", error);
-      },
-    });
-  }
+ inactivateSite(siteId: number, queueId: number) {
+  const modifiedBy = 123;
+  this.groupsService.inactivateQueuesSite(siteId, queueId, modifiedBy).subscribe({
+    next: () => {
+      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+        next: (res) => {
+          this.updateSitesAndUsers(res);
+          this.refreshRequested.emit(queueId); // 👈
+        },
+        error: (err) => console.error("Error refreshing data:", err),
+      });
+    },
+    error: (err) => console.error("Error inactivating site", err),
+  });
+}
 
   /** Columns for Users AG Grid including X button */
 usersColumnDefs: ColDef[] = [
@@ -285,29 +275,27 @@ usersColumnDefs: ColDef[] = [
       this.data.status = isActive ? "ACTIVE" : "INACTIVE";
     }
   }
-  onStatusToggle(event: Event) {
-    if (!this.data || !this.data.id) return;
 
-    // Cast event target to HTMLInputElement
-    const input = event.target as HTMLInputElement;
-    const isActive = input.checked;
-    const status = isActive ? "ACTIVE" : "INACTIVE";
-    const modifiedBy = 123; // replace with logged-in user id
 
-    this.groupsService
-      .toggleQueueStatus(this.data.id, status, modifiedBy)
-      .subscribe({
-        next: () => {
-          this.data.status = status; // update local data
-          // console.log("Queue status updated successfully");
-        },
-        error: (err) => {
-          // console.error("Error updating queue status", err);
-          // revert checkbox state if API fails
-          input.checked = !isActive;
-        },
-      });
-  }
+onStatusToggle(event: Event) {
+  if (!this.data || !this.data.id) return;
+
+  const input = event.target as HTMLInputElement;
+  const isActive = input.checked;
+  const status = isActive ? 'ACTIVE' : 'INACTIVE';
+  const modifiedBy = 123;
+
+  this.groupsService.toggleQueueStatus(this.data.id, status, modifiedBy).subscribe({
+    next: () => {
+      this.data.status = status;                 // update local view
+      this.refreshRequested.emit(this.data.id);  // 🔔 tell parent to reload
+    },
+    error: () => {
+      input.checked = !isActive; // revert on failure
+    }
+  });
+}
+
 
   /** Inactivate a user and refresh data */
 
@@ -336,30 +324,25 @@ usersColumnDefs: ColDef[] = [
   //   });
   // }
 
-  inactivateUser(userId: number, id: number) {
-    const modifiedBy = 123; // replace with logged-in user id
+ inactivateUser(userId: number, queueId: number) {
+  const modifiedBy = 123;
 
-    this.groupsService.inactivateQueuesUser(userId, id, modifiedBy).subscribe({
-      next: (response) => {
-        console.log("User inactivated successfully", response);
+  this.groupsService.inactivateQueuesUser(userId, queueId, modifiedBy).subscribe({
+    next: () => {
+      // 1) Refresh the right-side panel data so the employee disappears immediately
+      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+        next: (res) => {
+          this.updateSitesAndUsers(res);
+          // 2) 🔔 Tell parent to refresh the left list/cards via getQueuesDetails_1_0
+          this.refreshRequested.emit(queueId);
+        },
+        error: (err) => console.error("Error fetching sites and users:", err),
+      });
+    },
+    error: (error) => console.error("Error inactivating user", error),
+  });
+}
 
-        // Call the second API only after success
-        this.groupsService.getGroupSitesAndUsers(id).subscribe({
-          next: (res) => {
-            console.log("Updated sites and users for the queue:", res);
-            // Update the table data
-            this.updateSitesAndUsers(res);
-          },
-          error: (err) => {
-            console.error("Error fetching sites and users:", err);
-          },
-        });
-      },
-      error: (error) => {
-        console.error("Error inactivating user", error);
-      },
-    });
-  }
 
   /** Update Sites and Users rowData from API response */
   private updateSitesAndUsers(res: any) {

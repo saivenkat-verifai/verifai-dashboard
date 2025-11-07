@@ -13,7 +13,8 @@
     </div>
 
     <!-- + Button -->
-    <button class="plus-btn" (click)="openPopup(data)">+</button>
+<button class="plus-btn" *ngIf="isActive" (click)="openPopup(data)">+</button>
+
 
     <!-- Popup -->
     <div class="popup-menu" *ngIf="showPopup">

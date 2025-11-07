@@ -238,6 +238,10 @@ export class GroupsComponent implements OnInit, OnDestroy {
   }
 
   defaultColDef: ColDef = { resizable: true, filter: true };
+onQueueStatusChanged(queueId: number) {
+  this.loadGroups();              // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
+  if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too
+}
 
   /** Load data via service */
   loadGroups() {
