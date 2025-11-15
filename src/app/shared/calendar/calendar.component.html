@@ -20,7 +20,7 @@
     >
       <img
         class="calenderimage"
-        src="../../../assets/arrow-circle-left.svg"
+        src="assets/arrow-circle-left.svg"
         alt=""
       />
     </button>
@@ -41,12 +41,12 @@
       <img
         *ngIf="viewMode === 'day' && !canNavigateNextDay"
         class="calenderimage"
-        src="../../../assets/arrow-circle-right.svg"
+        src="assets/arrow-circle-right.svg"
       />
       <img
         *ngIf="viewMode === 'day' && canNavigateNextDay"
         class="calenderimage inverted"
-        src="../../../assets/arrow-circle-right-fill.svg"
+        src="assets/arrow-circle-right-fill.svg"
       />
     </button>
   </ng-container>
@@ -56,12 +56,12 @@
       <img
         *ngIf="canNavigatePrevWeek"
         class="calenderimage"
-        src="../../../assets/arrow-circle-left.svg"
+        src="assets/arrow-circle-left.svg"
       />
       <img
         *ngIf="!canNavigatePrevWeek"
         class="calenderimage inverted"
-        src="../../../assets/arrow-circle-left-fill.svg"
+        src="assets/arrow-circle-left-fill.svg"
       />
     </button>
 
@@ -79,12 +79,12 @@
       <img
         *ngIf="!canNavigateNextWeek"
         class="calenderimage"
-        src="../../../assets/arrow-circle-right.svg"
+        src="assets/arrow-circle-right.svg"
       />
       <img
         *ngIf="canNavigateNextWeek"
         class="calenderimage inverted"
-        src="../../../assets/arrow-circle-right-fill.svg"
+        src="assets/arrow-circle-right-fill.svg"
       />
     </button>
   </div>
@@ -94,12 +94,12 @@
       <img
         *ngIf="canNavigatePrevMonth"
         class="calenderimage"
-        src="../../../assets/arrow-circle-left.svg"
+        src="assets/arrow-circle-left.svg"
       />
       <img
         *ngIf="!canNavigatePrevMonth"
         class="calenderimage inverted"
-        src="../../../assets/arrow-circle-left-fill.svg"
+        src="assets/arrow-circle-left-fill.svg"
       />
     </button>
 
@@ -117,18 +117,18 @@
       <img
         *ngIf="canNavigateNextMonth"
         class="calenderimage"
-        src="../../../assets/arrow-circle-right.svg"
+        src="assets/arrow-circle-right.svg"
       />
       <img
         *ngIf="!canNavigateNextMonth"
         class="calenderimage inverted"
-        src="../../../assets/arrow-circle-right-fill.svg"
+        src="assets/arrow-circle-right-fill.svg"
       />
     </button>
   </div>
   <p-button class="custom-today-btn" (click)="op.toggle($event)">
     <ng-template pTemplate="icon">
-      <img class="calenderimage" src="../../../assets/calender.svg" alt="" />
+      <img class="calenderimage" src="assets/calender.svg" alt="" />
     </ng-template>
   </p-button>
 </div>

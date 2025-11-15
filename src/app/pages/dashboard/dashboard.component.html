@@ -27,11 +27,12 @@
       <div class="cards-row">
         <p-card
           *ngFor="let card of dashboardCards"
+          class="card"
           [ngClass]="{
             red: card.color === 'red',
             white: card.color === 'white'
           }"
-          class="card"
+          [styleClass]="card.color === 'red' ? 'is-red' : 'is-white'"
         >
           <ng-template pTemplate="header">
             <div class="card-top">

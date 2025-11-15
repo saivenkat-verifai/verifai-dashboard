@@ -12,8 +12,16 @@
   src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
 }
 
+ @font-face {
+    font-family: 'Neometric Medium';
+    font-style: normal;
+    font-weight: normal;
+    src: local('Neometric Medium'), url('Neometric Medium (Regular).woff') format('woff');
+    }
+
+
 @font-face {
-  font-family: 'Neometric Regular';
+  font-family: 'Neometric Medium';
   font-style: normal;
   font-weight: 400;
   src: url('/assets/fonts/Neometric-Regular.woff') format('woff');
@@ -178,7 +186,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: url('../../assets/login-bg.png') no-repeat center/cover;
+  background: url('assets/login-bg.png') no-repeat center/cover;
   /* Add your image or SVG for camera/face graphics */
   opacity: 0.3;
   /* Faint as in screenshot */

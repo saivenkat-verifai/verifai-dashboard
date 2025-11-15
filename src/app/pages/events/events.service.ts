@@ -10,8 +10,13 @@ export class EventsService {
     "https://usstaging.ivisecurity.com/events_data/getEventReportFullData_1_0";
   private actionTagCategoriesUrl =
     "https://usstaging.ivisecurity.com/events_data/getActionTagCategories_1_0";
+
   private pendingMessagesUrl =
     "https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0";
+
+  private consolePendingMessagesUrl =
+    "https://stagingmq.ivisecurity.com/queueManagement/getConsolePendingMessages_1_0";
+
   private eventReportCountsForActionTag =
     "https://usstaging.ivisecurity.com/events_data/getEventReportCountsForActionTag_1_0";
   private getEventsMoreInfo =
@@ -20,6 +25,12 @@ export class EventsService {
     "https://usstaging.ivisecurity.com/events_data/addCommentForEvent_1_0";
   private updateEventsMoreInfo =
     "https://usstaging.ivisecurity.com/events_data/updateEventsMoreInfo_1_0";
+
+      private consoleEventsCountsUrl =
+    'https://usstaging.ivisecurity.com/events_data/getConsoleEventsCounts_1_0';
+
+  private pendingEventsCountsUrl =
+    'https://stagingmq.ivisecurity.com/queueManagement/getPendingEventsCounts_1_0';
 
 
   constructor(private http: HttpClient) {}
@@ -39,10 +50,38 @@ export class EventsService {
     );
   }
 
-  getEventsPendingEventa(actionTag: number): Observable<any> {
-    // Replace with the correct API endpoint if needed
-    return this.http.get<any>(`${this.pendingMessagesUrl}`);
+  // getEventsPendingEventa(actionTag: number): Observable<any> {
+  //   // Replace with the correct API endpoint if needed
+  //   return this.http.get<any>(`${this.pendingMessagesUrl}`);
+  // }
+
+  // getConsolePendingMessagesUrl(actionTag: number): Observable<any> {
+  //   // Replace with the correct API endpoint if needed
+  //   return this.http.get<any>(`${this.consolePendingMessagesUrl}`);
+  // }
+
+    getConsoleEventsCounts_1_0(): Observable<any> {
+    return this.http.get<any>(this.consoleEventsCountsUrl);
   }
+
+  getPendingEventsCounts_1_0(): Observable<any> {
+    return this.http.get<any>(this.pendingEventsCountsUrl);
+  }
+
+  getConsolePendingMessages_1_0() {
+    // GET https://usstaging.ivisecurity.com/events_data/getConsolePendingMessages_1_0
+    return this.http.get<any>(
+      "https://usstaging.ivisecurity.com/events_data/getConsolePendingMessages_1_0"
+    );
+  }
+
+  getEventsPendingMessages_1_0() {
+    // GET https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0
+    return this.http.get<any>(
+      "https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0"
+    );
+  }
+
   getActionTagCategories(): Observable<any> {
     return this.http.get<any>(this.actionTagCategoriesUrl);
   }
@@ -71,7 +110,7 @@ export class EventsService {
       headers: { "Content-Type": "application/json" },
     });
   }
-  
+
   putEventsMoreInfo(event: {
     eventsId: string;
     userlevel: number;
@@ -85,11 +124,9 @@ export class EventsService {
     subActionTag: number;
     notes: string;
   }): Observable<any> {
-    console.log(event,"kk")
+    console.log(event, "kk");
     return this.http.put<any>(this.updateEventsMoreInfo, event, {
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  
 }

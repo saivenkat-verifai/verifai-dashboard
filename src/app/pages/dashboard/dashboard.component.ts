@@ -4,7 +4,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { CardModule } from 'primeng/card';
 import { DashboardService } from './dashboard.service';
 import { CalendarComponent } from 'src/app/shared/calendar/calendar.component';
-import { ColumnChartComponent } from "../../shared/column-chart/column-chart.component";
+import { ColumnChartComponent } from "src/app/shared/column-chart/column-chart.component";
 import { LineChartComponent } from "src/app/shared/line-chart/line-chart.component";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 
@@ -91,42 +91,49 @@ onDateRangeSelected(event: {
     });
 }
 
-  private mapCards(data: any): DashboardCard[] {
-  const formatTitle = (key: string) => {
-    return key
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase());
-  };
-  const config = Object.keys(data).map((key) => {
-    const value = data[key as keyof typeof data];
-    const percKey = Object.keys(value).find((k) =>
-      k.toLowerCase().includes('percentage')
-    );
-    return {
-      key,
-      title: formatTitle(key),
-      color: key === 'total' ? 'red' : 'white',
-      perc: percKey && key !== 'total' ? value[percKey as keyof typeof value] : undefined,
-    };
-  });
-  return config.map((c) => {
-    const item = data[c.key];
-    return {
-      title: c.title,
-      value: item.total,
-      percentage: c.perc,
-      color: c.color,
+private mapCards(data: any): DashboardCard[] {
+  const formatTitle = (k: string) =>
+    k.replace(/[_\-]/g, ' ')
+     .replace(/([A-Z])/g, ' $1')
+     .replace(/\s+/g, ' ')
+     .trim()
+     .replace(/^./, s => s.toUpperCase());
+
+  const items = Object.keys(data).map((rawKey) => {
+    const value = data[rawKey] ?? {};
+    const keyLc = rawKey.toLowerCase();
+
+    // consider various "total" shapes but exclude percentage fields
+    const isTotal =
+      keyLc.includes('total') && !keyLc.includes('percentage');
+
+    const percKey = Object.keys(value).find(k => k.toLowerCase().includes('percentage'));
+
+    const card: DashboardCard & { _isTotal: boolean } = {
+      title: formatTitle(rawKey),                // becomes "Total Events" → template uppercases to "TOTAL EVENTS"
+      value: value.total ?? 0,
+      percentage: !isTotal && percKey ? value[percKey] : undefined,
+      color: isTotal ? 'red' : 'white',
       colordot: [
-        { iconcolor: '#53BF8B', count: item.eventWall },
-        { iconcolor: '#FFC400', count: item.manualWall },
+        { iconcolor: '#53BF8B', count: value.eventWall ?? 0 },
+        { iconcolor: '#FFC400', count: value.manualWall ?? 0 },
       ],
       icons: [
-        { iconPath: 'assets/home.svg', count: item.sitesCount },
-        { iconPath: 'assets/cam.svg', count: item.cameraCount },
+        { iconPath: 'assets/home.svg', count: value.sitesCount ?? 0 },
+        { iconPath: 'assets/cam.svg',  count: value.cameraCount ?? 0 },
       ],
+      _isTotal: isTotal,
     };
+    return card;
   });
+
+  // ensure the total card shows first
+  items.sort((a, b) => (a._isTotal === b._isTotal ? 0 : a._isTotal ? -1 : 1));
+
+  // strip helper prop
+  return items.map(({ _isTotal, ...rest }) => rest);
 }
+
 
   private mapDetails(details: any) {
     return Object.keys(details).map((k, i) => ({

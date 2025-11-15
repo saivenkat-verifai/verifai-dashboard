@@ -19,6 +19,8 @@
     src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
 }
 
+
+
 /* === HEADER === */
 .header {
   display: grid;
@@ -30,14 +32,17 @@
 }
 
 .username{
-  font-family: 'Neometric Medium';
+  font-family: 'Neometric Regular';
   font-size: 14px;
   /* color: #333;   */
   margin: 0px;
+   
+      text-transform: none !important;
+  font-variant-caps: normal !important;
 }
 
-.username{
-  font-family: 'Neometric Bold';
+.userPosition1{
+   font-family: 'Neometric Regular';
   font-size: 14px;
   /* color: #333;   */
   margin: 0px;
@@ -45,10 +50,13 @@
 
 
 .userPosition{
-  font-family: 'Neometric Regular';
-  font-size: 12px;
-  /* color: #666; */
-  margin: 0px;
+font-family: 'Neometric Regular';
+    font-size: 9px;
+    margin: 0px;
+    opacity: 35%;
+    font-style: italic;
+     text-transform: none !important;
+  font-variant-caps: normal !important;
 }
 
 .header-section {

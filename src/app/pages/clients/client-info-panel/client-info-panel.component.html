@@ -34,7 +34,7 @@
 
   <!-- optional edit icon in the card corner -->
   <button class="icon-btn edit-btn" title="Edit summary">
-    <img src="../../../assets/pencil.svg" class="edit-icon" alt="edit" />
+    <img src="assets/pencil.svg" class="edit-icon" alt="edit" />
   </button>
 </section>
 
@@ -57,7 +57,7 @@
       <div class="th actions-col"></div>
     </div>
 
-    <div class="tbody" *ngIf="sitesList?.length; else noSites">
+    <div class="tbody" *ngIf="sitesList.length; else noSites">
       <div class="tr" *ngFor="let s of sitesList">
         <div class="td mono">{{ s.id }}</div>
         <div class="td">{{ s.name }}</div>
@@ -73,7 +73,7 @@
         <div class="td actions-col">
           <button class="icon-btn row-edit" title="Edit site">
             <img
-              src="../../../assets/pencil.svg"
+              src="assets/pencil.svg"
               class="edit-icon"
               alt="edit"
             />
@@ -106,7 +106,7 @@
       <div class="th actions-col"></div>
     </div>
 
-    <div class="tbody" *ngIf="usersList?.length; else noUsers">
+    <div class="tbody" *ngIf="usersList.length; else noUsers">
       <div class="tr" *ngFor="let u of usersList">
         <div class="td mono">{{ u.id }}</div>
         <div class="td">
@@ -127,7 +127,7 @@
         <div class="td actions-col">
           <button class="icon-btn row-edit" title="Edit user">
             <img
-              src="../../../assets/pencil.svg"
+              src="assets/pencil.svg"
               class="edit-icon"
               alt="edit"
             />

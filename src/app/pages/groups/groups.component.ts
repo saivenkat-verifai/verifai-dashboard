@@ -3,7 +3,7 @@ import { GridApi, GridReadyEvent, ColDef } from "ag-grid-community";
 import { Subscription } from "rxjs";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { GroupsPopupComponent } from "../../shared/groups-popup/groups-popup.component";
+import { GroupsPopupComponent } from "src/app/shared/groups-popup/groups-popup.component";
 import { AgGridModule } from "ag-grid-angular";
 import { GroupsService } from "./groups.service"; // ✅ Import service
 import { QuickFilterModule, ModuleRegistry } from "ag-grid-community";
@@ -38,6 +38,8 @@ interface SecondEscalatedDetail {
   ],
 })
 export class GroupsComponent implements OnInit, OnDestroy {
+  selectedQueueId: number | null = null;
+
   currentDate: Date = new Date();
   selectedDate: Date | null = null;
   private boundResize?: () => void;
@@ -107,8 +109,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
   };
 
   columnDefs: ColDef[] = [
-    { headerName: "ID", field: "id", sortable: true , cellStyle: { opacity: "0.5" }},
-    { headerName: "NAME", field: "name", sortable: true },
+    { headerName: "ID", field: "id", sortable: true ,flex: 1, minWidth: 80,  cellStyle: { opacity: "0.5" }},
+    { headerName: "NAME", field: "name", flex: 2, minWidth: 180, sortable: true },
     {
       headerName: "LEVEL",
       field: "level",
@@ -142,6 +144,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
     },
     {
       headerName: "MORE",
+      flex: 1, minWidth: 60,
       field: "more",
       cellRenderer: () => `
         <span class="info-icon">
@@ -179,31 +182,38 @@ export class GroupsComponent implements OnInit, OnDestroy {
     this.getLevelsData();
   }
 
-  createQueue() {
-    if (!this.newQueue.queueName || !this.newQueue.levelId) {
-      console.warn("Queue form is incomplete");
-      return;
-    }
+ createQueue() {
+  if (!this.newQueue.queueName || !this.newQueue.levelId) return;
 
-    const payload = {
-      queueName: this.newQueue.queueName,
-      levelId: this.newQueue.levelId,
-      remarks: "created by sai venkat", // dummy
-      createdBy: 0, // dummy
-    };
+  const payload = {
+    queueName: this.newQueue.queueName,
+    levelId: this.newQueue.levelId,
+    remarks: "created by sai venkat",
+    createdBy: 0,
+  };
 
-    this.groupsService.postQueues(payload).subscribe({
-      next: (res) => {
-        console.log("Queue Created Successfully:", res);
-        // Reset form
-        this.newQueue = { queueName: "", levelId: null };
-        this.goBack();
-      },
-      error: (err) => {
-        console.error("Error creating queue:", err);
-      },
-    });
-  }
+  this.groupsService.postQueues(payload).subscribe({
+    next: (res) => {
+      const newId =
+        res?.queueId ??
+        res?.data?.queueId ??
+        res?.createdQueueId; // adjust based on actual response
+
+      this.newQueue = { queueName: "", levelId: null };
+      this.goBack();
+
+      // 👇 If API returns id, open that one; else just preserve current
+      if (newId) {
+        this.selectedQueueId = newId;
+        this.loadGroups(newId);
+      } else {
+        this.loadGroups(this.selectedQueueId ?? undefined);
+      }
+    },
+    error: (err) => console.error("Error creating queue:", err),
+  });
+}
+
 
   onAddClick() {
     this.isPopupVisible = true;
@@ -239,52 +249,54 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   defaultColDef: ColDef = { resizable: true, filter: true };
 onQueueStatusChanged(queueId: number) {
-  this.loadGroups();              // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
-  if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too
+  this.loadGroups(queueId);          // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
+  // if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too
 }
 
-  /** Load data via service */
-  loadGroups() {
-    this.apiSub = this.groupsService.getGroups().subscribe({
-      next: (res) => {
-        console.log(res, "responce");
-        if (res?.status === "Success" && Array.isArray(res.queuesData)) {
-          this.rowData = res.queuesData.map((g: any) => ({
-            id: g.queueId,
-            name: g.queueName,
-            level: g.levelId,
-            site: g.sites,
-            cameras: g.cameras,
-            employees: g.employees,
-            status: g.status?.toUpperCase(),
-            more: true,
-          }));
+// Pass an optional queue id you want to preserve
+loadGroups(preserveId?: number) {
+  const desiredId = preserveId ?? this.selectedQueueId ?? undefined;
 
-          const total = res.queuesData.filter((g: any) => g).length;
-          const active = res.queuesData.filter(
-            (g: any) => g.status?.toUpperCase() === "ACTIVE"
-          ).length;
-          const inactive = res.queuesData.filter(
-            (g: any) => g.status?.toUpperCase() === "INACTIVE"
-          ).length;
+  this.apiSub = this.groupsService.getGroups().subscribe({
+    next: (res) => {
+      if (res?.status === "Success" && Array.isArray(res.queuesData)) {
+        this.rowData = res.queuesData.map((g: any) => ({
+          id: g.queueId,
+          name: g.queueName,
+          level: g.levelId,
+          site: g.sites,
+          cameras: g.cameras,
+          employees: g.employees,
+          status: g.status?.toUpperCase(),
+          more: true,
+        }));
 
-          this.secondEscalatedDetails = [
-            { label: "TOTAL", value: total, color: "#f44336" },
-            { label: "ACTIVE", value: active, color: "#2196f3" },
-            { label: "INACTIVE", value: inactive, color: "#4caf50" },
-          ];
+        const total = res.queuesData.length;
+        const active = res.queuesData.filter((g: any) => g.status?.toUpperCase() === "ACTIVE").length;
+        const inactive = total - active;
 
-          // ✅ Auto-select first group and call second API
-          if (this.rowData.length > 0) {
-            this.loadGroupDetails(this.rowData[0].id);
-          }
+        this.secondEscalatedDetails = [
+          { label: "TOTAL", value: total, color: "#f44336" },
+          { label: "ACTIVE", value: active, color: "#2196f3" },
+          { label: "INACTIVE", value: inactive, color: "#4caf50" },
+        ];
+
+        // 👉 Only load details for the preserved id if it still exists;
+        //    else fall back to first (if any)
+        let idToOpen = desiredId && this.rowData.some(r => r.id === desiredId)
+          ? desiredId
+          : (this.rowData[0]?.id);
+
+        if (idToOpen != null) {
+          this.currentIndex = Math.max(0, this.rowData.findIndex(r => r.id === idToOpen));
+          // important: do NOT call loadGroupDetails anywhere else now
+          this.loadGroupDetails(idToOpen);
         }
-      },
-      error: (err) => {
-        console.error("Failed to load groups:", err);
-      },
-    });
-  }
+      }
+    },
+    error: (err) => console.error("Failed to load groups:", err),
+  });
+}
 
   onUserInactivated(queueId: number) {
     // Reload group details after user is inactivated
@@ -296,18 +308,16 @@ onQueueStatusChanged(queueId: number) {
 
 /** Load second API and send data to popup */
 loadGroupDetails(queueId: number) {
+  this.selectedQueueId = queueId;                 // 👈 remember selection
   this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
     next: (res) => {
-      console.log("Raw API response:", res); // should now show the full JSON
-
-      const baseData = this.rowData.find((r) => r.id === queueId);
+      const baseData = this.rowData.find(r => r.id === queueId);
       this.selectedItem = {
         ...baseData,
         groupSites: res.queuesData || [],
         groupUsers: res.queueUsers || [],
+        id: queueId
       };
-
-      console.log("Parsed data object:", this.selectedItem);
       this.isTablePopupVisible = true;
     },
     error: (err) => console.error("Failed to load group sites/users:", err),

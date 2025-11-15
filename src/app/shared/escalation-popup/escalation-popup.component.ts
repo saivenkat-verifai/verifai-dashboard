@@ -13,7 +13,7 @@ import { DialogModule } from "primeng/dialog";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { GridApi, Column } from "ag-grid-community";
-import { EventsService } from "../../pages/events/events.service"; // adjust path
+import { EventsService } from "src/app/pages/events/events.service"; // adjust path
 
 @Component({
   selector: "app-escalation-popup",

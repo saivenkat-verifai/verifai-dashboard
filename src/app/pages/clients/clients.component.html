@@ -13,17 +13,17 @@
 <div class="panel-header">
   <!-- Left: icon + client name -->
   <h3 class="header-title" *ngIf="selectedClient">
-    <img class="header-icon" src="../../../assets/clients-icon-white.svg" alt="client" />
+    <img class="header-icon" src="assets/clients-icon-white.svg" alt="client" />
     {{ selectedClient.client }}
   </h3>
 
   <!-- Right: actions (edit, close) -->
   <div class="panel-actions">
     <button class="icon-btn edit-btn" type="button">
-      <img class="pencilimage" src="../../../assets/pencil.svg" alt="edit" />
+      <img class="pencilimage" src="assets/pencil.svg" alt="edit" />
     </button>
     <button class="icon-btn close-btn" type="button" (click)="closeInfoPanel()">
-      <img class="calenderimage" src="../../../assets/close-filled.svg" alt="close" />
+      <img class="calenderimage" src="assets/close-filled.svg" alt="close" />
     </button>
   </div>
 </div>
@@ -44,7 +44,7 @@
       <button class="close-btn" (click)="closeCreateClientPanel()">
         <img
           class="calenderimage"
-          src="../../../assets/close-filled.svg"
+          src="assets/close-filled.svg"
           alt=""
         />
       </button>
@@ -139,14 +139,14 @@
                     [class.active]="activeSide === 'left'"
                     (click)="setActiveSide('left')"
                   >
-                    <img src="../../../assets/add-icon.svg" alt="email" />
+                    <img src="assets/add-icon.svg" alt="email" />
                   </div>
                   <div
                     class="switch-btn right"
                     [class.active]="activeSide === 'right'"
                     (click)="setActiveSide('right')"
                   >
-                    <img src="../../../assets/add-icon.svg" alt="email" />
+                    <img src="assets/add-icon.svg" alt="email" />
                   </div>
                 </div>
 
@@ -156,7 +156,7 @@
                   placeholder="Enter phone"
                 />
                 <button class="add-button" type="button">
-                  <img src="../../../assets/add-icon.svg" alt="email" />
+                  <img src="assets/add-icon.svg" alt="email" />
                 </button>
               </div>
             </div>
@@ -169,14 +169,14 @@
                     [class.active]="activeSide === 'left'"
                     (click)="setActiveSide('left')"
                   >
-                    <img src="../../../assets/add-icon.svg" alt="email" />
+                    <img src="assets/add-icon.svg" alt="email" />
                   </div>
                   <div
                     class="switch-btn right"
                     [class.active]="activeSide === 'right'"
                     (click)="setActiveSide('right')"
                   >
-                    <img src="../../../assets/add-icon.svg" alt="email" />
+                    <img src="assets/add-icon.svg" alt="email" />
                   </div>
                 </div>
                 <input
@@ -185,7 +185,7 @@
                   placeholder="Enter email"
                 />
                 <button class="add-button" type="button">
-                  <img src="../../../assets/add-icon.svg" alt="email" />
+                  <img src="assets/add-icon.svg" alt="email" />
                 </button>
               </div>
             </div>

@@ -30,7 +30,8 @@ export interface ClientUser {
   styleUrls: ['./client-info-panel.component.css'],
 })
 export class ClientInfoPanelComponent {
-  @Input() client: any;  // expects at least { id, client, type, status, users, sites }
+  @Input() client?: any;
+  // expects at least { id, client, type, status, users, sites }
   @Output() close = new EventEmitter<void>();
 
   // Optional: if parent passes arrays, we use them; otherwise this remains empty.
