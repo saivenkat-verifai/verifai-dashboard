@@ -17,7 +17,6 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { EscalationPopupComponent } from "src/app/shared/escalation-popup/escalation-popup.component";
 import { AgGridModule } from "ag-grid-angular";
 import { CalendarComponent } from "src/app/shared/calendar/calendar.component";
@@ -41,8 +40,6 @@ interface IconData {
 }
 
 interface CardDot {
-  // color is optional (for CLOSED we still use colored dots,
-  // for PENDING "All Queues/All Consoles" we don't need it)
   iconcolor?: string;
   label: string;
   count: number;
@@ -78,7 +75,7 @@ interface SecondEscalatedDetail {
     MatDatepickerModule,
     CalendarComponent,
     OverlayPanelModule,
-    EventsFilterPanelComponent, // 👈 add this
+    EventsFilterPanelComponent,
   ],
 })
 export class EventsComponent implements OnInit, OnDestroy {
@@ -94,6 +91,12 @@ export class EventsComponent implements OnInit, OnDestroy {
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
   }
+
+  gridIcons = {
+    sortAscending: '<span class="sort-icon"></span>',
+    sortDescending: '<span class="sort-icon"></span>',
+    sortUnSort: '<span class="sort-icon"></span>',
+  };
 
   closeFilterPanel() {
     this.filterPanelVisible = false;
@@ -216,8 +219,9 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- Media/overlay state -------------------- */
-  safeVideoUrl!: SafeResourceUrl;
   selectedPlayItem: any;
+  currentSlideIndex = 0;
+  private slideIntervalSub?: Subscription;
 
   /** -------------------- Dates -------------------- */
   currentDate: Date = new Date();
@@ -255,7 +259,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   selectedItem: any = null;
 
   isPlayPopupVisible = false;
-  currentSlideIndex = 0;
 
   /** Calendar popup visibility */
   isCalendarPopupOpen = false;
@@ -325,10 +328,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- Constructor -------------------- */
-  constructor(
-    private eventsService: EventsService,
-    private sanitizer: DomSanitizer
-  ) {}
+  constructor(private eventsService: EventsService) {}
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
@@ -343,10 +343,65 @@ export class EventsComponent implements OnInit, OnDestroy {
     setInterval(() => {
       this.currentDateTime = new Date();
     }, 60_000);
+
+      setTimeout(() => {
+    if (this.playOverlay) {
+      this.playOverlay.onHide.subscribe(() => {
+        this.stopImageLoop();
+      });
+    }
+  }, 0);
+  }
+
+
+    /**
+   * Resolve which media array to use based on:
+   * - PENDING + CONSOLES  => image_list
+   * - PENDING + QUEUES    => videoUrl
+   * - CLOSED (Suspicious/False) => videoFile
+   */
+  private resolveMediaUrls(item: any): string[] {
+    // PENDING tab
+    if (this.selectedFilter === "PENDING") {
+      // CONSOLES on
+      if (this.selectedpendingFilter === "CONSOLES") {
+        const list = item.image_list ?? item.imageList ?? item.images;
+        if (Array.isArray(list)) {
+          return list.filter((x: any) => !!x);
+        }
+        if (typeof list === "string" && list) {
+          return [list];
+        }
+        return [];
+      }
+
+      // QUEUES on
+      if (this.selectedpendingFilter === "QUEUES") {
+        const v = item.videoUrl ?? item.videoURL;
+        if (Array.isArray(v)) {
+          return v.filter((x: any) => !!x);
+        }
+        if (typeof v === "string" && v) {
+          return [v];
+        }
+        return [];
+      }
+    }
+
+    // CLOSED tab (SUSPICIOUS / FALSE both use videoFile)
+    const vf = item.videoFile ?? item.videoFiles;
+    if (Array.isArray(vf)) {
+      return vf.filter((x: any) => !!x);
+    }
+    if (typeof vf === "string" && vf) {
+      return [vf];
+    }
+    return [];
   }
 
   ngOnDestroy(): void {
     this.stopAutoRefresh();
+    this.stopImageLoop();
   }
 
   /** -------------------- Toast helpers -------------------- */
@@ -389,19 +444,17 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
-  /** PENDING: when either Consoles/Queues checkbox changes */
   onPendingTogglesChanged(): void {
     if (!this.consolesChecked && !this.queuesChecked) {
       this.pendingRowData = [];
       this.pendingDisplayRows = [];
       this.secondEscalatedDetails = [];
-      this.escalatedDetailsPending = []; // 👈 clear MORE cards too
+      this.escalatedDetailsPending = [];
       return;
     }
 
     this.loadPendingEvents();
 
-    // 👇 If MORE is open, recompute the "All Queues / All Consoles" cards
     if (this.showMore) {
       this.loadEscalatedDetails();
     }
@@ -414,7 +467,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Manual susp/false toggle methods (if needed) */
   onSuspiciousToggle(): void {
     this.suspiciousChecked = true;
     this.falseChecked = false;
@@ -589,35 +641,76 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.isTablePopupVisible = false;
   }
 
+    /** -------------------- Play popup / image loop -------------------- */
   openPlayPopup(item: any): void {
-    this.selectedPlayItem = item;
-    if (item?.httpUrl) {
-      this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-        item.httpUrl
-      );
+    const media = this.resolveMediaUrls(item);
+
+    this.selectedPlayItem = {
+      ...item,
+      videoFile: media, // normalize into videoFile always
+    };
+
+    this.currentSlideIndex = 0;
+
+    if (media.length > 0) {
+      this.startImageLoop();
+      this.isPlayPopupVisible = true;
+    } else {
+      console.warn("No media found to play for item:", item);
     }
-    this.isPlayPopupVisible = true;
   }
 
   openPlayTooltip(event: MouseEvent, params: any): void {
     const item = params.data;
-    this.selectedPlayItem = item;
+    const media = this.resolveMediaUrls(item);
 
-    if (item?.httpUrl) {
-      this.safeVideoUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
-        item.httpUrl
-      );
+    this.selectedPlayItem = {
+      ...item,
+      videoFile: media, // again normalize
+    };
+
+    this.currentSlideIndex = 0;
+
+    if (media.length > 0) {
+      this.startImageLoop();
+      this.playOverlay.show(event);
     } else {
-      this.safeVideoUrl = null as any;
+      console.warn("No media found to play for item (tooltip):", item);
     }
-
-    this.playOverlay.show(event);
   }
 
   closePlayPopup(): void {
+    this.stopImageLoop();
     this.isPlayPopupVisible = false;
     this.selectedPlayItem = null;
     this.playOverlay.hide();
+
+  }
+
+  private startImageLoop(): void {
+    this.stopImageLoop();
+
+    const files = this.selectedPlayItem?.videoFile;
+    if (!files || !files.length) return;
+
+    this.slideIntervalSub = interval(500).subscribe(() => {
+      const imgs = this.selectedPlayItem?.videoFile;
+      if (!imgs || !imgs.length) return;
+      this.currentSlideIndex = (this.currentSlideIndex + 1) % imgs.length;
+    });
+  }
+
+  private stopImageLoop(): void {
+    if (this.slideIntervalSub) {
+      this.slideIntervalSub.unsubscribe();
+      this.slideIntervalSub = undefined;
+    }
+  }
+
+  getCurrentImageUrl(): string | null {
+    const files = this.selectedPlayItem?.videoFile;
+    if (!files || !files.length) return null;
+    return files[this.currentSlideIndex] ?? files[0];
   }
 
   /** -------------------- Calendar popup -------------------- */
@@ -644,19 +737,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   setToday(): void {
     this.currentDate = new Date();
     this.selectedDate = this.currentDate;
-  }
-
-  /** -------------------- Play popup carousel -------------------- */
-  prevSlide(): void {
-    if (!this.selectedPlayItem?.videoFile?.length) return;
-    const len = this.selectedPlayItem.videoFile.length;
-    this.currentSlideIndex = (this.currentSlideIndex - 1 + len) % len;
-  }
-
-  nextSlide(): void {
-    if (!this.selectedPlayItem?.videoFile?.length) return;
-    const len = this.selectedPlayItem.videoFile.length;
-    this.currentSlideIndex = (this.currentSlideIndex + 1) % len;
   }
 
   /** -------------------- Helpers -------------------- */
@@ -762,36 +842,32 @@ export class EventsComponent implements OnInit, OnDestroy {
   private transformConsolePendingMessages(res: any): any[] {
     const rows: any[] = [];
 
-    // Helper to pull from consoleEventWallMessages / consoleManualWallMessages
     const collectFrom = (wrapper: any, tag: "Event_Wall" | "Manual_Wall") => {
       const buckets = wrapper?.redis ?? [];
       buckets.forEach((q: any) => {
         const messages = Array.isArray(q?.messages) ? q.messages : [];
 
         messages.forEach((msg: any) => {
+          const lastAlarm = Array.isArray(msg.userLevelAlarmInfo)
+            ? msg.userLevelAlarmInfo[msg.userLevelAlarmInfo.length - 1]
+            : null;
+
           rows.push({
-            // original message fields
             ...msg,
-
-            // queue/meta
             queueName: q.queueName,
-            queueLevel: q.level, // note: field is "level" in your API
+            queueLevel: q.level,
             eventType: tag,
-            eventTag: msg.eventTag, // "Camera-Event"
-            actionTag: null, // consoles don’t have this in payload
-            actionTime: msg.landingTime, // reuse landingTime as "action time"
+            eventTag: msg.eventTag,
+            actionTag: msg.actionTag ?? lastAlarm?.actionTag ?? null,
+            actionTime: msg.actionTime ?? msg.landingTime,
             timezone: msg.timezone,
-
-            // color dot column
             alertType: this.ALERT_COLORS[tag],
           });
         });
       });
     };
 
-    // console Event Wall messages
     collectFrom(res?.consoleEventWallMessages, "Event_Wall");
-    // console Manual Wall messages (if any in future)
     collectFrom(res?.consoleManualWallMessages, "Manual_Wall");
 
     return rows;
@@ -832,7 +908,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     };
   }
 
-  // 👉 QUEUES (eventWallQueues / manualWallQueues / timedOutWallQueues)
   private transformQueuesMessages(res: any): any[] {
     const collectFrom = (
       queuesWrapper: any,
@@ -840,18 +915,13 @@ export class EventsComponent implements OnInit, OnDestroy {
     ) =>
       (queuesWrapper?.queues ?? []).filter(Boolean).flatMap((q: any) =>
         (Array.isArray(q?.messages) ? q.messages : []).map((msg: any) => ({
-          // original message fields
           ...msg,
-
-          // queue/meta
           queueName: q.queueName,
           queueLevel: q.queueLevel,
           eventType: tag,
-          eventTag: msg.eventTag ?? tag, // fallback
+          eventTag: msg.eventTag ?? tag,
           actionTag: msg.actionTag ?? null,
           timezone: msg.timezone,
-
-          // color dot column
           alertType: this.ALERT_COLORS[tag],
         }))
       );
@@ -891,19 +961,16 @@ export class EventsComponent implements OnInit, OnDestroy {
 
         const allRows: any[] = [];
 
-        // ✅ CONSOLES
         if (consoleRes) {
           const consoleRows = this.transformConsolePendingMessages(consoleRes);
           allRows.push(...consoleRows);
         }
 
-        // ✅ QUEUES (existing logic)
         if (queueRes) {
           const queueRows = this.transformQueuesMessages(queueRes);
           allRows.push(...queueRows);
         }
 
-        // De-dup if eventId exists, else just take all
         const hasEventId = allRows.some((r) => r?.eventId != null);
 
         if (hasEventId) {
@@ -917,10 +984,8 @@ export class EventsComponent implements OnInit, OnDestroy {
           this.pendingRowData = allRows;
         }
 
-        // 👇 this feeds the AG Grid
         this.pendingDisplayRows = [...this.pendingRowData];
 
-        // existing totals logic still works with console*Counts fields
         const consoleCounts = this.normalizePendingCounts(consoleRes);
         const queueCounts = this.normalizePendingCounts(queueRes);
 
@@ -1078,7 +1143,6 @@ export class EventsComponent implements OnInit, OnDestroy {
           };
         });
 
-        // ✅ FEED GRID
         this.closedDisplayRows = [...this.rowData];
 
         const sum = (arr: number[]) =>
@@ -1135,93 +1199,75 @@ export class EventsComponent implements OnInit, OnDestroy {
   escalatedDetailsPending: EscalatedDetail[] = [];
 
   loadEscalatedDetails(): void {
-    // ============== CLOSED ==============
-    if (this.selectedFilter === "CLOSED") {
-      const actionTag = this.suspiciousChecked ? 2 : 1;
+    // CLOSED
+ if (this.selectedFilter === "CLOSED") {
+    const actionTag = this.suspiciousChecked ? 2 : 1;
 
-      const startDateStr = this.selectedStartDate
-        ? this.formatDateTimeFull(this.selectedStartDate)
-        : undefined;
-      const endDateStr = this.selectedEndDate
-        ? this.formatDateTimeFull(this.selectedEndDate)
-        : undefined;
+    const start = this.formatDateTimeFull(this.selectedStartDate!);
+    const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-      const categoryName = actionTag === 1 ? "False Activity" : "Suspicious";
-      const displayCategoryLabel = actionTag === 1 ? "False" : "Suspicious";
+    this.eventsService
+      .getEventReportCountsForActionTag(start, end, actionTag)
+      .subscribe({
+        next: (res) => {
+          const counts = res?.counts || {};
+          const keys = Object.keys(counts);
 
-      this.eventsService
-        .getEventReportCountsForActionTag(startDateStr, endDateStr, actionTag)
-        .subscribe({
-          next: (res) => {
-            const counts = res.counts || {};
-            const details: EscalatedDetail[] = [];
-
-            const totalData = counts[categoryName];
-            if (totalData) {
-              details.push({
-                label: displayCategoryLabel,
-                value: totalData.totalCount || 0,
-                color: ESCALATED_COLORS[0],
-                icons: [
-                  { iconPath: "assets/home.svg", count: totalData.sites || 0 },
-                  { iconPath: "assets/cam.svg", count: totalData.cameras || 0 },
-                ],
-                colordot: [
-                  {
-                    iconcolor: "#53BF8B",
-                    label: "Event Wall",
-                    count: totalData.Event_Wall || 0,
-                  },
-                  {
-                    iconcolor: "#FFC400",
-                    label: "Manual Wall",
-                    count: totalData.Manual_Wall || 0,
-                  },
-                ],
-              });
-            }
-
-            Object.entries(counts).forEach(([label, data]: [string, any]) => {
-              if (label !== categoryName) {
-                details.push({
-                  label,
-                  value: data.totalCount || 0,
-                  color: ESCALATED_COLORS[0],
-                  icons: [
-                    { iconPath: "assets/home.svg", count: data.sites || 0 },
-                    { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-                  ],
-                  colordot: [
-                    {
-                      iconcolor: "#53BF8B",
-                      label: "Event Wall",
-                      count: data.Event_Wall || 0,
-                    },
-                    {
-                      iconcolor: "#FFC400",
-                      label: "Manual Wall",
-                      count: data.Manual_Wall || 0,
-                    },
-                  ],
-                });
-              }
-            });
-
-            this.escalatedDetailsClosed = details;
-          },
-          error: (err) => {
-            console.error("Error loading escalated details for CLOSED:", err);
+          /** ------------------------------
+           *  CASE 1: API returned ONLY "null"
+           *  → show NO DATA
+           * ------------------------------*/
+          if (
+            keys.length === 1 &&
+            (keys[0] === "null" || keys[0] === null)
+          ) {
             this.escalatedDetailsClosed = [];
-          },
-        });
+            return;
+          }
 
-      return;
-    }
+          const details: EscalatedDetail[] = [];
 
-    // ============== PENDING ==============
-    // When we’re here, selectedFilter === 'PENDING'
+          /** ------------------------------
+           *  Normalize real category
+           * ------------------------------*/
+          Object.entries(counts).forEach(([label, data]: any) => {
+            if (label === "null") return; // ignore "null" response completely
 
-    // If both toggles off => nothing to show
+            details.push({
+              label,
+              value: data.totalCount || 0,
+              color: ESCALATED_COLORS[0],
+              icons: [
+                { iconPath: "assets/home.svg", count: data.sites || 0 },
+                { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+              ],
+              colordot: [
+                {
+                  iconcolor: "#53BF8B",
+                  label: "Event Wall",
+                  count: data.Event_Wall || 0,
+                },
+                {
+                  iconcolor: "#FFC400",
+                  label: "Manual Wall",
+                  count: data.Manual_Wall || 0,
+                },
+              ],
+            });
+          });
+
+          this.escalatedDetailsClosed = details;
+        },
+
+        error: () => {
+          this.escalatedDetailsClosed = [];
+        }
+      });
+
+    return;
+  }
+
+    // PENDING
     if (!this.consolesChecked && !this.queuesChecked) {
       this.escalatedDetailsPending = [];
       return;
@@ -1238,7 +1284,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       next: ([consolesRes, queuesRes]) => {
         const details: EscalatedDetail[] = [];
 
-        // 👉 Order here controls left/right. Queues first then Consoles = screenshot.
         if (queuesRes) {
           details.push(this.buildQueuesEscalationCard(queuesRes));
         }
@@ -1248,8 +1293,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         }
 
         this.escalatedDetailsPending = details;
-        // Helpful while debugging
-        console.log("Pending more cards", this.escalatedDetailsPending);
       },
       error: (err) => {
         console.error("Error loading escalated details for PENDING:", err);
@@ -1258,9 +1301,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // All Queues card
   private buildQueuesEscalationCard(res: any): EscalatedDetail {
-    // 🔁 TODO: adjust to match real API field names
     const total =
       res?.totalQeventsCount ??
       res?.totalQueues ??
@@ -1268,10 +1309,11 @@ export class EventsComponent implements OnInit, OnDestroy {
       res?.totalCount ??
       0;
 
-    const qs = res?.totalQCount ?? res?.Qs ?? 0;
-    const pdqs = res?.totalPDQCount ?? res?.PDQs ?? 0;
-    const dqs = res?.totalDQCount ?? res?.DQs ?? 0;
-    const obqs = res?.totalOBQCount ?? res?.OB_Qs ?? 0;
+
+    const qs = res?.totalQCount ?? res?.Q ?? 0;
+    const pdqs = res?.totalPDQCount ?? res?.PDQ ?? 0;
+    const dqs = res?.totalDQCount ?? res?.DQ ?? 0;
+    const obqs = res?.totalOBQCount ?? res?.OQ ?? 0;
 
     return {
       label: "All Queues",
@@ -1281,14 +1323,12 @@ export class EventsComponent implements OnInit, OnDestroy {
         { label: "Qs", count: qs },
         { label: "PDQs", count: pdqs },
         { label: "DQs", count: dqs },
-        { label: "OB_Qs", count: obqs },
+        { label: "OQ", count: obqs },
       ],
     };
   }
 
-  // All Consoles card
   private buildConsoleEscalationCard(res: any): EscalatedDetail {
-    // 🔁 TODO: adjust to match real API field names
     const total =
       res?.totalConsoleEvents ??
       res?.totalConsoles ??
@@ -1334,6 +1374,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       rows.map((r) => r.employee?.name ?? r.userName ?? r.user)
     );
   }
+
+
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
@@ -1431,7 +1473,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         suppressHeaderMenuButton: true,
       },
       {
-        headerName: "MORE",
+        headerName: "MORE INFO",
         field: "more",
         headerClass: "custom-header",
         cellClass: "custom-cell",
@@ -1554,7 +1596,20 @@ export class EventsComponent implements OnInit, OnDestroy {
         suppressHeaderMenuButton: true,
       },
       {
-        headerName: "MORE",
+        headerName: "EMP",
+        field: "employee",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        valueFormatter: (params) => params.value?.name || "",
+        cellRenderer: (params: any) =>
+          `<div style="display:flex; align-items:center; gap:8px;">
+            <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
+            <span>${params.value.level}</span>
+          </div>`,
+        suppressHeaderMenuButton: true,
+      },
+      {
+        headerName: "MORE INFO",
         field: "more",
         cellClass: "custom-cell",
         cellStyle: {
@@ -1571,7 +1626,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           playIcon.style.cursor = "pointer";
           playIcon.style.marginRight = "8px";
           playIcon.style.marginTop = "10px";
-          playIcon.title = "Play Video";
+          playIcon.title = "Play";
           playIcon.classList.add("play-icon");
 
           playIcon.addEventListener("click", (event) => {

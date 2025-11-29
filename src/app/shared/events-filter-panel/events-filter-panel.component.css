@@ -1,24 +1,56 @@
+
 @font-face {
   font-family: 'Neometric Regular';
-  font-style: normal;
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
   font-weight: 400;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric-Regular.woff') format('woff');
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Neometric Bold';
-    font-style: normal;
-    font-weight: 600;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-family: 'Neometric Medium';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
+       format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Neometric Medium';
-    font-style: normal;
-    font-weight: 500;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+  font-family: 'Neometric Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
+@font-face {
+  font-family: 'Neometric Alt Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@font-face {
+  font-family: 'Nasalization';
+  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    /* font-weight: 400; */
+    src: url('src/assets/fonts/Nasalization Rg.otf') format('opentype'),
+}
 
 .events-filter-panel {
   position: absolute;
@@ -50,14 +82,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
     font-size: 12px;
   margin-bottom: 12px;
 }
 
 .events-filter-title {
   font-size: 12px;
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
   letter-spacing: 0.8px;
 }
 
@@ -263,7 +295,7 @@
 }
 
 .duration-display-value {
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
 }
 
 .duration-display-separator {
@@ -299,7 +331,7 @@
   height: 32px;
   border-radius: 4px;
   font-size: 12px;
- font-family: 'Neometric Bold';
+ font-family: 'Neometric Alt Bold';
 
   cursor: pointer;
 }

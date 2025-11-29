@@ -1,4 +1,59 @@
 /* ====== BASE / TYPE ====== */
+
+
+@font-face {
+  font-family: 'Neometric Regular';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Medium';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
+       format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Alt Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@font-face {
+  font-family: 'Nasalization';
+  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    /* font-weight: 400; */
+    src: url('src/assets/fonts/Nasalization Rg.otf') format('opentype'),
+}
+
 :host {
   display: block;
   color: #000;
@@ -161,7 +216,7 @@
 .list-header1 h4 {
   margin: 0;
   font-size: 12px;
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
   letter-spacing: .3px;
 }
 
@@ -175,7 +230,7 @@
 .list-header h4 {
   margin: 0;
   font-size: 12px;
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
   letter-spacing: .3px;
 }
 
@@ -209,7 +264,7 @@
 }
 
 .thead {
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
   opacity: .6;
   color: #000000;
   font-size: 10px;

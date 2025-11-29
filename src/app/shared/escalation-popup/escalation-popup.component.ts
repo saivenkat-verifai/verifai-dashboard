@@ -318,7 +318,7 @@ private normalizeAvatarUrl(url?: string): string | undefined {
             iconUrl = "assets/alarm-warning-fill-copy.svg";
             break;
           case "P":
-            iconUrl = "assets/na-alarm-warning-fill-copy.svg";
+            iconUrl = "assets/alarm-warning-fill-success.svg";
             break;
           case "":
             iconUrl = "";
@@ -342,6 +342,8 @@ private normalizeAvatarUrl(url?: string): string | undefined {
     { label: "Ticket No.", field: "ticketNo", default: "--" },
     { label: "Site Name", field: "siteName" },
     { label: "Camera Name", field: "cameraName" },
+    { label: "Camera Id", field: "cameraId" },
+
     { label: "Event Time (CT)", field: "eventTime_CT" },
     { label: "Event Time Customer", field: "eventStartTime" }, // Can be converted if needed
     { label: "Event Time (IN)", field: "eventTime_IN" }, // Can be converted if needed

@@ -1,1 +1,99 @@
-<p>sites works!</p>
+<div class="dashboard-container">
+  <!-- ================= HEADER ================= -->
+  <div class="section-header">
+    <h2>SITES</h2>
+
+    <button class="createbutton">
+      + CREATE SITE
+    </button>
+  </div>
+
+  <!-- ================= TOP SUMMARY + SEARCH ================= -->
+  <div class="sites-summary-row">
+    <!-- === FIRST 3 CARDS AS ONE GROUP (RED) === -->
+    <div class="summary-group">
+      <div
+        class="summary-card"
+        *ngFor="let c of summaryCards | slice:0:3"
+      >
+        <div class="summary-top">
+          <span class="label">{{ c.label }}</span>
+          <span class="value">{{ c.value }}</span>
+        </div>
+        <div class="summary-bottom">
+           
+        <img
+          src="assets/cam.svg"
+          alt="cam"
+          class="cam-icon"
+        />  
+          <span class="sub">{{ c.subValue }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- === LAST 2 CARDS AS INDIVIDUAL WHITE CARDS === -->
+    <div
+      class="summary-card light"
+      *ngFor="let c of summaryCards | slice:3"
+    >
+      <div class="summary-top">
+        <span class="label">{{ c.label }}</span>
+        <span class="value">{{ c.value }}</span>
+      </div>
+      <div class="summary-bottom">
+        <img
+          src="assets/cam.svg"
+          alt="cam"
+          class="cam-icon"
+        />  
+        <span class="sub">{{ c.subValue }}</span>
+      </div>
+    </div>
+
+    <!-- === SEARCH + FILTER === -->
+    <div class="summary-search">
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search here"
+          [(ngModel)]="searchTerm"
+          class="search-input"
+          (input)="onFilterTextBoxChanged()"
+        />
+      </div>
+      <button class="filter-btn" title="Filter">
+        <img
+          src="assets/filter-icon.png"
+          alt="filter"
+          class="filter-toggle-icon"
+        />
+      </button>
+    </div>
+  </div>
+
+  <!-- ================= TABLE ================= -->
+  <div class="table-section m-t-20">
+   <ag-grid-angular
+  style="width: 100%; height: 100%"
+  class="ag-theme-alpine"
+  theme="legacy"
+  [rowData]="siteRowData"
+  [columnDefs]="siteColumnDefs"   
+  [defaultColDef]="defaultColDef"
+  [pagination]="true"
+  [paginationPageSize]="pageSize"
+  [rowHeight]="32"
+  [headerHeight]="30"
+  [enableCellTextSelection]="true"
+  [enableRangeSelection]="true"
+  [copyHeadersToClipboard]="true"
+  domLayout="autoHeight"
+  [paginationPageSizeSelector]="[15, 50, 100]"
+  [localeText]="localeText"
+  [quickFilterMatcher]="quickFilterMatcher"
+  (gridReady)="onGridReady($event)"
+>
+</ag-grid-angular>
+  </div>
+</div>

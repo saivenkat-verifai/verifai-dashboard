@@ -14,14 +14,10 @@
               [ngStyle]="{
                 'background-color': getEventDotColor(selectedEvent[info.field])
               }"
-            >
-            </span>
+            ></span>
 
             <ng-container
-              *ngIf="
-                info.label.toLowerCase().includes('time');
-                else normalValue
-              "
+              *ngIf="info.label.toLowerCase().includes('time'); else normalValue"
             >
               {{
                 selectedEvent[info.field]
@@ -38,7 +34,7 @@
       </div>
     </div>
 
-    <!-- ALARM EVENTS -->
+    <!-- ALARM EVENTS (AG Grid) -->
     <div class="alarm-events">
       <h2>ALARM EVENTS ON</h2>
       <ag-grid-angular
@@ -48,7 +44,6 @@
         [rowData]="alarmRowData"
         [columnDefs]="alarmColumnDefs"
         [defaultColDef]="defaultColDef"
-        [defaultColDef]="{ resizable: true }"
         [enableCellTextSelection]="true"
         [enableRangeSelection]="true"
         [copyHeadersToClipboard]="true"
@@ -69,71 +64,59 @@
     <span>INDIA {{ "00:00:00" }}</span>
     <span>US {{ "00:00:00" }}</span>
   </div>
-  <div class="div">
-    <p class="borderline"></p>
-  </div>
-
-<div class="report-header">
-  <h2>ESCALATION REPORT</h2>
-  <!-- TIMEZONE -->
-  <div class="timezone">
-    <label>
-      <input
-        type="radio"
-        name="tz"
-        value="CT"
-        [(ngModel)]="selectedTZ"
-        (change)="onTzChange(selectedTZ)"
-      />
-      CT
-    </label>
-
-    <label>
-      <input
-        type="radio"
-        name="tz"
-        value="MT"
-        [(ngModel)]="selectedTZ"
-        (change)="onTzChange(selectedTZ)"
-        checked
-      />
-      Customer TZ (MT)
-    </label>
-
-    <label>
-      <input
-        type="radio"
-        name="tz"
-        value="IST"
-        [(ngModel)]="selectedTZ"
-        (change)="onTzChange(selectedTZ)"
-      />
-      IST
-    </label>
-  </div>
-</div>
 
   <div class="div">
     <p class="borderline"></p>
   </div>
 
-  <!-- <ag-grid-angular
-    style="width: 100%"
-    theme="legacy"
-    class="ag-theme-alpine"
-    [rowData]="escalationRowData"
-    [columnDefs]="escalationColumnDefs"
-    [defaultColDef]="{ resizable: true }"
-    [pagination]="true"
-    [enableCellTextSelection]="true"
-    [enableRangeSelection]="true"
-    [copyHeadersToClipboard]="true"
-    [paginationPageSize]="3"
-    [paginationPageSizeSelector]="[3, 20, 50, 100]"
-    domLayout="autoHeight"
-    (gridReady)="onGridReady($event)"
-  >
-  </ag-grid-angular> -->
+
+
+  <!-- ======================= ESCALATION REPORT ======================= -->
+  <div class="report-header">
+    <h2>ESCALATION REPORT</h2>
+
+    <div class="timezone">
+      <label>
+        <input
+          type="radio"
+          name="tz"
+          value="CT"
+          [(ngModel)]="selectedTZ"
+          (change)="onTzChange(selectedTZ)"
+        />
+        CT
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="tz"
+          value="MT"
+          [(ngModel)]="selectedTZ"
+          (change)="onTzChange(selectedTZ)"
+          checked
+        />
+        Customer TZ (MT)
+      </label>
+
+      <label>
+        <input
+          type="radio"
+          name="tz"
+          value="IST"
+          [(ngModel)]="selectedTZ"
+          (change)="onTzChange(selectedTZ)"
+        />
+        IST
+      </label>
+    </div>
+  </div>
+
+  <div class="div">
+    <p class="borderline"></p>
+  </div>
+
+  <!-- Escalation AG Grid -->
   <ag-grid-angular
     style="width: 100%"
     theme="legacy"
@@ -152,13 +135,14 @@
   >
   </ag-grid-angular>
 
+  <!-- ======================= COMMENTS ======================= -->
   <div class="report-header">
     <h2>Comments</h2>
-    <!-- TIMEZONE -->
     <div class="timezone">
       <p-button class="today-btn" (onClick)="addComments()"> + ADD </p-button>
     </div>
   </div>
+
   <div class="div">
     <p class="borderline"></p>
   </div>

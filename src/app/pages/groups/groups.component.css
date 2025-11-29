@@ -1,27 +1,58 @@
 /* === FONT FACES === */
 
+
 @font-face {
-    font-family: 'Neometric Bold';
-    font-style: normal;
-    font-weight: 600;
-    src: local('Neometric'),
-        url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-family: 'Neometric Regular';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Neometric Medium';
-    font-style: normal;
-    font-weight: 500;
-    src: local('Neometric'),
-        url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+  font-family: 'Neometric Medium';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
+       format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Alt Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+@font-face {
+  font-family: 'Nasalization';
+  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
     font-family: 'NasalizationLight';
     font-style: normal;
-    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype');
+    /* font-weight: 400; */
+    src: url('src/assets/fonts/Nasalization Rg.otf') format('opentype'),
 }
-
 /* === UTILITY CLASSES === */
 .nomargin { margin: 0; }
 
@@ -56,7 +87,7 @@
 }
 
 .section-header {
-    font-family: 'Neometric Bold';
+    font-family: 'Neometric Alt Bold';
     display: flex;
     justify-content: space-between;
 }
@@ -160,7 +191,7 @@
 .col-1, .col-2 { justify-content: center; }
 .col img.calenderimage { display: block; max-height: 15px; }
 
-.popup-header-content { display: flex; align-items: center; gap: 10px; font-family: 'Neometric Bold'; font-size: 14px; }
+.popup-header-content { display: flex; align-items: center; gap: 10px; font-family: 'Neometric Alt Bold'; font-size: 14px; }
 
 .popup-body {
     flex: 1;

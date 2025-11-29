@@ -1,4 +1,5 @@
 <div class="popup-container">
+  <!-- STATUS + PLUS BUTTON -->
   <div class="filter-item">
     <div class="status-wrapper">
       <h3 class="filters-title">STATUS</h3>
@@ -13,74 +14,141 @@
     </div>
 
     <!-- + Button -->
-<button class="plus-btn" *ngIf="isActive" (click)="openPopup(data)">+</button>
-
+    <button class="plus-btn" *ngIf="isActive" (click)="openPopup(data)">
+      +
+    </button>
 
     <!-- Popup -->
     <div class="popup-menu" *ngIf="showPopup">
-      <!-- <button class="popup-item" (click)="openSection('site')">
-        <img src="assets/home.svg" alt="Dashboard" class="nav-icon" /> Site
-      </button> -->
       <button class="popup-item" (click)="openSection('camera')">
-        <img src="assets/cam.svg" alt="Dashboard" class="nav-icon" /> Site &
-        Camera
+        <img src="assets/cam.svg" alt="Site & Camera" class="nav-icon" />
+        Site & Camera
       </button>
       <button class="popup-item" (click)="openSection('employee')">
-        <img src="assets/moniter.svg" alt="Dashboard" class="nav-icon" />
+        <img src="assets/moniter.svg" alt="Employee" class="nav-icon" />
         Employee
       </button>
     </div>
   </div>
 
-  <!-- Sites Table -->
+  <!-- ===================== SITE INFO ===================== -->
   <div class="report-header">
-    <h2>SITES INFO</h2>
+    <h2>SITE INFO</h2>
   </div>
-  <ag-grid-angular
-    class="ag-theme-alpine report-grid"
-    style="width: 100%; height: 280px"
-    [rowData]="sitesRowData"
-    theme="legacy"
-    [columnDefs]="sitesColumnDefs"
-    [defaultColDef]="defaultColDef"
-    [treeData]="true"
-    [getDataPath]="getDataPath"
-    [animateRows]="true"
-     [rowHeight]="30"
-    [paginationPageSize]="6"
-    [suppressRowClickSelection]="true"
-    [suppressAggFuncInHeader]="true"
-    [paginationPageSizeSelector]="[6, 10, 50, 100]"
-    [enableCellTextSelection]="true"
-    [enableRangeSelection]="true"
-    [copyHeadersToClipboard]="true"
-    [autoGroupColumnDef]="autoGroupColumnDef"
-    (gridReady)="onSitesGridReady($event)"
-     [context]="{ componentParent: this }"
-  >
-  </ag-grid-angular>
 
-  <!-- Users Table -->
+  <!-- Header row (like screenshot) -->
+  <div class="site-header">
+    <div class="site-id-col">SITE ID</div>
+    <div class="site-name-col">SITE NAME</div>
+    <div class="camera-count-col">CAMERA'S</div>
+    <div class="site-action-col"></div>
+  </div>
+
+  <!-- Site + Camera rows -->
+  <div class="site-list">
+    <div
+      class="site-block"
+      *ngFor="let site of sitesDisplay"
+    >
+      <!-- main site row -->
+      <div class="site-row" (click)="toggleSiteExpand(site)">
+        <div class="site-id-col site-id-cell">
+          <span class="chevron">
+         <img
+  src="assets/down-arrow.png"
+  class="arrow-icon"
+  [class.expanded]="site.expanded"
+/>
+
+          </span>
+          <span class="site-id-text">{{ site.siteId }}</span>
+        </div>
+
+        <div class="site-name-col site-name-cell">
+          <span class="site-name-text">{{ site.siteName }}</span>
+        </div>
+
+        <div class="camera-count-col site-camera-count">
+          {{ site.queueCamerasCount }} / {{ site.totalCamerasCount }}
+        </div>
+
+        <div class="site-action-col">
+          <button
+            class="delete-btn"
+            (click)="onSiteDelete(site, $event)"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- child cameras -->
+      <div
+        class="camera-list"
+        *ngIf="site.expanded && site.cameras.length"
+      >
+        <div
+          class="camera-row"
+          *ngFor="let cam of site.cameras"
+        >
+          <div class="site-id-col"></div>
+
+          <div class="site-name-col camera-name-cell">
+            {{ cam.cameraId }} - 
+            {{ cam.cameraName }}
+          </div>
+
+          <div class="camera-count-col"></div>
+
+          <div class="site-action-col">
+            <button
+              class="camera-delete-btn"
+              (click)="onCameraDelete(site, cam, $event)"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== EMPLOYEE INFO ===================== -->
   <div class="report-header" style="margin-top: 20px">
     <h2>EMPLOYEE INFO</h2>
   </div>
-  <ag-grid-angular
-    class="ag-theme-alpine report-grid"
-  theme="legacy"
-  [rowData]="usersRowData"
-  [columnDefs]="usersColumnDefs"
-  [defaultColDef]="defaultColDef"
-  [enableCellTextSelection]="true"
-  [enableRangeSelection]="true"
-   [rowHeight]="30"
-  [copyHeadersToClipboard]="true"
-  [pagination]="true"
-  [animateRows]="true"
-  [paginationPageSize]="6"
-  [paginationPageSizeSelector]="[6, 10, 50, 100]"
-  style="width: 100%; height: 280px"
-  (gridReady)="onUsersGridReady($event)"
-    [context]="{ componentParent: this }"
-  >
-  </ag-grid-angular>
+
+  <div class="employee-list">
+    <div
+      class="employee-row"
+      *ngFor="let user of usersDisplay"
+    >
+      <div class="employee-main">
+        <div class="user-info">
+          <img
+            class="user-img"
+            [src]="user.profileImage || 'assets/user1.png'"
+            [alt]="user.User_Name || 'User'"
+          />
+
+          <div class="user-text">
+            <div class="emp-name">
+              {{ user.User_Name || "EMP NAME" }}
+            </div>
+            <div class="emp-id">
+              {{ user.userId || "ID" }}
+            </div>
+          </div>
+        </div>
+
+        <button
+          class="delete-btn"
+          *ngIf="(user.status || '').toLowerCase() === 'active'"
+          (click)="onUserDelete(user)"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

@@ -34,6 +34,7 @@
           <!-- Show Calendar if CLOSED -->
           <app-calendar
             *ngIf="selectedFilter === 'CLOSED'"
+            variant="events"
             (dateRangeSelected)="onDateRangeSelected($event)"
           ></app-calendar>
 
@@ -215,17 +216,18 @@
             </div>
 
             <div class="popup-body">
-              <iframe
-                *ngIf="safeVideoUrl; else noVideo"
-                [src]="safeVideoUrl"
-                width="320"
-                height="180"
-                style="border: 0"
-                allow="autoplay; fullscreen"
-              ></iframe>
+              <ng-container
+                *ngIf="selectedPlayItem?.videoFile?.length; else noImages"
+              >
+                <img
+                  class="play-image"
+                  [src]="getCurrentImageUrl()"
+                  alt="Event image"
+                />
+              </ng-container>
 
-              <ng-template #noVideo>
-                <p>No video available</p>
+              <ng-template #noImages>
+                <p>No images available</p>
               </ng-template>
             </div>
           </div>
@@ -300,89 +302,92 @@
       </div>
 
       <!-- ===================== Expandable More Section ===================== -->
-    <div class="m-t-20" *ngIf="showMore">
-  <!-- CLOSED More Section -->
-  <ng-container *ngIf="selectedFilter === 'CLOSED'">
-    <div class="escalated-content-section">
-      <div class="escalated-section-body">
-        <div class="escalated-section first-section">
-          <div
-            class="escalated-card"
-            *ngFor="let e of escalatedDetailsClosed"
-          >
-            <div class="escalated-card-content">
-              <h4 class="labelmargin">{{ e.label }}</h4>
-              <!-- <p [ngStyle]="{ color: e.color }">{{ e.value }}</p> -->
-            </div>
+      <div class="m-t-20" *ngIf="showMore">
+        <!-- CLOSED More Section -->
+        <!-- CLOSED More Section -->
+        <ng-container *ngIf="selectedFilter === 'CLOSED'">
+          <div class="escalated-content-section">
+            <!-- ✅ Only show cards if we have data -->
+            <ng-container
+              *ngIf="escalatedDetailsClosed.length > 0; else noClosedData"
+            >
+              <div class="escalated-section-body">
+                <div class="escalated-section first-section">
+                  <div
+                    class="escalated-card"
+                    *ngFor="let e of escalatedDetailsClosed"
+                  >
+                    <!-- card header -->
+                    <div class="escalated-card-content">
+                      <h4 class="labelmargin">{{ e.label }}</h4>
+                    </div>
 
-            <div class="icons">
-              <!-- Dots row (Event Wall / Manual Wall, etc.) -->
-              <div class="dots-column" *ngIf="e.colordot">
-                <div class="icon-section" *ngFor="let dot of e.colordot">
-                  <!-- Optional colored dot (for CLOSED cards) -->
-                  <span
-                    *ngIf="dot.iconcolor"
-                    class="dot"
-                    [ngStyle]="{ 'background-color': dot.iconcolor }"
-                  ></span>
+                    <!-- card body (dots + icons) -->
+                    <div class="icons">
+                      <div class="dots-column" *ngIf="e.colordot">
+                        <div
+                          class="icon-section"
+                          *ngFor="let dot of e.colordot"
+                        >
+                          <span
+                            *ngIf="dot.iconcolor"
+                            class="dot"
+                            [ngStyle]="{ 'background-color': dot.iconcolor }"
+                          ></span>
+                          <span class="dot-count">{{ dot.count }}</span>
+                        </div>
+                      </div>
 
-                  <!-- Label + value -->
-                  <span class="dot-label">{{ dot.label }}</span>
-                  <span class="dot-count">{{ dot.count }}</span>
+                      <div class="icons-group" *ngIf="e.icons">
+                        <div class="icon-section" *ngFor="let icon of e.icons">
+                          <img
+                            [src]="icon.iconPath"
+                            alt="icon"
+                            class="icon-image"
+                          />
+                          <span>{{ icon.count }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+            </ng-container>
 
-              <!-- Icons row (sites / cameras) -->
-              <div class="icons-group" *ngIf="e.icons">
-                <div class="icon-section" *ngFor="let icon of e.icons">
-                  <img
-                    [src]="icon.iconPath"
-                    alt="icon"
-                    class="icon-image"
-                    [ngClass]="{
-                      'cam-icon': icon.iconPath.includes('cam.svg')
-                    }"
-                  />
-                  <span>{{ icon.count }}</span>
+            <!-- ✅ When escalatedDetailsClosed is empty -->
+            <ng-template #noClosedData>
+              <div class="no-data-wrapper">No data available</div>
+            </ng-template>
+          </div>
+        </ng-container>
+
+        <!-- PENDING More Section -->
+        <ng-container *ngIf="selectedFilter === 'PENDING'">
+          <div class="escalated-content-section">
+            <div class="escalated-section-body">
+              <div class="escalated-section first-section">
+                <div
+                  class="escalated-card"
+                  *ngFor="let e of escalatedDetailsPending"
+                >
+                  <div class="escalated-card-content">
+                    <h4 class="labelmargin">{{ e.label }}</h4>
+                  </div>
+
+                  <div class="icons">
+                    <div class="dots-column" *ngIf="e.colordot">
+                      <div class="icon-section" *ngFor="let dot of e.colordot">
+                        <span class="dot-label">{{ dot.label }}</span>
+                        <span class="dot-count">{{ dot.count }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </ng-container>
       </div>
-    </div>
-  </ng-container>
-
-  <!-- PENDING More Section -->
-<ng-container *ngIf="selectedFilter === 'PENDING'">
-  <div class="escalated-content-section">
-    <div class="escalated-section-body">
-      <div class="escalated-section first-section">
-        <div
-          class="escalated-card"
-          *ngFor="let e of escalatedDetailsPending"
-        >
-          <!-- header row: All Queues / All Consoles + total -->
-          <div class="escalated-card-content">
-            <h4 class="labelmargin">{{ e.label }}</h4>
-            <!-- <p class="total-value">{{ e.value }}</p> -->
-          </div>
-
-          <!-- stats row -->
-          <div class="icons">
-            <div class="dots-column" *ngIf="e.colordot">
-              <div class="icon-section" *ngFor="let dot of e.colordot">
-                <span class="dot-label">{{ dot.label }}</span>
-                <span class="dot-count">{{ dot.count }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</ng-container>
-</div>
 
       <!-- ===================== AG Grid Tables ===================== -->
 
@@ -408,6 +413,7 @@
               [quickFilterMatcher]="pendingQuickFilterMatcher"
               [paginationPageSizeSelector]="[15, 20, 50, 100]"
               (gridReady)="onGridReady($event)"
+              [icons]="gridIcons"
               (cellClicked)="onCellClicked($event)"
               [statusBar]="statusBar"
             >
@@ -471,6 +477,7 @@
             domLayout="autoHeight"
             [quickFilterMatcher]="closedQuickFilterMatcher"
             (gridReady)="onGridReady($event)"
+            [icons]="gridIcons"
             (cellClicked)="onCellClicked($event)"
           ></ag-grid-angular>
         </div>

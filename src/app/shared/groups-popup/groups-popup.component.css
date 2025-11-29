@@ -1,98 +1,102 @@
+/* ========== FONTS (unchanged) ========== */
+
 @font-face {
-    font-family: 'Neometric Bold';
-    font-style: normal;
-    font-weight: 600;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-family: "Neometric Regular";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Neometric Medium';
-    font-style: normal;
-    font-weight: 500;
-    src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+  font-family: "Neometric Medium";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff")
+    format("woff");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'Nasalization';
-    /* font-style: normal; */
-    /* font-weight: 400; */
-    src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
+  font-family: "Neometric Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-    font-family: 'NasalizationLight';
-    font-style: normal;
-    /* font-weight: 400; */
-    src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
+  font-family: "Neometric Alt Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff")
+    format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
-.m-b-30{
-  margin-bottom: 30px;
+@font-face {
+  font-family: "Nasalization";
+  src: url("src/assets/fonts/neometric-2-webfont/NASALIZA.woff")
+    format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
+
+@font-face {
+  font-family: "NasalizationLight";
+  font-style: normal;
+  src: url("src/assets/fonts/Nasalization Rg.otf") format("opentype");
+}
+
+/* ========== CONTAINER & COMMON ========== */
 
 .popup-container {
   max-width: 1200px;
   margin: auto;
   background: #fff;
   border-radius: 12px;
-  
-}
-
-:host ::ng-deep .delete-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: black;
-  color: white;
-  border: none;
-  font-weight: bold;
-  font-size: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-:host ::ng-deep .delete-btn:hover {
-  background-color: #333;
-}
-
-:host ::ng-deep .action-cell {
-  display: flex;
-  align-items: center;   /* vertical center */
-  justify-content: center; /* horizontal center */
 }
 
 h2 {
   font-size: 12px;
   margin: 0 0 10px;
-   font-family: 'Neometric Bold';
-
+  font-family: "Neometric Alt Bold";
 }
-.nav-icon{
-    width: 12px;
-    height: 12px;
-    margin-right: 10px;
-     color: black;
-      font-size: 12px;
-    font-family: 'Neometric Medium';
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.report-header h2 {
+  margin: 0;
 }
 
 .filters-title {
-    margin: 0;
-    font-weight: bold;
-    font-size: 12px;
-    font-family: 'Neometric Medium';
-
+  margin: 0;
+  font-weight: bold;
+  font-size: 12px;
+  font-family: "Neometric Medium";
 }
 
 .filter-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: relative; /* so popup can be positioned */
+  position: relative;
 }
+
+.status-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ========== + BUTTON & POPUP MENU ========== */
 
 .plus-btn {
   width: 32px;
@@ -120,7 +124,7 @@ h2 {
   background: white;
   border: 1px solid #ddd;
   border-radius: 6px;
- box-shadow: -5px 4px 9px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: -5px 4px 9px 3px rgba(0, 0, 0, 0.15);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -129,117 +133,44 @@ h2 {
 }
 
 .popup-item {
- background: none;
-    border: none;
-    color: black;
-    display: flex;
-    padding: 6px 6px 6px 6px;
-    text-align: left;
-    cursor: pointer;
-    border-radius: 4px;
-    align-items: center;
-     font-size: 12px;
-    font-family: 'Neometric Medium';
+  background: none;
+  border: none;
+  color: black;
+  display: flex;
+  padding: 6px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+  align-items: center;
+  font-size: 12px;
+  font-family: "Neometric Medium";
 }
 
 .popup-item:hover {
   background-color: #f5f5f5;
 }
 
-.status-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.nav-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 10px;
 }
 
-.text-ellipsis {
-  white-space: nowrap;       /* no wrapping */
-  overflow: hidden;          /* hide overflow */
-  text-overflow: ellipsis;   /* show ... */
-}
+/* ========== TOGGLE SWITCH ========== */
 
-:host ::ng-deep  .ag-cell {
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  white-space: nowrap !important;
-}
-
-.filters {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.filter {
-    display: flex;
-    gap: 50px;
-    align-items: center;
-}
-
-.filter-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-/* Toggle switch CSS */
 .switch {
-    position: relative;
-    display: inline-block;
-    width: 35px;
-    height: 20px;
+  position: relative;
+  display: inline-block;
+  width: 35px;
+  height: 20px;
 }
 
 .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
 
-.right-align {
-  text-align: right !important;
-  justify-content: flex-end !important; /* for flex-based cell layouts */
-  display: flex;
-}
-
-:host ::ng-deep  .camera-delete-btn {
-  /* background-color: transparent;
-  border: none;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 16px; */
-  
-    width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0);
-  color: rgb(0, 0, 0);
-  border: none;
-  font-weight: 900;
-  font-size: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-}
-
-.delete-btn {
-  background-color: transparent;
-  border: none;
-  color: red;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-
-
-.delete-btn:hover {
-  color: darkred;
-}
-
-/* Slider track */
 .slider {
   position: absolute;
   cursor: pointer;
@@ -247,13 +178,12 @@ h2 {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: white; /* track background */
-    border: 0.5px solid #00000026;
+  background-color: white;
+  border: 0.5px solid #00000026;
   border-radius: 20px;
   transition: 0.3s;
 }
 
-/* Circle (thumb) */
 .slider:before {
   content: "";
   position: absolute;
@@ -261,259 +191,203 @@ h2 {
   width: 12px;
   left: 3px;
   bottom: 3px;
-  background-color: gray; /* OFF color */
+  background-color: gray;
   transition: 0.3s;
   border-radius: 50%;
 }
 
-.ag-cell .custom-cell {
-  display: flex;
-  align-items: center;
-}
-
-.ag-cell img {
-  border-radius: 50%;
-}
-
-/* Checked state */
 input:checked + .slider:before {
-  background-color: #53BF8B; /* ON color */
+  background-color: #53bf8b;
+  transform: translateX(15px);
 }
 
-/* Keep track background white when checked */
-input:checked + .slider {
-  background-color: white;
-}
-
-/* Optional: round shape */
 .slider.round {
   border-radius: 20px;
 }
 
-.slider.round:before {
-  border-radius: 50%;
-}
-
-/* Move thumb when ON */
-input:checked + .slider:before {
-  transform: translateX(15px);
-}
-
-
-
-/* Make unchecked toggle faded */
 .switch input:not(:checked) + .slider {
-  opacity: 0.5; /* adjust between 0.3–0.7 depending on preference */
+  opacity: 0.5;
 }
 
-/* Keep checked toggle fully visible */
 .switch input:checked + .slider {
-  opacity: 5;
+  opacity: 1;
 }
 
-.section {
+/* ========== SITE INFO LAYOUT ========== */
+
+.site-header,
+.site-row,
+.camera-row {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
-:host ::ng-deep .custom-header {
-  font-family: 'Neometric Medium' !important;
-  font-size: 12px !important;
+.site-header {
+  margin-top: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e5e5;
+  font-family: "Neometric Medium";
+  font-size: 12px;
+  color: #7a7a7a;
 }
 
-:host ::ng-deep .custom-cell {
-  font-family: 'Neometric Medium' !important;
-  font-size: 12px !important;
+.site-list {
+  margin-top: 4px;
 }
 
-:host ::ng-deep .ag-paging-panel {
-  font-family: 'Neometric Medium' !important;
-  font-size: 12px !important;
+.site-block {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 4px 0;
 }
 
-.basic-info,
-.alarm-events {
+.site-row {
+  padding: 6px 0;
+  cursor: pointer;
+}
+
+.site-row:hover {
+  background-color: #fafafa;
+}
+
+.camera-row {
+  padding: 4px 0 4px 0;
+}
+
+/* columns (flex like table) */
+.site-id-col {
+  width: 120px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.site-name-col {
   flex: 1;
-  min-width: 350px;
+  padding: 0 4px;
 }
 
-.basic-info p {
-  margin: 4px 0;
+.camera-count-col {
+  width: 80px;
+  text-align: right;
+  padding: 0 4px;
+  font-family: "Neometric Medium";
+  font-size: 12px;
+}
+
+.site-action-col {
+  width: 40px;
+  text-align: center;
+  padding-right: 4px;
+}
+
+/* text styles */
+.site-id-text {
+  font-family: "Neometric Medium";
+  font-size: 12px;
+}
+
+.site-name-text {
+  font-family: "Neometric Medium";
+  font-size: 12px;
+}
+
+.camera-name-cell {
+  font-family: "Neometric Medium";
+  font-size: 12px;
+  color: #a0a0a0;
+}
+
+/* chevron arrow */
+.chevron {
   font-size: 14px;
 }
 
-.basic-info p span {
-  font-weight: bold;
+/* delete buttons */
+.delete-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #000000;
+    color: #ffffff;
+    border: none;
+    font-weight: 900;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s ease;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-   
+.arrow-icon {
+  width: 20px;
+  height: 16px;
+  margin-right: 6px;
+  cursor: pointer;
 }
 
-table th,
-table td {
-  border-bottom: 1px solid #ddd;
-  padding: 10px;
-  font-size: 12px;
-     font-family: 'Neometric Regular';
-  text-align: left;
+.delete-btn:hover {
+  color: rgb(255, 255, 255);
 }
 
-table th {
-  background: #fafafa;
-  font-weight: 600;
-     font-family: 'Neometric Regular';
-}
-
-.alarm-table td {
-  vertical-align: middle;
-}
-
-.user-img {
-  width: 28px;
-  height: 28px;
+.camera-delete-btn {
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  object-fit: cover;
-  margin-right: 8px;
+  background-color: transparent;
+  color: black;
+  border: none;
+  font-weight: 900;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ========== EMPLOYEE INFO ========== */
+
+.employee-list {
+  margin-top: 8px;
+}
+
+.employee-row {
+  border-bottom: 1px solid #f0f0f0;
+  padding: 6px 0;
+}
+
+.employee-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .user-info {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-.tag-red {
-  color: red;
-  font-size: 18px;
-}
-
-.status-success {
-  color: green;
-  font-weight: 600;
-}
-
-.total-duration {
-  display: flex;
-  justify-content: space-between;
-  margin: 40px 0;
-
-  font-weight: bold;
-    font-size: 12px;
-
-   font-family: 'Neometric Bold';
-}
-
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.report-header h2 {
-  margin: 0;
-}
-
-.timezone {
-  display: flex;
-  gap: 15px;
-  font-size: 14px;
-  align-items: center;
-}
-
-
-.timezone {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-}
-
-.timezone label {
-  font-size: 10px;
-
-}
-
-.escalation-report h2 {
-  margin-top: 20px;
-}
-
-.note {
-  font-size: 12px;
-  color: #555;
-  margin-top: 5px;
-}
-
-.edit-icon {
-  cursor: pointer;
-}
-
-.add-btn {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-}
-
-.add-btn button {
-  width: 40px;
-  height: 40px;
+.user-img {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #eee;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
+  object-fit: cover;
 }
 
-.info-table {
-  display: table;
-  font-size: 14px;
-  width: 100%;
+.user-text {
+  display: flex;
+  flex-direction: column;
 }
 
-.row {
-  display: table-row;
-}
-.row1 {
-  display: table-row;
+.emp-name {
+  font-family: "Neometric Medium";
+  font-size: 12px;
 }
 
-.label, .colon, .value {
-  display: table-cell;
-  padding: 4px 6px;
-}
-
-.label {
-  /* font-weight: 600; */
-  width: 200px; /* controls alignment */
-   font-family: 'Neometric Medium';
-     font-size: 10px;
-
- opacity: 40%;
-}
-
-.colon {
-  width: 10px;
-  text-align: center;
-}
-
-.value {
-  color: #333;
-     font-family: 'Neometric Medium';
-     font-size: 10px;
-}
-
-
-.report-grid {
-  width: 100%;
-  height: 300px;
-}
-
-.ag-theme-alpine {
-  --ag-header-background-color: #fafafa;
-  --ag-odd-row-background-color: #fcfcfc;
-  border-radius: 0px;
-  overflow: scroll;
+.emp-id {
+  font-family: "Neometric Regular";
+  font-size: 10px;
+  opacity: 0.6;
 }

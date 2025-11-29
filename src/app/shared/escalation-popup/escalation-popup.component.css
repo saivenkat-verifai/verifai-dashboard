@@ -1,32 +1,56 @@
+
 @font-face {
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Regular';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 400;
   font-style: normal;
-  font-weight: 600;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Unnamed Bold (Regular).woff') format('woff');
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Neometric Medium';
-  font-style: normal;
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
+       format('woff');
   font-weight: 500;
-  src: local('Neometric'), url('https://fonts.cdnfonts.com/s/18720/Neometric Medium (Regular).woff') format('woff');
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Neometric Alt Bold';
+  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
   font-family: 'Nasalization';
-  /* font-style: normal; */
-  /* font-weight: 400; */
-  src: local('Nasalization'), url('https://fonts.cdnfonts.com/s/26353/NASALIZA.woff') format('woff');
+  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
+       format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
 }
 
 @font-face {
-  font-family: 'NasalizationLight';
-  font-style: normal;
-  /* font-weight: 400; */
-  src: url('/assets/fonts/Nasalization Rg.otf') format('opentype'),
+    font-family: 'NasalizationLight';
+    font-style: normal;
+    /* font-weight: 400; */
+  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
+       format('woff');
 }
-
-
 
 
 :host ::ng-deep .ag-theme-alpine .ag-cell,
@@ -58,7 +82,7 @@ background: transparent linear-gradient(181deg, var(--unnamed-color-ffffff) 0%, 
 h2 {
   font-size: 12px;
   margin: 0 0 10px;
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
 
 }
 
@@ -176,7 +200,7 @@ table th {
   font-weight: bold;
   font-size: 12px;
 
-  font-family: 'Neometric Bold';
+  font-family: 'Neometric Alt Bold';
 }
 
 .report-header {
@@ -197,7 +221,7 @@ table th {
     height: 30px !important;
     color: black;
     font-size: 15px;
-    font-family: 'Neometric Bold';
+    font-family: 'Neometric Alt Bold';
     padding: 0 6px !important;
 }
 

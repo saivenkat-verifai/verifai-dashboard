@@ -5,19 +5,39 @@ import {
   EventEmitter,
   OnChanges,
 } from "@angular/core";
-import { AgGridModule } from "ag-grid-angular";
 import { FormsModule } from "@angular/forms";
 import { MatNativeDateModule } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
-import { ColDef, GridReadyEvent } from "ag-grid-community";
 import { CommonModule } from "@angular/common";
-import { ModuleRegistry } from "ag-grid-community";
-import { TreeDataModule } from "ag-grid-enterprise";
-import { GroupsService } from "src/app/pages/groups/groups.service";
 import { HttpClientModule } from "@angular/common/http";
+import { GroupsService } from "src/app/pages/groups/groups.service";
 
-// Register the TreeDataModule for tree data feature
-ModuleRegistry.registerModules([TreeDataModule]);
+interface DisplayCamera {
+  cameraId: string | number;
+  cameraName: string;
+  status: string;
+  queueSitesId: number;
+  queueId: number;
+}
+
+interface DisplaySite {
+  siteId: string | number;
+  siteName: string;
+  queueId: number;
+  status: string;
+  queueCamerasCount: number;
+  totalCamerasCount: number;
+  cameras: DisplayCamera[];
+  expanded: boolean;
+}
+
+interface DisplayUser {
+  userId: number | string;
+  User_Name: string;
+  email: string;
+  status: string;
+  profileImage?: string | null;
+}
 
 @Component({
   selector: "app-groups-popup",
@@ -25,7 +45,6 @@ ModuleRegistry.registerModules([TreeDataModule]);
   styleUrls: ["./groups-popup.component.css"],
   standalone: true,
   imports: [
-    AgGridModule,
     FormsModule,
     MatNativeDateModule,
     MatDatepickerModule,
@@ -39,222 +58,27 @@ export class GroupsPopupComponent implements OnChanges {
   @Input() selectedDate: Date | null = null;
   @Input() sites: any[] = [];
   @Input() camera: any[] = [];
-  @Input() data: any; // Receives second API data: { groupSites, groupUsers, queueId }
+  @Input() data: any; // { groupSites, groupUsers, queueId, status, id, ... }
 
   @Output() sectionChange = new EventEmitter<string>();
   @Output() close = new EventEmitter<void>();
   @Output() openPopupEvent = new EventEmitter<any>();
   @Output() refreshRequested = new EventEmitter<number>(); // queueId
-  
 
-
-   get isActive(): boolean {
-    return (this.data?.status ?? '').toString().toLowerCase() === 'active';
+  get isActive(): boolean {
+    return (this.data?.status ?? "").toString().toLowerCase() === "active";
   }
 
   showPopup = false;
 
+  // what we bind in the template
+  sitesDisplay: DisplaySite[] = [];
+  usersDisplay: DisplayUser[] = [];
+
   constructor(private groupsService: GroupsService) {}
 
-  /** AG Grid auto group column definition */
-  autoGroupColumnDef: ColDef = {
-    headerName: "SITE ID",
-    field: "siteId",
-    cellRendererParams: {
-      suppressCount: true,
-    },
-    valueGetter: (params) =>
-      params.data && !params.data.isCamera ? params.data.siteId : "",
-  };
+  /* ========== UI actions ========== */
 
-  /** Columns for Sites AG Grid */
-  sitesColumnDefs: ColDef[] = [
-    {
-      headerName: "SITES / CAMERA NAME",
-      field: "siteName",
-      cellClass: "custom-cell",
-      valueGetter: (params) =>
-        params.data.isCamera ? params.data.cameraName : params.data.siteName,
-    },
-    {
-      headerName: "CAMERA'S",
-      field: "cameraCount",
-      cellClass: "custom-cell",
-      cellStyle: {
-        textAlign: "center",
-        display: "flex",
-        justifyContent: "right",
-        alignItems: "center",
-      },
-      valueGetter: (params) => {
-        if (params.data.isCamera) return "";
-        const queueCount = params.data.queueCamerasCount ?? 0;
-        const totalCount = params.data.totalCamerasCount ?? 0;
-        return `${queueCount} / ${totalCount}`;
-      },
-    },
-    // { headerName: "STATUS", field: "status", cellClass: "custom-cell" },
-    {
-      headerName: "ACTION",
-      field: "action",
-      cellRenderer: (params: any) => {
-        
-        const data = params.data;
-        console.log("Rendering ACTION button for data:", data);
-        if (!data) return document.createTextNode("");
-
-        // Create button element
-        const button = document.createElement("button");
-        button.innerHTML = "X";
-
-        // 🎨 Apply different styles for sites vs cameras
-        if (data.isCamera) {
-          button.className = "camera-delete-btn"; // black X, no background
-        } else {
-          button.className = "delete-btn"; // red X for sites
-        }
-
-       
-
-        // 🧩 Attach click event
-        button.addEventListener("click", () => {
-          const parent = params.context.componentParent;
-          console.log("parent:", parent.data);
-
-          if (data.isCamera) {
-            parent.inactivateCamera(
-              data.cameraId,
-              data.queueSitesId,
-              // parent.data.queueSitesId,
-              params.context.componentParent.data.id
-              
-            );
-
-          } else {
-            parent.inactivateSite(data.siteId,   params.context.componentParent.data.id );
-          }
-        });
-
-        return button;
-      },
-       cellStyle: {
-        textAlign: "center",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      },
-    },
-  ];
-
-  
-inactivateCamera(cameraId: string, queueSitesId: number, queueId: number) {
-  const modifiedBy = 0;
-  this.groupsService.inactivateQueuesCamera(cameraId, queueSitesId, modifiedBy).subscribe({
-    next: () => {
-      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-        next: (res) => {
-          this.updateSitesAndUsers(res);
-          this.refreshRequested.emit(queueId); // 👈
-        },
-        error: (err) => console.error("Error refreshing data:", err),
-      });
-    },
-    error: (err) => console.error("Error inactivating camera", err),
-  });
-}
-
-
- inactivateSite(siteId: number, queueId: number) {
-  const modifiedBy = 123;
-  this.groupsService.inactivateQueuesSite(siteId, queueId, modifiedBy).subscribe({
-    next: () => {
-      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-        next: (res) => {
-          this.updateSitesAndUsers(res);
-          this.refreshRequested.emit(queueId); // 👈
-        },
-        error: (err) => console.error("Error refreshing data:", err),
-      });
-    },
-    error: (err) => console.error("Error inactivating site", err),
-  });
-}
-
-  /** Columns for Users AG Grid including X button */
-usersColumnDefs: ColDef[] = [
-  {
-    headerName: "NAME",
-    field: "User_Name",
-    cellClass: "custom-cell",
-    cellRenderer: (params: any) => {
-      const container = document.createElement("div");
-      container.style.display = "flex";
-      container.style.alignItems = "center";
-      container.style.gap = "8px"; // spacing between image & text
-
-      // 👤 Create user profile image
-      const img = document.createElement("img");
-      img.src =
-        // params.data?.profileImage ||
-        "assets/user1.png"; // fallback image
-      img.alt = params.data?.User_Name || "User";
-      img.style.width = "28px";
-      img.style.height = "28px";
-      img.style.borderRadius = "50%";
-      img.style.objectFit = "cover";
-
-      // 🧑 Create username text
-      const name = document.createElement("span");
-      name.textContent = params.data?.User_Name || "";
-      name.style.whiteSpace = "nowrap";
-
-      // Append both to the container
-      container.appendChild(img);
-      container.appendChild(name);
-
-      return container;
-    },
-  },
-  {
-    headerName: "ACTION",
-    field: "action",
-    cellRenderer: (params: any) => {
-      // Hide button if user is inactive
-      if (!params.data || params.data.status?.toLowerCase() !== "active") {
-        return document.createTextNode("");
-      }
-
-      const button = document.createElement("button");
-      button.innerHTML = "X";
-      button.className = "delete-btn";
-
-      button.addEventListener("click", () => {
-        params.context.componentParent.inactivateUser(
-          params.data.userId,
-          params.context.componentParent.data.id
-        );
-      });
-
-      return button;
-    },
-    cellClass: "action-cell",
-  },
-];
-
-  /** Default column definition */
-  defaultColDef: ColDef = {
-    resizable: true,
-    sortable: true,
-    filter: true,
-    wrapText: false, // keep false so text stays on one line
-    autoHeight: false,
-  };
-
-  /** Row data arrays */
-  sitesRowData: any[] = [];
-  usersRowData: any[] = [];
-
-  /** Toggle popup visibility */
   togglePopup() {
     this.showPopup = !this.showPopup;
     this.openPopupEvent.emit(this.data);
@@ -276,84 +100,132 @@ usersColumnDefs: ColDef[] = [
     }
   }
 
+  onStatusToggle(event: Event) {
+    if (!this.data || !this.data.id) return;
 
-onStatusToggle(event: Event) {
-  if (!this.data || !this.data.id) return;
+    const input = event.target as HTMLInputElement;
+    const isActive = input.checked;
+    const status = isActive ? "ACTIVE" : "INACTIVE";
+    const modifiedBy = 123;
 
-  const input = event.target as HTMLInputElement;
-  const isActive = input.checked;
-  const status = isActive ? 'ACTIVE' : 'INACTIVE';
-  const modifiedBy = 123;
-
-  this.groupsService.toggleQueueStatus(this.data.id, status, modifiedBy).subscribe({
-    next: () => {
-      this.data.status = status;                 // update local view
-      this.refreshRequested.emit(this.data.id);  // 🔔 tell parent to reload
-    },
-    error: () => {
-      input.checked = !isActive; // revert on failure
-    }
-  });
-}
-
-
-  /** Inactivate a user and refresh data */
-
-  // inactivateUser(userId: number, id: number) {
-  //   console.log(id,"dfghj")
-  //   const modifiedBy = 123; // replace with logged-in user id
-
-  //   this.groupsPopupService.inactivateQueuesUser(userId, modifiedBy).subscribe({
-  //     next: (response) => {
-  //       console.log('User inactivated successfully', response);
-
-  //       // Call the second API only after success
-  //       this.groupsService.getGroups().subscribe({
-  //         next: (res) => {
-  //           console.log('Sites and users for the queue:', res);
-  //           // Update UI or state here
-  //         },
-  //         error: (err) => {
-  //           console.error('Error fetching sites and users:', err);
-  //         },
-  //       });
-  //     },
-  //     error: (error) => {
-  //       console.error('Error inactivating user', error);
-  //     },
-  //   });
-  // }
-
- inactivateUser(userId: number, queueId: number) {
-  const modifiedBy = 123;
-
-  this.groupsService.inactivateQueuesUser(userId, queueId, modifiedBy).subscribe({
-    next: () => {
-      // 1) Refresh the right-side panel data so the employee disappears immediately
-      this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-        next: (res) => {
-          this.updateSitesAndUsers(res);
-          // 2) 🔔 Tell parent to refresh the left list/cards via getQueuesDetails_1_0
-          this.refreshRequested.emit(queueId);
+    this.groupsService
+      .toggleQueueStatus(this.data.id, status, modifiedBy)
+      .subscribe({
+        next: () => {
+          this.data.status = status;
+          this.refreshRequested.emit(this.data.id);
         },
-        error: (err) => console.error("Error fetching sites and users:", err),
+        error: () => {
+          input.checked = !isActive; // revert on failure
+        },
       });
-    },
-    error: (error) => console.error("Error inactivating user", error),
-  });
-}
+  }
 
+  /* ========== Expand / collapse sites ========== */
 
-  /** Update Sites and Users rowData from API response */
+  toggleSiteExpand(site: DisplaySite) {
+    site.expanded = !site.expanded;
+  }
+
+  /* ========== Delete handlers (call existing APIs) ========== */
+
+  onSiteDelete(site: DisplaySite, event: MouseEvent) {
+    event.stopPropagation();
+    this.inactivateSite(site.siteId, this.data.id);
+  }
+
+  onCameraDelete(
+    site: DisplaySite,
+    cam: DisplayCamera,
+    event: MouseEvent
+  ) {
+    event.stopPropagation();
+    this.inactivateCamera(cam.cameraId, cam.queueSitesId, this.data.id);
+  }
+
+  onUserDelete(user: DisplayUser) {
+    this.inactivateUser(user.userId as number, this.data.id);
+  }
+
+  /* ========== API methods (same logic as before) ========== */
+
+ inactivateCamera(
+    cameraId: string | number,
+    queueSitesId: number,
+    queueId: number
+  ) {
+    const modifiedBy = 0;
+    const cameraIdStr = String(cameraId); // 👈 ensure string
+
+    this.groupsService
+      .inactivateQueuesCamera(cameraIdStr, queueSitesId, modifiedBy)
+      .subscribe({
+        next: () => {
+          this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+            next: (res) => {
+              this.updateSitesAndUsers(res);
+              this.refreshRequested.emit(queueId);
+            },
+            error: (err) =>
+              console.error("Error refreshing data:", err),
+          });
+        },
+        error: (err) => console.error("Error inactivating camera", err),
+      });
+  }
+
+  inactivateSite(siteId: number | string, queueId: number) {
+    const modifiedBy = 123;
+    const siteIdNum = Number(siteId); // 👈 ensure number
+
+    this.groupsService
+      .inactivateQueuesSite(siteIdNum, queueId, modifiedBy)
+      .subscribe({
+        next: () => {
+          this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+            next: (res) => {
+              this.updateSitesAndUsers(res);
+              this.refreshRequested.emit(queueId);
+            },
+            error: (err) =>
+              console.error("Error refreshing data:", err),
+          });
+        },
+        error: (err) => console.error("Error inactivating site", err),
+      });
+  }
+
+  inactivateUser(userId: number, queueId: number) {
+    const modifiedBy = 123;
+
+    this.groupsService
+      .inactivateQueuesUser(userId, queueId, modifiedBy)
+      .subscribe({
+        next: () => {
+          this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+            next: (res) => {
+              this.updateSitesAndUsers(res);
+              this.refreshRequested.emit(queueId);
+            },
+            error: (err) =>
+              console.error("Error fetching sites and users:", err),
+          });
+        },
+        error: (error) =>
+          console.error("Error inactivating user", error),
+      });
+  }
+
+  /* ========== Build display arrays from API response ========== */
+
   private updateSitesAndUsers(res: any) {
     console.log("Raw API response:", res);
 
-    // ✅ Match the actual keys from your API
     const queueUsers = Array.isArray(res.groupUsers) ? res.groupUsers : [];
     const queuesData = Array.isArray(res.groupSites) ? res.groupSites : [];
 
-    // ================== USERS ==================
-    this.usersRowData = queueUsers.map((user: any) => ({
+    // USERS
+    this.usersDisplay = queueUsers.map((user: any) => ({
       userId: user.userId || "N/A",
       User_Name: user.User_Name || "N/A",
       email: user.email || "N/A",
@@ -361,70 +233,48 @@ onStatusToggle(event: Event) {
       profileImage: user.profileImage || null,
     }));
 
-    // ================== SITES (TREE STRUCTURE) ==================
-    this.sitesRowData = [];
-
-    queuesData.forEach((site: any) => {
-      // ---- Parent: Site Row ----
-      this.sitesRowData.push({
-        isCamera: false,
-        siteId: site.siteId || "N/A",
-        siteName: site.siteName || "N/A",
-        queueId: site.queueId || "N/A",
-        queueName: site.queueName || "N/A",
-        status: site.status || "N/A",
-        queueCamerasCount: site.queueCamerasCount ?? 0, // ✅ Add this
-        totalCamerasCount: site.totalCamerasCount ?? 0, // ✅ Keep this
-      });
-
-      // ---- Children: Cameras ----
-      if (Array.isArray(site.cameraInfo) && site.cameraInfo.length > 0) {
-        site.cameraInfo.forEach((cam: any) => {
-          this.sitesRowData.push({
-            isCamera: true,
-            siteId: site.siteId,
+    // SITES + CAMERAS
+    this.sitesDisplay = queuesData.map((site: any) => {
+      const cameras: DisplayCamera[] = Array.isArray(site.cameraInfo)
+        ? site.cameraInfo.map((cam: any) => ({
             cameraId: cam.cameraId,
             cameraName: cam.cameraName || "Unnamed Camera",
             status: cam.status || "ACTIVE",
-             queueSitesId: cam.queueSitesId ?? site.queueSitesId, // ✅ Add this line
-             queueId: site.queueId ,
-          });
-        });
-      }
+            queueSitesId: cam.queueSitesId ?? site.queueSitesId,
+            queueId: site.queueId,
+          }))
+        : [];
+
+      const displaySite: DisplaySite = {
+        siteId: site.siteId || "N/A",
+        siteName: site.siteName || "N/A",
+        queueId: site.queueId || "N/A",
+        status: site.status || "N/A",
+        queueCamerasCount: site.queueCamerasCount ?? 0,
+        totalCamerasCount: site.totalCamerasCount ?? 0,
+        cameras,
+        expanded: false, // open by default
+      };
+
+      return displaySite;
     });
 
-    // ================== LOG SUMMARY ==================
     console.log("✅ Sites & Users processed:", {
-      users: this.usersRowData.length,
-      sites: this.sitesRowData.filter((s) => !s.isCamera).length,
-      cameras: this.sitesRowData.filter((s) => s.isCamera).length,
+      users: this.usersDisplay.length,
+      sites: this.sitesDisplay.length,
+      cameras: this.sitesDisplay.reduce(
+        (sum, s) => sum + s.cameras.length,
+        0
+      ),
     });
   }
 
-  /** ngOnChanges to initialize data on input change */
+  /* ========== Lifecycle ========== */
+
   ngOnChanges() {
     if (this.data) {
       this.updateSitesAndUsers(this.data);
     }
-  }
-
-  /** AG Grid tree data hierarchy */
-  getDataPath = (data: any) => {
-    const siteId = data.siteId?.toString() || "unknown-site";
-    if (data.isCamera) {
-      return [siteId, data.cameraName || "unknown-camera"];
-    } else {
-      return [siteId];
-    }
-  };
-
-  /** AG Grid ready handlers */
-  onSitesGridReady(params: GridReadyEvent) {
-    params.api.sizeColumnsToFit();
-  }
-
-  onUsersGridReady(params: GridReadyEvent) {
-    params.api.sizeColumnsToFit();
   }
 
   closePopup() {

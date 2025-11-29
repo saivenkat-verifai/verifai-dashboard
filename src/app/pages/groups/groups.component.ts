@@ -110,7 +110,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   columnDefs: ColDef[] = [
     { headerName: "ID", field: "id", sortable: true ,flex: 1, minWidth: 80,  cellStyle: { opacity: "0.5" }},
-    { headerName: "NAME", field: "name", flex: 2, minWidth: 180, sortable: true },
+    { headerName: "NAME", field: "name", flex: 2, minWidth: 120, sortable: true },
     {
       headerName: "LEVEL",
       field: "level",
@@ -143,7 +143,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
       },
     },
     {
-      headerName: "MORE",
+     headerName: 'MORE INFO',
       flex: 1, minWidth: 60,
       field: "more",
       cellRenderer: () => `
@@ -488,15 +488,35 @@ get filteredUsers() {
     this.showPopup = !this.showPopup; // toggle popup
   }
 
-  onSectionChange(section: string) {
-    this.currentSection = section;
+onSectionChange(section: string) {
+  this.currentSection = section;
 
-    if (section === "camera") {
-      this.loadSitesDropdown();
-    } else if (section === "employee") {
-      this.loadUsers(); // load employees here
-    }
+  if (section === "camera") {
+    // 🔄 Every time you go to Site & Camera, start with a clean form
+    this.selectedSiteId = null;
+    this.selectedCameraId = null;
+    this.selectedCameraIds = [];
+    this.sitesDropdown = [];
+    this.camerasDropdown = [];
+
+    this.loadSitesDropdown();
+  } else if (section === "employee") {
+    // 🔄 Every time you go to Employee, reset selection & filters
+    this.searchUserTerm = "";
+    this.selectedUserIds = [];
+    this.errorMessage = "";
+    this.loadUsers();
+  } else if (section === "queue") {
+    // 🔄 Reset create queue form
+    this.newQueue = {
+      queueName: "",
+      levelId: null,
+    };
+    this.getLevelsData();
   }
+}
+
+
 
   // Load sites when popup opens
   loadSitesDropdown() {
@@ -528,20 +548,26 @@ get filteredUsers() {
   }
 
   // Load cameras based on selected site
-  onSiteChange(siteId: number) {
-    this.selectedSiteId = siteId;
-    this.selectedCameraId = null; // reset camera
-    this.groupsService.getCameras(siteId).subscribe({
-      next: (res: any) => {
-        this.camerasDropdown = res.data.map((c: any) => ({
-          label: c.name,
-          value: c.cameraId,
-        }));
-        console.log("Cameras dropdown:", this.camerasDropdown);
-      },
-      error: (err) => console.error("Error fetching cameras:", err),
-    });
-  }
+onSiteChange(siteId: number) {
+  this.selectedSiteId = siteId;
+  this.selectedCameraId = null;
+  this.selectedCameraIds = []; // clear previous camera selection
+
+  this.groupsService.getCameras(siteId).subscribe({
+    next: (res: any) => {
+      const cams = Array.isArray(res.data) ? res.data : [];
+
+      this.camerasDropdown = cams.map((c: any) => ({
+        label: c.cameraName || c.name || `Camera ${c.cameraId}`,
+        value: c.cameraId,
+      }));
+
+      console.log("Cameras dropdown:", this.camerasDropdown);
+    },
+    error: (err) => console.error("Error fetching cameras:", err),
+  });
+}
+
 
   cameras = [
     { id: 1, name: "Camera 1" },
@@ -550,9 +576,29 @@ get filteredUsers() {
 
   currentSection: string = "default"; // default = normal right section
 
-  goBack() {
-    this.currentSection = "default";
-  }
+goBack() {
+  // Switch back to the default right section (right panel summary view)
+  this.currentSection = "default";
+
+  // 🔹 Reset Site / Camera section state
+  this.selectedSiteId = null;
+  this.selectedCameraId = null;
+  this.selectedCameraIds = [];
+  this.sitesDropdown = [];
+  this.camerasDropdown = [];
+
+  // 🔹 Reset Employee section state
+  this.searchUserTerm = "";
+  this.selectedUserIds = [];
+  this.errorMessage = "";
+
+  // (Optional) reset users list so it's always freshly loaded next time
+  // this.users = [];
+
+  // (Optional) reset create queue form too if you like:
+  // this.newQueue = { queueName: "", levelId: null };
+}
+
 
   formatDateTime(dateStr: string) {
     const d = new Date(dateStr);

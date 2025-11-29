@@ -16,11 +16,12 @@
 
       <!-- Calendar Section -->
       <div class="calendar-section-wrapper">
-        <app-calendar
-          [showViewDropdown]="false"
-          (dateRangeSelected)="onDateRangeSelected($event)"
-        >
-        </app-calendar>
+    <app-calendar
+  [showViewDropdown]="false"
+  variant="dashboard"
+  (dateRangeSelected)="onDateRangeSelected($event)"
+>
+</app-calendar>
       </div>
 
       <!-- Dashboard Cards -->
@@ -65,7 +66,9 @@
                       "
                     />
                   </svg>
-                  <div class="circle-text">{{ card.percentage }}%</div>
+                 <div class="circle-text">
+  {{ card.percentage | number: '1.0-0' }}%
+</div>
                 </div>
               </div>
             </div>
