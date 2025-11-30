@@ -8,12 +8,11 @@ import {
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AgGridModule } from "ag-grid-angular";
-import { ColDef } from "ag-grid-community";
+import { ColDef, GridApi, Column } from "ag-grid-community";
 import { DialogModule } from "primeng/dialog";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
-import { GridApi, Column } from "ag-grid-community";
-import { EventsService } from "src/app/pages/events/events.service"; // adjust path
+import { EventsService } from "src/app/pages/events/events.service";
 
 @Component({
   selector: "app-escalation-popup",
@@ -52,28 +51,25 @@ export class EscalationPopupComponent implements OnChanges {
     this.selectedTZ = tz;
     this.refreshTimeColumns();
   }
+
   /**
-   * Returns the appropriate datetime string for the given base field
-   * based on the currently selected timezone.
-   * baseField is one of: 'receiveAt' | 'reviewStart' | 'reviewEnd'
+   * Returns the appropriate time string for the given base field
+   * ('receiveAt' | 'reviewStart' | 'reviewEnd') based on selectedTZ.
    */
-  // 1) Keep the function signature narrow for call-sites
   private getTimeValue =
     (baseField: "receiveAt" | "reviewStart" | "reviewEnd") => (params: any) => {
-      // 2) key must be a string (not the narrow union)
       let key: string = baseField;
       if (this.selectedTZ === "CT") key = `${baseField}(CT)`;
       else if (this.selectedTZ === "IST") key = `${baseField}(IST)`;
 
-      // 3) index with a string index; provide fallbacks
       const row = (params?.data ?? {}) as Record<string, unknown>;
       const raw =
         (row[key] as string | Date | undefined) ??
         (row[baseField] as string | Date | undefined) ??
         "";
 
-      const full = this.formatDateTime(raw); // "dd-mm-yyyy HH:MM:SS"
-      return full.split(" ")[1] || ""; // only "HH:MM:SS"
+      const full = this.formatDateTime(raw);
+      return full.split(" ")[1] || ""; // only HH:MM:SS
     };
 
   private refreshTimeColumns() {
@@ -85,15 +81,15 @@ export class EscalationPopupComponent implements OnChanges {
     }
   }
 
-  // add this helper in the class
-private normalizeAvatarUrl(url?: string): string | undefined {
-  if (!url) return url;
-  // encode only assetName value so spaces like "Screenshot 2025-05-07 111143.png" work
-  return url.replace(/assetName=([^&]+)/, (_m, v) => `assetName=${encodeURIComponent(v)}`);
-}
+  private normalizeAvatarUrl(url?: string): string | undefined {
+    if (!url) return url;
+    return url.replace(
+      /assetName=([^&]+)/,
+      (_m, v) => `assetName=${encodeURIComponent(v)}`
+    );
+  }
 
-
-  // Column Definitions for escalation
+  /** ================= ESCALATION COLUMN DEFS ================= */
   escalationColumnDefs: ColDef[] = [
     {
       headerName: "USER",
@@ -101,21 +97,21 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       headerClass: "custom-header",
       cellClass: "custom-cell",
       cellRenderer: this.userCellRenderer.bind(this),
-      editable: false, // User column with avatar is not editable
+      editable: false,
     },
     {
       headerName: "USER LEVEL",
       field: "userLevel",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
+      editable: false,
     },
     {
       headerName: "RECEIVE AT",
       field: "receiveAt",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (p) => p.data.isEditing,
+      editable: false,
       valueGetter: this.getTimeValue("receiveAt"),
     },
     {
@@ -123,7 +119,7 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       field: "reviewStart",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (p) => p.data.isEditing,
+      editable: false,
       valueGetter: this.getTimeValue("reviewStart"),
     },
     {
@@ -131,7 +127,7 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       field: "reviewEnd",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (p) => p.data.isEditing,
+      editable: false,
       valueGetter: this.getTimeValue("reviewEnd"),
     },
     {
@@ -139,28 +135,29 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       field: "duration",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
+      editable: false,
     },
     {
       headerName: "ACTION TAG",
       field: "actionTag",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
+      editable: false,
     },
     {
       headerName: "TAG",
       field: "subActionTag",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
+      // editable ONLY for duplicate row in edit mode
+      editable: (params) => params.data.isDuplicate && params.data.isEditing,
     },
     {
       headerName: "NOTES",
       field: "notes",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isEditing,
+      editable: (params) => params.data.isDuplicate && params.data.isEditing,
     },
     {
       headerName: "END OF SHIFT",
@@ -171,8 +168,13 @@ private normalizeAvatarUrl(url?: string): string | undefined {
         container.style.display = "flex";
         container.style.gap = "6px";
 
-        if (params.data.isEditing) {
-          // Save button (tick)
+        const rowIndex = params.node.rowIndex;
+        const lastRowIndex = params.api.getDisplayedRowCount() - 1;
+        const isDuplicate = !!params.data.isDuplicate;
+        const isEditing = !!params.data.isEditing;
+
+        // CASE 1: duplicate row in edit -> show ✓ / X
+        if (isDuplicate && isEditing) {
           const saveBtn = document.createElement("button");
           saveBtn.className = "action-btn save-btn";
           saveBtn.innerText = "✓";
@@ -181,94 +183,120 @@ private normalizeAvatarUrl(url?: string): string | undefined {
             this.saveEscalation(params.data);
           });
 
-          // Cancel button
           const cancelBtn = document.createElement("button");
           cancelBtn.className = "action-btn delete-btn";
           cancelBtn.innerText = "x";
           cancelBtn.addEventListener("click", () => {
-            params.data.isEditing = false;
-            params.api.refreshCells({ rowNodes: [params.node], force: true });
-            params.api.stopEditing(true); // Cancel editing
+            params.api.applyTransaction({ remove: [params.data] });
           });
 
           container.appendChild(saveBtn);
           container.appendChild(cancelBtn);
-        } else {
-          // Edit button
-          // Edit button
+          return container;
+        }
+
+        // CASE 2: last ORIGINAL row (not duplicate) -> show pencil
+        if (!isDuplicate && rowIndex === lastRowIndex) {
           const editBtn = document.createElement("button");
           editBtn.className = "action-btn1 edit-btn1";
 
-          // Create an image element for the pencil icon
           const pencilIcon = document.createElement("img");
-          pencilIcon.src = "assets/pencil.svg"; // replace with the correct path to your SVG
+          pencilIcon.src = "assets/pencil.svg";
           pencilIcon.alt = "Edit";
-          pencilIcon.style.width = "16px"; // adjust size as needed
+          pencilIcon.style.width = "16px";
           pencilIcon.style.height = "16px";
 
-          // Append the image to the button
           editBtn.appendChild(pencilIcon);
 
           editBtn.addEventListener("click", () => {
-            params.data.isEditing = true;
-            params.api.refreshCells({ rowNodes: [params.node], force: true });
-            params.api.startEditingCell({
-              rowIndex: params.node.rowIndex,
-              colKey: "userLevel", // Start editing on USER LEVEL column
-            });
+            this.createDuplicateRowFromLast(params);
           });
 
           container.appendChild(editBtn);
+          return container;
         }
 
+        // Other rows: no icon
         return container;
       },
     },
   ];
 
-  saveEscalation(data: any) {
-    if (!this.selectedEvent) {
-      console.error("No event selected");
-      return;
-    }
+  /** Create duplicate row from last row and put into edit mode */
+  createDuplicateRowFromLast(params: any) {
+    const lastRowNode = params.api.getDisplayedRowAtIndex(
+      params.api.getDisplayedRowCount() - 1
+    );
+    if (!lastRowNode) return;
 
-    const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
-    if (!eventId) {
-      console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
-      return;
-    }
+    const original = lastRowNode.data;
 
-    // Prepare payload based on the provided schema
-    const payload = {
-      eventsId: String(eventId),
-      userlevel: data.userLevel || 0,
-      user: data.user?.id || 0, // Assuming user object has an id
-      alarm: data.alarm || "",
-      landingTime: data.landingTime || "",
-      receivedTime: data.receiveAt || "",
-      reviewStartTime: data.reviewStart || "",
-      reviewEndTime: data.reviewEnd || "",
-      actionTag: Number(data.actionTag) || 0,
-      subActionTag: Number(data.subActionTag) || 0,
-      notes: data.notes || "",
+    const duplicate = {
+      ...original,
+      isDuplicate: true,
+      isEditing: true,
     };
 
-    console.log("Sendinghjk escalation update payload:", payload);
+    const res = params.api.applyTransaction({ add: [duplicate] });
+    const newRowNode = res?.add && res.add[0] ? res.add[0] : null;
+    if (!newRowNode) return;
 
-    this.eventsService.putEventsMoreInfo(payload).subscribe({
-      next: (res) => {
-        console.log("Escalation updated successfully", res);
-        data.isEditing = false;
-        this.escalationGridApi.applyTransaction({ update: [data] });
-      },
-      error: (err) => {
-        console.error("Error updating escalation", err);
-      },
+    const rowIndex = newRowNode.rowIndex;
+    params.api.startEditingCell({
+      rowIndex,
+      colKey: "subActionTag",
     });
   }
+
+saveEscalation(data: any) {
+  if (!this.selectedEvent) {
+    console.error("No event selected");
+    return;
+  }
+
+  const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+  if (!eventId) {
+    console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+    return;
+  }
+
+  // Make sure we have a number (in case it's a string "1")
+  const levelId =
+    typeof data.levelId === "number" ? data.levelId : Number(data.levelId) || 0;
+
+  const payload = {
+    eventsId: String(eventId),
+    userlevel: levelId,                 // ✅ use levelId from API row
+    user: data.user?.id || 0,
+    alarm: data.alarm || "",
+    landingTime: data.landingTime || "",
+    receivedTime: data.receiveAt || "",
+    reviewStartTime: data.reviewStart || "",
+    reviewEndTime: data.reviewEnd || "",
+    actionTag: Number(data.actionTag) || 0,
+    subActionTag: Number(data.subActionTag) || 0,
+    notes: data.notes || "",
+  };
+
+  console.log("Sending escalation update payload:", payload);
+
+  this.eventsService.putEventsMoreInfo(payload).subscribe({
+    next: (res) => {
+      console.log("Escalation updated successfully", res);
+      data.isEditing = false;
+      data.isDuplicate = false;
+      this.escalationGridApi.applyTransaction({ update: [data] });
+    },
+    error: (err) => {
+      console.error("Error updating escalation", err);
+    },
+  });
+}
+
+
   escalationGridApi!: GridApi;
 
-  // Column Definitions for alarm events
+  /** ================= ALARM COLUMN DEFS ================= */
   alarmColumnDefs: ColDef[] = [
     {
       headerName: "Time",
@@ -293,9 +321,9 @@ private normalizeAvatarUrl(url?: string): string | undefined {
           : "https://i.pravatar.cc/30?img=1";
 
         return `
-      <img src="${imgUrl}" alt="user"
-       style="width: 24px; height: 24px; border-radius: 50%;  margin-top: 15px " />
-    `;
+          <img src="${imgUrl}" alt="user"
+            style="width: 24px; height: 24px; border-radius: 50%;  margin-top: 15px " />
+        `;
       },
     },
     {
@@ -336,32 +364,29 @@ private normalizeAvatarUrl(url?: string): string | undefined {
     },
   ];
 
-  // Inside EscalationPopupComponent
   basicInfoFields: { label: string; field: string; default?: string }[] = [
     { label: "Escalation ID", field: "eventId" },
     { label: "Ticket No.", field: "ticketNo", default: "--" },
     { label: "Site Name", field: "siteName" },
     { label: "Camera Name", field: "cameraName" },
     { label: "Camera Id", field: "cameraId" },
-
     { label: "Event Time (CT)", field: "eventTime_CT" },
-    { label: "Event Time Customer", field: "eventStartTime" }, // Can be converted if needed
-    { label: "Event Time (IN)", field: "eventTime_IN" }, // Can be converted if needed
+    { label: "Event Time Customer", field: "eventStartTime" },
+    { label: "Event Time (IN)", field: "eventTime_IN" },
     { label: "Type", field: "eventType", default: "--" },
     { label: "City", field: "country" },
   ];
 
-  // Inside EscalationPopupComponent
   getEventDotColor(eventType: string): string {
     switch (eventType) {
       case "Manual Wall":
-        return "#FFC400"; // yellow
+        return "#FFC400";
       case "Event Wall":
-        return "#53BF8B"; // green
+        return "#53BF8B";
       case "Missed Wall":
-        return "#FF0000"; // red
+        return "#FF0000";
       default:
-        return "#ccc"; // default gray
+        return "#ccc";
     }
   }
 
@@ -371,28 +396,28 @@ private normalizeAvatarUrl(url?: string): string | undefined {
     resizable: true,
   };
 
-  // Inside EscalationPopupComponent
   selectedEvent: any = null;
 
-  // Update row data when selectedItem changes
+  /** ================= CHANGES HANDLER ================= */
   ngOnChanges(changes: SimpleChanges) {
-
-
-
     if (changes["selectedItem"] && this.selectedItem) {
       console.log("API Data received in popup:", this.selectedItem);
 
-      // Escalation
-  this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map((item: any) => ({
-  ...item,
-  user: {
-    img: "https://i.pravatar.cc/30?img=1",  // 👈 fixed placeholder image,
-    name: item.userName ?? String(item.user ?? ''),
-    id: item.user ?? null,
-  },
-}));
+      // Escalation rows
+      this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map(
+        (item: any) => ({
+          ...item,
+          user: {
+            img: "https://i.pravatar.cc/30?img=1",
+            name: item.userName ?? String(item.user ?? ""),
+            id: item.user ?? null,
+          },
+          isEditing: false,
+          isDuplicate: false,
+        })
+      );
 
-      // Alarm
+      // Alarm rows
       this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
         (item: any) => ({
           ...item,
@@ -400,18 +425,18 @@ private normalizeAvatarUrl(url?: string): string | undefined {
         })
       );
 
-      // Comments
+      // Comments rows
       this.commentRowData = (this.selectedItem.eventComments || []).map(
         (c: any) => ({
           user: { img: "https://i.pravatar.cc/30?img=1" },
           name: c.NAME || "",
           level: c.level || "",
-          submittedtime: this.formatDateTime(c.submittedTime || new Date()), // <--- formatted
+          submittedtime: this.formatDateTime(c.submittedTime || new Date()),
           notes: c.notes || "",
         })
       );
 
-      // Event Details
+      // Event details
       this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
     }
   }
@@ -420,7 +445,6 @@ private normalizeAvatarUrl(url?: string): string | undefined {
     return this.basicInfoFields.map((field) => {
       let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
 
-      // Format date/time fields
       if (field.label.toLowerCase().includes("time") && value !== "--") {
         value = this.formatDateTime(value);
       }
@@ -429,13 +453,12 @@ private normalizeAvatarUrl(url?: string): string | undefined {
     });
   }
 
-  // Helper function in the component
   formatDateTime(dateInput: string | Date): string {
     const d = new Date(dateInput);
     const pad = (n: number) => n.toString().padStart(2, "0");
 
     const day = pad(d.getDate());
-    const month = pad(d.getMonth() + 1); // months are 0-indexed
+    const month = pad(d.getMonth() + 1);
     const year = d.getFullYear();
 
     const hours = pad(d.getHours());
@@ -444,16 +467,18 @@ private normalizeAvatarUrl(url?: string): string | undefined {
 
     return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
   }
-  // Grid ready handler
+
+  // Grid ready handler (for escalation + alarm grid)
   onGridReady(params: any) {
-    this.escalationGridApi = params.api; // 👈 keep a handle for refresh
+    this.escalationGridApi = params.api;
     params.api.sizeColumnsToFit();
     params.columnApi.autoSizeAllColumns();
-    this.commentGridApi = params.api; // (If this was intended for a different grid, leave that in its own ready handler)
+    this.commentGridApi = params.api; // you already had this line; keeping as-is
   }
 
   commentGridApi!: GridApi;
   commentGridColumnApi!: Column;
+
   onCommentGridReady(params: any) {
     params.api.sizeColumnsToFit();
     this.commentGridApi = params.api;
@@ -462,14 +487,14 @@ private normalizeAvatarUrl(url?: string): string | undefined {
 
   // Column definitions for comments
   commentColumnDefs: ColDef[] = [
- {
-  headerName: "USER",
-  field: "user",
-  headerClass: "custom-header",
-  cellClass: "custom-cell",
-  cellRenderer: this.userCellRenderer.bind(this),
-  editable: false,
-},
+    {
+      headerName: "USER",
+      field: "user",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      cellRenderer: this.userCellRenderer.bind(this),
+      editable: false,
+    },
     {
       headerName: "NAME",
       field: "name",
@@ -503,7 +528,7 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       headerClass: "custom-header",
       cellClass: "custom-cell",
       cellRenderer: (params: any) => {
-        if (!params.data.isNew) return ""; // no buttons for old rows
+        if (!params.data.isNew) return "";
 
         const container = document.createElement("div");
         container.style.display = "flex";
@@ -541,7 +566,7 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       level: "",
       submittedtime: new Date().toISOString(),
       notes: "",
-      isNew: true, // flag to show buttons
+      isNew: true,
     };
 
     this.commentGridApi.applyTransaction({ add: [newComment] });
@@ -558,29 +583,24 @@ private normalizeAvatarUrl(url?: string): string | undefined {
       return;
     }
 
-    // Ensure eventId is a number
     const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
     if (!eventId) {
       console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
       return;
     }
 
-    // Prepare payload according to typical backend field names
     const payload = {
       eventsId: String(this.selectedItem.eventDetails[0]?.eventId),
       commentsInfo: data.notes || "",
-      createdBy: 123, // replace with logged-in user ID
+      createdBy: 123,
       remarks: "Added via escalation popup",
     };
 
     console.log("Sending comment payload:", payload);
 
-    // Send POST request with explicit application/json header
     this.eventsService.addComment(payload).subscribe({
       next: (res) => {
         console.log("Comment saved successfully", res);
-
-        // Update grid row timestamp
         data.submittedtime = new Date().toISOString();
         this.commentGridApi.applyTransaction({ update: [data] });
       },
@@ -596,17 +616,16 @@ private normalizeAvatarUrl(url?: string): string | undefined {
 
   commentRowData: any[] = [];
 
-  // Custom cell renderer for user (avatar + optional name)
-userCellRenderer(params: any) {
-  const u = params.value;
-  if (u?.img) {
-    return `
-      <div style="display:flex;align-items:center;gap:6px;">
-        <img src="${u.img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
-        ${u.name ? `<span>${u.name}</span>` : ''}
-      </div>
-    `;
+  userCellRenderer(params: any) {
+    const u = params.value;
+    if (u?.img) {
+      return `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <img src="${u.img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
+          ${u.name ? `<span>${u.name}</span>` : ""}
+        </div>
+      `;
+    }
+    return u?.name || "";
   }
-  return u?.name || '';
-}
 }

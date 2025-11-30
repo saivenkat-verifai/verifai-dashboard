@@ -38,7 +38,7 @@
     <div class="alarm-events">
       <h2>ALARM EVENTS ON</h2>
       <ag-grid-angular
-        style="width: 100%"
+        style="width: 100%; height: 250px"
         theme="legacy"
         class="ag-theme-alpine"
         [rowData]="alarmRowData"
@@ -51,7 +51,6 @@
         [paginationPageSize]="3"
         [paginationPageSizeSelector]="[3, 20, 50, 100]"
         (gridReady)="onGridReady($event)"
-        style="width: 100%; height: 250px"
       ></ag-grid-angular>
     </div>
   </div>
@@ -68,8 +67,6 @@
   <div class="div">
     <p class="borderline"></p>
   </div>
-
-
 
   <!-- ======================= ESCALATION REPORT ======================= -->
   <div class="report-header">

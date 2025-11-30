@@ -157,7 +157,7 @@ export class EventsComponent implements OnInit, OnDestroy {
       : undefined;
 
     const filtered = base.filter((row) => {
-      const timeField = row.eventTime || row.eventStartTime;
+      const timeField = row.eventTime || row.eventStartTime || row.timestamp;
       if (!this.withinRange(timeField, start, end)) return false;
 
       // dropdowns
@@ -859,7 +859,7 @@ export class EventsComponent implements OnInit, OnDestroy {
             eventType: tag,
             eventTag: msg.eventTag,
             actionTag: msg.actionTag ?? lastAlarm?.actionTag ?? null,
-            actionTime: msg.actionTime ?? msg.landingTime,
+            actionTime: msg.actionTime,
             timezone: msg.timezone,
             alertType: this.ALERT_COLORS[tag],
           });
@@ -1537,7 +1537,11 @@ export class EventsComponent implements OnInit, OnDestroy {
       },
       {
         headerName: "EVENT TIME",
-        field: "eventTime",
+        // field: "displayTime",
+       valueGetter: (params) => {
+          return params.data.eventTime || params.data.eventStartTime || params.data.timestamp;
+       },
+
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",

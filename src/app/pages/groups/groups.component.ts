@@ -175,6 +175,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
   newQueue = {
     queueName: "", // bind this to your input
     levelId: null, // bind this to your dropdown
+     category: null as string | null,  // ⭐ NEW - category dropdown
   };
 
   onCreateQueueClick() {
@@ -183,36 +184,52 @@ export class GroupsComponent implements OnInit, OnDestroy {
   }
 
  createQueue() {
-  if (!this.newQueue.queueName || !this.newQueue.levelId) return;
+    // ⭐ Now also require category
+    if (
+      !this.newQueue.queueName ||
+      !this.newQueue.levelId ||
+      !this.newQueue.category
+    ) {
+      console.warn("Queue Name, Level, and Category are required");
+      return;
+    }
 
-  const payload = {
-    queueName: this.newQueue.queueName,
-    levelId: this.newQueue.levelId,
-    remarks: "created by sai venkat",
-    createdBy: 0,
-  };
+    const payload = {
+      queueName: this.newQueue.queueName,
+      levelId: this.newQueue.levelId,
+      category: this.newQueue.category,          // ⭐ NEW - sent to API
+      remarks: "created by sai venkat",
+      createdBy: 0,
+    };
 
-  this.groupsService.postQueues(payload).subscribe({
-    next: (res) => {
-      const newId =
-        res?.queueId ??
-        res?.data?.queueId ??
-        res?.createdQueueId; // adjust based on actual response
+    console.log("Create Queue payload:", payload);
 
-      this.newQueue = { queueName: "", levelId: null };
-      this.goBack();
+    this.groupsService.postQueues(payload).subscribe({
+      next: (res) => {
+        const newId =
+          res?.queueId ??
+          res?.data?.queueId ??
+          res?.createdQueueId;
 
-      // 👇 If API returns id, open that one; else just preserve current
-      if (newId) {
-        this.selectedQueueId = newId;
-        this.loadGroups(newId);
-      } else {
-        this.loadGroups(this.selectedQueueId ?? undefined);
-      }
-    },
-    error: (err) => console.error("Error creating queue:", err),
-  });
-}
+        // reset form, including category
+        this.newQueue = {
+          queueName: "",
+          levelId: null,
+          category: null,                        // ⭐ NEW
+        };
+
+        this.goBack();
+
+        if (newId) {
+          this.selectedQueueId = newId;
+          this.loadGroups(newId);
+        } else {
+          this.loadGroups(this.selectedQueueId ?? undefined);
+        }
+      },
+      error: (err) => console.error("Error creating queue:", err),
+    });
+  }
 
 
   onAddClick() {
@@ -511,6 +528,7 @@ onSectionChange(section: string) {
     this.newQueue = {
       queueName: "",
       levelId: null,
+       category: null,        
     };
     this.getLevelsData();
   }
@@ -546,6 +564,14 @@ onSectionChange(section: string) {
       error: (err) => console.error("Error fetching users:", err),
     });
   }
+
+    // ⭐ NEW: Static categories for queues
+  queueCategories = [
+    { label: 'Timed-Out', value: 'Timed-Out' },
+    { label: 'Console',   value: 'Console' },
+    { label: 'Manual',    value: 'Manual' },
+  ];
+
 
   // Load cameras based on selected site
 onSiteChange(siteId: number) {
