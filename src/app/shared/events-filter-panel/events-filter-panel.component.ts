@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-/** 👉 Exported so EventsComponent can import it */
+/** 👉 Shared between EventsComponent and this panel */
 export interface EventsFilterCriteria {
   startDate: string | null;
   startTime: string;
@@ -10,12 +10,18 @@ export interface EventsFilterCriteria {
   endTime: string;
   minDuration: number | null;
   maxDuration: number | null;
+
   city: string;
   site: string;
   camera: string;
-  actionTag: string;
-  eventType: string;
+  actionTag: string;   // used mainly in CLOSED tab
+  eventType: string;   // used as "Alert Type"
   employee: string;
+
+  // 👉 Pending-only filters
+  queueLevel: string;
+  queueName: string;
+  consoleType: string;
 }
 
 @Component({
@@ -35,10 +41,17 @@ export class EventsFilterPanelComponent {
   @Input() eventTypes: string[] = [];
   @Input() employees: string[] = [];
 
-  /** 👇 this matches [filter]="currentFilter" from EventsComponent */
+  @Input() queueLevels: string[] = [];
+  @Input() queues: string[] = [];
+  @Input() consoleTypes: string[] = [];
+
+  /** PENDING tab toggles */
+  @Input() consolesChecked = true;
+  @Input() queuesChecked = false;
+
+  /** current filter from parent */
   @Input() set filter(value: EventsFilterCriteria | null) {
     if (value) {
-      // clone to avoid mutating parent object directly
       this.model = { ...value };
     }
   }
@@ -47,14 +60,16 @@ export class EventsFilterPanelComponent {
   @Output() reset = new EventEmitter<void>();
   @Output() apply = new EventEmitter<EventsFilterCriteria>();
 
-  /** Local working model for the form */
+  @Output() consolesToggle = new EventEmitter<void>();
+  @Output() queuesToggle = new EventEmitter<void>();
+
+  /** Local working model */
   model: EventsFilterCriteria = {
     startDate: null,
     startTime: '00:00',
     endDate: null,
     endTime: '23:59',
     minDuration: 0,
-    
     maxDuration: 120,
     city: 'All',
     site: 'All',
@@ -62,6 +77,9 @@ export class EventsFilterPanelComponent {
     actionTag: 'All',
     eventType: 'All',
     employee: 'All',
+    queueLevel: 'All',
+    queueName: 'All',
+    consoleType: 'All',
   };
 
   /** ------- Slider percentage helpers (0–120 mins) ------- */
@@ -81,7 +99,6 @@ export class EventsFilterPanelComponent {
     if (this.model.maxDuration == null) {
       this.model.maxDuration = 120;
     }
-    // clamp so min <= max
     this.model.minDuration = Math.min(val, this.model.maxDuration);
   }
 
@@ -90,7 +107,6 @@ export class EventsFilterPanelComponent {
     if (this.model.minDuration == null) {
       this.model.minDuration = 0;
     }
-    // clamp so max >= min
     this.model.maxDuration = Math.max(val, this.model.minDuration);
   }
 
@@ -99,6 +115,8 @@ export class EventsFilterPanelComponent {
     const mm = m.toString().padStart(2, '0');
     return `${mm}:00`;
   }
+
+  /** -------------------- UI events -------------------- */
 
   onClose(): void {
     this.close.emit();
@@ -122,7 +140,18 @@ export class EventsFilterPanelComponent {
       actionTag: 'All',
       eventType: 'All',
       employee: 'All',
+      queueLevel: 'All',
+      queueName: 'All',
+      consoleType: 'All',
     };
     this.reset.emit();
+  }
+
+  onConsolesToggle(): void {
+    this.consolesToggle.emit();
+  }
+
+  onQueuesToggle(): void {
+    this.queuesToggle.emit();
   }
 }

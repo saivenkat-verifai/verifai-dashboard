@@ -210,21 +210,21 @@
               filterPlaceholder="Search site"
             ></p-dropdown>
           </div>
-         <!-- Show camera dropdown as soon as a site is selected -->
-<div class="form-group" *ngIf="selectedSiteId">
-  <label for="camera">Select Cameras</label>
-  <p-multiSelect
-    [options]="camerasDropdown"
-    placeholder="Select Cameras"
-    [(ngModel)]="selectedCameraIds"
-    [ngModelOptions]="{ standalone: true }"
-    optionLabel="label"
-    optionValue="value"
-    [style]="{ width: '100%' }"
-    display="chip"
-    [disabled]="!camerasDropdown.length"
-  ></p-multiSelect>
-</div>
+          <!-- Show camera dropdown as soon as a site is selected -->
+          <div class="form-group" *ngIf="selectedSiteId">
+            <label for="camera">Select Cameras</label>
+            <p-multiSelect
+              [options]="camerasDropdown"
+              placeholder="Select Cameras"
+              [(ngModel)]="selectedCameraIds"
+              [ngModelOptions]="{ standalone: true }"
+              optionLabel="label"
+              optionValue="value"
+              [style]="{ width: '100%' }"
+              display="chip"
+              [disabled]="!camerasDropdown.length"
+            ></p-multiSelect>
+          </div>
 
           <div class="form-actions">
             <button type="button" class="btn cancel-btn" (click)="goBack()">
@@ -343,18 +343,18 @@
               [style]="{ width: '100%', height: '35px' }"
             ></p-dropdown>
           </div>
-           <div class="form-group">
-    <label for="queueCategory">Category</label>
-    <p-dropdown
-      [options]="queueCategories"          
-      [(ngModel)]="newQueue.category"       
-      [ngModelOptions]="{ standalone: true }"
-      optionLabel="label"
-      optionValue="value"
-      placeholder="Select Category"
-      [style]="{ width: '100%', height: '35px' }"
-    ></p-dropdown>
-  </div>
+          <div class="form-group">
+            <label for="queueCategory">Category</label>
+            <p-dropdown
+              [options]="queueCategories"
+              [(ngModel)]="newQueue.category"
+              [ngModelOptions]="{ standalone: true }"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Select Category"
+              [style]="{ width: '100%', height: '35px' }"
+            ></p-dropdown>
+          </div>
 
           <div class="form-actions row">
             <div class="col-6">

@@ -74,6 +74,175 @@
 
 }
 
+/* header black bar + layout is probably already there */
+.comment-right-tablepopup{
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 450px;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+      z-index: 1000;
+}
+
+/* reuse for both popups */
+.comment-popup-header {
+  background: #000;
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.popup-header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.popup-body {
+  padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.refreshbutton {
+  height: 25px;
+  background-color: white;
+  border: 1px solid #0000001A;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;                /* little horizontal padding */
+  cursor: pointer;
+
+  /* 👇 smooth animation for click effect */
+  transition:
+    transform 0.1s ease-out,
+    box-shadow 0.1s ease-out,
+    background-color 0.1s ease-out;
+}
+
+/* hover: subtle shadow */
+.refreshbutton:hover {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.18);
+  background-color: #fafafa;
+}
+
+/* active (while mouse is pressed) – “click” effect */
+.refreshbutton:active {
+  transform: scale(0.96);                 /* small shrink */
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25); /* tighter shadow */
+  background-color: #f0f0f0;
+}
+
+
+/* add-comment specific */
+.add-comment-body {
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 60%, #f3f3f3 100%);
+}
+
+.circle-icon-btn {
+     width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #ffffff00;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.select-input,
+.textarea-input {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #dedede;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.legend-group{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.event-wall-label{
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.manual-wall-label{
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.timedOut-wall-label{
+    margin-left: 5px;
+    margin-right: 10px;
+}
+
+.refreshbutton{
+    margin-right: 5px;
+}
+
+.refresh-group{
+      display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.textarea-input {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.add-comment-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 30px;
+}
+
+.btn {
+  min-width: 195px;
+  height: 35px;
+  border-radius: 6px;
+  border: 1px solid #ed3237;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: #fff;
+  color: #ed3237;
+}
+
+.btn-primary {
+  background: #ed3237;
+  color: #fff;
+}
+
+
 /* === DASHBOARD CONTENT === */
 .dashboard-content {
     display: flex;
@@ -789,7 +958,7 @@ input:checked+.slider:before {
 .popup-body {
 
     overflow-y: auto;
-    margin: 15px;
+    /* margin: 15px; */
     flex: 1;
 }
 
@@ -1144,16 +1313,16 @@ input:checked+.slider:before {
   min-width: 260px;                /* optional: keep from becoming too skinny */
 }
 
-.play-image {
+/* .play-image {
   max-width: 320px;
   max-height: 180px;
   object-fit: contain;
   border-radius: 4px;
-}
+} */
 
 .play-image {
-  width: 320px;
-  height: 180px;
+  width: 340px;
+  height: 280px;
   object-fit: contain;
   border-radius: 8px;
 }

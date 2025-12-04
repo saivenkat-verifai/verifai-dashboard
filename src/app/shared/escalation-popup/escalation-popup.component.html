@@ -1,4 +1,5 @@
-<div class="popup-container">
+<!-- ===================== ESCALATION DETAILS VIEW ===================== -->
+<div class="popup-container" *ngIf="!isAddCommentView">
   <div class="section">
     <!-- BASIC INFO -->
     <div class="basic-info" *ngIf="selectedEvent">
@@ -133,12 +134,16 @@
   </ag-grid-angular>
 
   <!-- ======================= COMMENTS ======================= -->
-  <div class="report-header">
-    <h2>Comments</h2>
-    <div class="timezone">
-      <p-button class="today-btn" (onClick)="addComments()"> + ADD </p-button>
-    </div>
+ <!-- ======================= COMMENTS ======================= -->
+<div class="report-header">
+  <h2>COMMENTS</h2>
+  <div class="timezone">
+    <!-- instead of addComments(), call a small handler that notifies parent -->
+    <p-button class="today-btn" (onClick)="handleAddClick()">
+      + ADD
+    </p-button>
   </div>
+</div>
 
   <div class="div">
     <p class="borderline"></p>
@@ -162,4 +167,81 @@
     (gridReady)="onCommentGridReady($event)"
   >
   </ag-grid-angular>
+</div>
+
+<!-- ===================== ADD COMMENT VIEW ===================== -->
+<div class="add-comment-container" *ngIf="isAddCommentView">
+  <div class="add-comment-header">
+    <div class="add-comment-header-left">
+      <button
+        type="button"
+        class="icon-circle-btn"
+        (click)="onCancelAddComment()"
+        aria-label="Back"
+      >
+        ←
+      </button>
+      <span class="add-comment-title">ADD COMMENT</span>
+    </div>
+
+    <button
+      type="button"
+      class="icon-circle-btn"
+      (click)="onCancelAddComment()"
+      aria-label="Close"
+    >
+      ✕
+    </button>
+  </div>
+
+  <div class="add-comment-body">
+    <!-- Tag -->
+    <div class="form-group">
+      <label class="form-label">Tag</label>
+      <select
+        class="select-input"
+        [(ngModel)]="addCommentForm.tag"
+        name="commentTag"
+      >
+        <option [ngValue]="null">Select</option>
+        <option
+          *ngFor="let t of commentTags"
+          [ngValue]="t.value"
+        >
+          {{ t.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Comment text -->
+    <div class="form-group">
+      <label class="form-label">Comment</label>
+      <textarea
+        class="textarea-input"
+        rows="6"
+        placeholder="Text Here"
+        [(ngModel)]="addCommentForm.notes"
+        name="commentNotes"
+      ></textarea>
+    </div>
+
+    <!-- Buttons -->
+    <div class="add-comment-actions">
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="onCancelAddComment()"
+      >
+        CANCEL
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="onSubmitAddComment()"
+      >
+        ADD
+      </button>
+    </div>
+  </div>
 </div>

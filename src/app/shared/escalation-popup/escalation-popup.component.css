@@ -1,4 +1,3 @@
-
 @font-face {
   font-family: 'Neometric Regular';
   src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
@@ -45,52 +44,29 @@
 }
 
 @font-face {
-    font-family: 'NasalizationLight';
-    font-style: normal;
-    /* font-weight: 400; */
+  font-family: 'NasalizationLight';
+  font-style: normal;
   src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
        format('woff');
 }
 
-
+/* --- Common AG-Grid tweaks --- */
 :host ::ng-deep .ag-theme-alpine .ag-cell,
 :host ::ng-deep .ag-theme-alpine .ag-cell-wrapper,
 :host ::ng-deep .ag-theme-alpine .ag-cell-value {
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    height: 100% !important;
+    /* justify-content: center; */
+    margin-left: 5px;
 }
 
 :host ::ng-deep .ag-theme-alpine .ag-cell {
   padding: 0 !important;
 }
 
-
 :host ::ng-deep .ag-theme-alpine .ag-cell-wrapper {
   width: 100% !important;
-}
-
-.popup-container {
-  max-width: 1200px;
-  margin: auto;
-  background: #fff;
-  border-radius: 12px;
-background: transparent linear-gradient(181deg, var(--unnamed-color-ffffff) 0%, #F3F3F3 50%, #EEEEEE 100%) 0% 0% no-repeat padding-box;
-}
-
-h2 {
-  font-size: 12px;
-  margin: 0 0 10px;
-  font-family: 'Neometric Alt Bold';
-
-}
-
-.section {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
 }
 
 :host ::ng-deep .custom-header {
@@ -108,14 +84,41 @@ h2 {
   font-size: 12px !important;
 }
 
+/* ================= ESCALATION DETAILS VIEW ================= */
+
+.popup-container {
+  max-width: 1200px;
+  margin: auto;
+  background: transparent linear-gradient(
+      181deg,
+      var(--unnamed-color-ffffff) 0%,
+      #f3f3f3 50%,
+      #eeeeee 100%
+    ) 0% 0% no-repeat padding-box;
+  border-radius: 12px;
+}
+
+h2 {
+  font-size: 12px;
+  margin: 0 0 10px;
+  font-family: 'Neometric Alt Bold';
+}
+
+.section {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
 /* 5-column for basic info, 7-column for alarm events */
 .basic-info {
-  flex: 0 0 41.66%; /* 5/12 = 41.66% */
+  flex: 0 0 41.66%;
   max-width: 41.66%;
 }
 
 .alarm-events {
-  flex: 0 0 58.33%; /* 7/12 = 58.33% */
+  flex: 0 0 58.33%;
   max-width: 58.33%;
 }
 
@@ -138,68 +141,12 @@ h2 {
   margin-right: 5px;
 }
 
-
-.basic-info p span {
-  font-weight: bold;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-
-}
-
-table th,
-table td {
-  border-bottom: 1px solid #ddd;
-  padding: 10px;
-  font-size: 12px;
-  font-family: 'Neometric Regular';
-  text-align: left;
-}
-
-table th {
-  background: #fafafa;
-  font-weight: 600;
-  font-family: 'Neometric Regular';
-}
-
-.alarm-table td {
-  vertical-align: middle;
-}
-
-.user-img {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 8px;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.tag-red {
-  color: red;
-  font-size: 18px;
-}
-
-.status-success {
-  color: green;
-  font-weight: 600;
-}
-
 .total-duration {
   display: flex;
   justify-content: space-between;
   margin: 15px 0;
-
   font-weight: bold;
   font-size: 12px;
-
   font-family: 'Neometric Alt Bold';
 }
 
@@ -214,106 +161,6 @@ table th {
   margin: 0;
 }
 
-/* Existing today-btn style (keep or adjust as needed) */
-.today-btn ::ng-deep .p-button {
-    background: #ffffff !important;
-    border: 1px solid #000 !important;
-    height: 30px !important;
-    color: black;
-    font-size: 15px;
-    font-family: 'Neometric Alt Bold';
-    padding: 0 6px !important;
-}
-
-.today-btn ::ng-deep .p-button:hover {
-  background: #f5f5f5 !important;
-}
-
-/* Common styles for both buttons */
-:host ::ng-deep .action-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: black;
-  color: white;
-  border: none;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-  margin: 0 2px; /* small spacing between buttons */
-}
-
-/* Common styles for both buttons */
-:host ::ng-deep .action-btn1 {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0);
-  color: rgba(255, 255, 255, 0);
-  border: none;
-  font-weight: bold;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.3s ease;
-  margin: 0 2px; /* small spacing between buttons */
-}
-
-
-
-/* Hover effect for all buttons */
-:host ::ng-deep .action-btn:hover {
-  background-color: #333;
-}
-
-
-
-/* Action cell wrapper to center buttons */
-:host ::ng-deep .action-cell {
-  display: flex;
-  align-items: center;   /* vertical center */
-  justify-content: center; /* horizontal center */
-}
-
-
-.action-btn {
-  padding: 4px 8px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-}
-
-.save-btn {
-  background-color: #28a745;
-  color: white;
-}
-
-.edit-btn {
-  background-color: #007bff;
-  color: white;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-
-.timezone {
-  display: flex;
-  gap: 15px;
-  font-size: 14px;
-  align-items: center;
-}
-
-
 .timezone {
   display: flex;
   justify-content: center;
@@ -322,37 +169,6 @@ table th {
 
 .timezone label {
   font-size: 10px;
-
-}
-
-.escalation-report h2 {
-  margin-top: 20px;
-}
-
-.note {
-  font-size: 12px;
-  color: #555;
-  margin-top: 5px;
-}
-
-.edit-icon {
-  cursor: pointer;
-}
-
-.add-btn {
-  margin-top: 10px;
-  display: flex;
-  justify-content: center;
-}
-
-.add-btn button {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #eee;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
 }
 
 .info-table {
@@ -361,20 +177,13 @@ table th {
   width: 100%;
 }
 
-.borderline{
-      border-bottom: 1px solid black;
-    opacity: 25%;
+.borderline {
+  border-bottom: 1px solid black;
+  opacity: 25%;
 }
 
 .row {
   display: table-row;
-}
-
-.row1 {
-  display: table-row;
-  display: flex
-;
-    flex-direction: row;
 }
 
 .label,
@@ -385,12 +194,9 @@ table th {
 }
 
 .label {
-  /* font-weight: 600; */
   width: 200px;
-  /* controls alignment */
   font-family: 'Neometric Medium';
   font-size: 10px;
-
   opacity: 40%;
 }
 
@@ -405,19 +211,6 @@ table th {
   font-size: 10px;
 }
 
-
-.report-grid {
-  width: 100%;
-  height: 300px;
-}
-
-.alarm-warning-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
-  vertical-align: middle;
-}
-
 .ag-theme-alpine {
   --ag-header-background-color: #fafafa;
   --ag-odd-row-background-color: #fcfcfc;
@@ -425,11 +218,191 @@ table th {
   overflow: hidden;
 }
 
+/* Buttons in escalation grid */
+:host ::ng-deep .action-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: black;
+  color: white;
+  border: none;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  margin: 0 2px;
+}
+
+:host ::ng-deep .action-btn1 {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn {
+  background-color: #28a745;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.today-btn ::ng-deep .p-button {
+  background: #ffffff !important;
+  border: 1px solid #000 !important;
+  height: 30px !important;
+  color: black;
+  font-size: 15px;
+  font-family: 'Neometric Alt Bold';
+  padding: 0 6px !important;
+}
+
+/* ================= ADD COMMENT VIEW ================= */
+
+.add-comment-container {
+  max-width: 1200px;
+  margin: auto;
+  border-radius: 12px;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.add-comment-header {
+  background: #000000;
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.add-comment-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.add-comment-title {
+  font-family: 'Neometric Alt Bold';
+  font-size: 16px;
+  letter-spacing: 0.05em;
+}
+
+.icon-circle-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  color: #000000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.icon-circle-btn:hover {
+  background: #f2f2f2;
+}
+
+.add-comment-body {
+  padding: 24px;
+  background: linear-gradient(180deg, #ffffff 0%, #f7f7f7 60%, #f3f3f3 100%);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-family: 'Neometric Alt Bold';
+}
+
+.select-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #dedede;
+  outline: none;
+}
+
+.textarea-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #dedede;
+  resize: vertical;
+  min-height: 140px;
+  outline: none;
+}
+
+.add-comment-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.btn {
+  height: 44px;
+  min-width: 140px;
+  border-radius: 6px;
+  font-family: 'Neometric Alt Bold';
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.btn-outline {
+  background: #ffffff;
+  border-color: #ed3237;
+  color: #ed3237;
+}
+
+.btn-primary {
+  background: #ed3237;
+  border-color: #ed3237;
+  color: #ffffff;
+}
+
+.btn-outline:hover {
+  background: #fff5f6;
+}
+
+.btn-primary:hover {
+  background: #d92027;
+}
+
+/* ================= RESPONSIVE ================= */
 @media (max-width: 900px) {
   .section {
     flex-wrap: wrap;
   }
-
   .basic-info,
   .alarm-events {
     flex: 1 1 100%;

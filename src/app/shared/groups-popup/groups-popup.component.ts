@@ -99,6 +99,22 @@ export class GroupsPopupComponent implements OnChanges {
       this.data.status = isActive ? "ACTIVE" : "INACTIVE";
     }
   }
+    currentUser: any = null;
+    ngOnInit() {
+    const raw =
+      localStorage.getItem("verifai_user") ||
+      sessionStorage.getItem("verifai_user");
+    console.log("Stored user data:", raw);
+
+    if (raw) {
+      try {
+        this.currentUser = JSON.parse(raw);
+        console.log("Current user in Groups:", this.currentUser);
+      } catch (e) {
+        console.error("Error parsing stored user data", e);
+      }
+    }
+  }
 
   onStatusToggle(event: Event) {
     if (!this.data || !this.data.id) return;
@@ -106,7 +122,7 @@ export class GroupsPopupComponent implements OnChanges {
     const input = event.target as HTMLInputElement;
     const isActive = input.checked;
     const status = isActive ? "ACTIVE" : "INACTIVE";
-    const modifiedBy = 123;
+    const modifiedBy = this.currentUser?.UserId || 0;
 
     this.groupsService
       .toggleQueueStatus(this.data.id, status, modifiedBy)
@@ -134,11 +150,7 @@ export class GroupsPopupComponent implements OnChanges {
     this.inactivateSite(site.siteId, this.data.id);
   }
 
-  onCameraDelete(
-    site: DisplaySite,
-    cam: DisplayCamera,
-    event: MouseEvent
-  ) {
+  onCameraDelete(site: DisplaySite, cam: DisplayCamera, event: MouseEvent) {
     event.stopPropagation();
     this.inactivateCamera(cam.cameraId, cam.queueSitesId, this.data.id);
   }
@@ -149,13 +161,13 @@ export class GroupsPopupComponent implements OnChanges {
 
   /* ========== API methods (same logic as before) ========== */
 
- inactivateCamera(
+  inactivateCamera(
     cameraId: string | number,
     queueSitesId: number,
     queueId: number
   ) {
-    const modifiedBy = 0;
-    const cameraIdStr = String(cameraId); // 👈 ensure string
+      const modifiedBy = this.currentUser?.UserId || 0;
+    const cameraIdStr = String(cameraId); // ensure string
 
     this.groupsService
       .inactivateQueuesCamera(cameraIdStr, queueSitesId, modifiedBy)
@@ -166,8 +178,7 @@ export class GroupsPopupComponent implements OnChanges {
               this.updateSitesAndUsers(res);
               this.refreshRequested.emit(queueId);
             },
-            error: (err) =>
-              console.error("Error refreshing data:", err),
+            error: (err) => console.error("Error refreshing data:", err),
           });
         },
         error: (err) => console.error("Error inactivating camera", err),
@@ -175,8 +186,8 @@ export class GroupsPopupComponent implements OnChanges {
   }
 
   inactivateSite(siteId: number | string, queueId: number) {
-    const modifiedBy = 123;
-    const siteIdNum = Number(siteId); // 👈 ensure number
+    const modifiedBy = this.currentUser?.UserId || 0;
+    const siteIdNum = Number(siteId); // ensure number
 
     this.groupsService
       .inactivateQueuesSite(siteIdNum, queueId, modifiedBy)
@@ -187,8 +198,7 @@ export class GroupsPopupComponent implements OnChanges {
               this.updateSitesAndUsers(res);
               this.refreshRequested.emit(queueId);
             },
-            error: (err) =>
-              console.error("Error refreshing data:", err),
+            error: (err) => console.error("Error refreshing data:", err),
           });
         },
         error: (err) => console.error("Error inactivating site", err),
@@ -196,7 +206,7 @@ export class GroupsPopupComponent implements OnChanges {
   }
 
   inactivateUser(userId: number, queueId: number) {
-    const modifiedBy = 123;
+      const modifiedBy = this.currentUser?.UserId || 0;
 
     this.groupsService
       .inactivateQueuesUser(userId, queueId, modifiedBy)
@@ -211,8 +221,7 @@ export class GroupsPopupComponent implements OnChanges {
               console.error("Error fetching sites and users:", err),
           });
         },
-        error: (error) =>
-          console.error("Error inactivating user", error),
+        error: (error) => console.error("Error inactivating user", error),
       });
   }
 
@@ -253,7 +262,7 @@ export class GroupsPopupComponent implements OnChanges {
         queueCamerasCount: site.queueCamerasCount ?? 0,
         totalCamerasCount: site.totalCamerasCount ?? 0,
         cameras,
-        expanded: false, // open by default
+        expanded: false,
       };
 
       return displaySite;

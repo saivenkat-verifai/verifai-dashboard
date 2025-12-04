@@ -44,73 +44,69 @@
     <div class="site-action-col"></div>
   </div>
 
-  <!-- Site + Camera rows -->
+  <!-- Site + Camera rows / empty state -->
   <div class="site-list">
-    <div
-      class="site-block"
-      *ngFor="let site of sitesDisplay"
-    >
-      <!-- main site row -->
-      <div class="site-row" (click)="toggleSiteExpand(site)">
-        <div class="site-id-col site-id-cell">
-          <span class="chevron">
-         <img
-  src="assets/down-arrow.png"
-  class="arrow-icon"
-  [class.expanded]="site.expanded"
-/>
-
-          </span>
-          <span class="site-id-text">{{ site.siteId }}</span>
-        </div>
-
-        <div class="site-name-col site-name-cell">
-          <span class="site-name-text">{{ site.siteName }}</span>
-        </div>
-
-        <div class="camera-count-col site-camera-count">
-          {{ site.queueCamerasCount }} / {{ site.totalCamerasCount }}
-        </div>
-
-        <div class="site-action-col">
-          <button
-            class="delete-btn"
-            (click)="onSiteDelete(site, $event)"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-
-      <!-- child cameras -->
-      <div
-        class="camera-list"
-        *ngIf="site.expanded && site.cameras.length"
-      >
-        <div
-          class="camera-row"
-          *ngFor="let cam of site.cameras"
-        >
-          <div class="site-id-col"></div>
-
-          <div class="site-name-col camera-name-cell">
-            {{ cam.cameraId }} - 
-            {{ cam.cameraName }}
+    <!-- When we have sites -->
+    <ng-container *ngIf="sitesDisplay && sitesDisplay.length; else noSitesTpl">
+      <div class="site-block" *ngFor="let site of sitesDisplay">
+        <!-- main site row -->
+        <div class="site-row" (click)="toggleSiteExpand(site)">
+          <div class="site-id-col site-id-cell">
+            <span class="chevron">
+              <img
+                src="assets/down-arrow.png"
+                class="arrow-icon"
+                [class.expanded]="site.expanded"
+              />
+            </span>
+            <span class="site-id-text">{{ site.siteId }}</span>
           </div>
 
-          <div class="camera-count-col"></div>
+          <div class="site-name-col site-name-cell">
+            <span class="site-name-text">{{ site.siteName }}</span>
+          </div>
+
+          <div class="camera-count-col site-camera-count">
+            {{ site.queueCamerasCount }} / {{ site.totalCamerasCount }}
+          </div>
 
           <div class="site-action-col">
-            <button
-              class="camera-delete-btn"
-              (click)="onCameraDelete(site, cam, $event)"
-            >
+            <button class="delete-btn" (click)="onSiteDelete(site, $event)">
               ✕
             </button>
           </div>
         </div>
+
+        <!-- child cameras -->
+        <div class="camera-list" *ngIf="site.expanded && site.cameras.length">
+          <div class="camera-row" *ngFor="let cam of site.cameras">
+            <div class="site-id-col"></div>
+
+            <div class="site-name-col camera-name-cell">
+              {{ cam.cameraId }} - {{ cam.cameraName }}
+            </div>
+
+            <div class="camera-count-col"></div>
+
+            <div class="site-action-col">
+              <button
+                class="camera-delete-btn"
+                (click)="onCameraDelete(site, cam, $event)"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </ng-container>
+
+    <!-- When NO sites -->
+    <ng-template #noSitesTpl>
+      <div class="empty-row">
+        No sites available
+      </div>
+    </ng-template>
   </div>
 
   <!-- ===================== EMPLOYEE INFO ===================== -->
@@ -119,36 +115,43 @@
   </div>
 
   <div class="employee-list">
-    <div
-      class="employee-row"
-      *ngFor="let user of usersDisplay"
-    >
-      <div class="employee-main">
-        <div class="user-info">
-          <img
-            class="user-img"
-            [src]="user.profileImage || 'assets/user1.png'"
-            [alt]="user.User_Name || 'User'"
-          />
+    <!-- When we have employees -->
+    <ng-container *ngIf="usersDisplay && usersDisplay.length; else noEmployeesTpl">
+      <div class="employee-row" *ngFor="let user of usersDisplay">
+        <div class="employee-main">
+          <div class="user-info">
+            <img
+              class="user-img"
+              [src]="user.profileImage || 'assets/user1.png'"
+              [alt]="user.User_Name || 'User'"
+            />
 
-          <div class="user-text">
-            <div class="emp-name">
-              {{ user.User_Name || "EMP NAME" }}
-            </div>
-            <div class="emp-id">
-              {{ user.userId || "ID" }}
+            <div class="user-text">
+              <div class="emp-name">
+                {{ user.User_Name || "EMP NAME" }}
+              </div>
+              <div class="emp-id">
+                {{ user.userId || "ID" }}
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          class="delete-btn"
-          *ngIf="(user.status || '').toLowerCase() === 'active'"
-          (click)="onUserDelete(user)"
-        >
-          ✕
-        </button>
+          <button
+            class="delete-btn"
+            *ngIf="(user.status || '').toLowerCase() === 'active'"
+            (click)="onUserDelete(user)"
+          >
+            ✕
+          </button>
+        </div>
       </div>
-    </div>
+    </ng-container>
+
+    <!-- When NO employees -->
+    <ng-template #noEmployeesTpl>
+      <div class="empty-row">
+        No employees available
+      </div>
+    </ng-template>
   </div>
 </div>

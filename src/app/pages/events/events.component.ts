@@ -116,20 +116,24 @@ export class EventsComponent implements OnInit, OnDestroy {
   onFilterClose() {
     this.isFilterOpen = false;
   }
-  currentFilter: EventsFilterCriteria = {
-    startDate: null,
-    endDate: null,
-    startTime: "00:00",
-    endTime: "23:59",
-    minDuration: 0,
-    maxDuration: 120,
-    city: "All",
-    site: "All",
-    camera: "All",
-    actionTag: "All",
-    eventType: "All",
-    employee: "All",
-  };
+// currentFilter initial value:
+currentFilter: EventsFilterCriteria = {
+  startDate: null,
+  endDate: null,
+  startTime: '00:00',
+  endTime: '23:59',
+  minDuration: 0,
+  maxDuration: 120,
+  city: 'All',
+  site: 'All',
+  camera: 'All',
+  actionTag: 'All',
+  eventType: 'All',
+  employee: 'All',
+  queueLevel: 'All',
+  queueName: 'All',
+  consoleType: 'All',
+};
 
   /** -------------------- Display arrays (post-filter) -------------------- */
   rowData: any[] = []; // CLOSED table data (raw)
@@ -254,14 +258,31 @@ export class EventsComponent implements OnInit, OnDestroy {
   pendingGridApi: GridApi | undefined;
 
   /** -------------------- Popup handling -------------------- */
-  isTablePopupVisible = false;
+  isTablePopupVisible = false;     // ESCALATION DETAILS right popup
   isPopupVisible = false;
   selectedItem: any = null;
 
   isPlayPopupVisible = false;
 
+  /** NEW: Add Comment right popup visibility */
+  isAddCommentPopupVisible = false;
+
   /** Calendar popup visibility */
   isCalendarPopupOpen = false;
+
+  // dropdown & form for Add Comment
+  commentTags = [
+    { label: "Suspicious", value: "SUSPICIOUS" },
+    { label: "False", value: "FALSE" },
+    { label: "Info", value: "INFO" },
+  ];
+
+  addCommentForm: { tag: string | null; notes: string } = {
+    tag: null,
+    notes: "",
+  };
+
+  currentUser: any = null;
 
   /** -------------------- Cards -------------------- */
   secondEscalatedDetails: SecondEscalatedDetail[] = [];
@@ -299,33 +320,28 @@ export class EventsComponent implements OnInit, OnDestroy {
   };
 
   /** -------------------- Filters (dropdown lists) -------------------- */
-  filterLists = {
-    cities: [] as string[],
-    sites: [] as string[],
-    cameras: [] as string[],
-    actionTags: ["Suspicious", "False", "Event_Wall", "Manual_Wall"],
-    eventTypes: ["Event_Wall", "Manual_Wall"],
-    employees: [] as string[],
-  };
+filterLists = {
+  cities: [] as string[],
+  sites: [] as string[],
+  cameras: [] as string[],
+  actionTags: ['Suspicious', 'False', 'Event_Wall', 'Manual_Wall'],
+  eventTypes: ['Event_Wall', 'Manual_Wall'],
+  employees: [] as string[],
+  queueLevels: [] as string[],
+  queues: [] as string[],
+  consoleTypes: [] as string[],
+};
 
-  get cities() {
-    return this.filterLists.cities;
-  }
-  get sites() {
-    return this.filterLists.sites;
-  }
-  get cameras() {
-    return this.filterLists.cameras;
-  }
-  get actionTags() {
-    return this.filterLists.actionTags;
-  }
-  get eventTypes() {
-    return this.filterLists.eventTypes;
-  }
-  get employees() {
-    return this.filterLists.employees;
-  }
+get cities() { return this.filterLists.cities; }
+get sites() { return this.filterLists.sites; }
+get cameras() { return this.filterLists.cameras; }
+get actionTags() { return this.filterLists.actionTags; }
+get eventTypes() { return this.filterLists.eventTypes; }
+get employees() { return this.filterLists.employees; }
+get queueLevels() { return this.filterLists.queueLevels; }
+get queues() { return this.filterLists.queues; }
+get consoleTypes() { return this.filterLists.consoleTypes; }
+
 
   /** -------------------- Constructor -------------------- */
   constructor(private eventsService: EventsService) {}
@@ -339,65 +355,127 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.setupColumnDefs();
     this.loadPendingEvents();
 
+    // load logged-in user (for comments)
+    const raw =
+      localStorage.getItem("verifai_user") ||
+      sessionStorage.getItem("verifai_user");
+    if (raw) {
+      try {
+        this.currentUser = JSON.parse(raw);
+        console.log("Current user in EventsComponent:", this.currentUser);
+      } catch (e) {
+        console.error("Error parsing stored user data", e);
+      }
+    }
+
     // Clock update
     setInterval(() => {
       this.currentDateTime = new Date();
     }, 60_000);
 
-      setTimeout(() => {
-    if (this.playOverlay) {
-      this.playOverlay.onHide.subscribe(() => {
-        this.stopImageLoop();
-      });
-    }
-  }, 0);
+    setTimeout(() => {
+      if (this.playOverlay) {
+        this.playOverlay.onHide.subscribe(() => {
+          this.stopImageLoop();
+        });
+      }
+    }, 0);
   }
 
-
-    /**
-   * Resolve which media array to use based on:
-   * - PENDING + CONSOLES  => image_list
-   * - PENDING + QUEUES    => videoUrl
-   * - CLOSED (Suspicious/False) => videoFile
-   */
-  private resolveMediaUrls(item: any): string[] {
-    // PENDING tab
-    if (this.selectedFilter === "PENDING") {
-      // CONSOLES on
-      if (this.selectedpendingFilter === "CONSOLES") {
-        const list = item.image_list ?? item.imageList ?? item.images;
-        if (Array.isArray(list)) {
-          return list.filter((x: any) => !!x);
-        }
-        if (typeof list === "string" && list) {
-          return [list];
-        }
-        return [];
-      }
-
-      // QUEUES on
-      if (this.selectedpendingFilter === "QUEUES") {
-        const v = item.videoUrl ?? item.videoURL;
-        if (Array.isArray(v)) {
-          return v.filter((x: any) => !!x);
-        }
-        if (typeof v === "string" && v) {
-          return [v];
-        }
-        return [];
-      }
-    }
-
-    // CLOSED tab (SUSPICIOUS / FALSE both use videoFile)
-    const vf = item.videoFile ?? item.videoFiles;
-    if (Array.isArray(vf)) {
-      return vf.filter((x: any) => !!x);
-    }
-    if (typeof vf === "string" && vf) {
-      return [vf];
-    }
-    return [];
+ /**
+ * Resolve which media array to use based on:
+ * - First: explicit imageUrl / videoUrl on the row
+ * - Then: PENDING + CONSOLES  => image_list / imageList / images / frames / videoFile
+ * - Then: CLOSED              => videoFile / videoFiles / images / imageList
+ */
+private resolveMediaUrls(item: any): string[] {
+  // 🔹 1) If this row already has imageUrl / videoUrl, use that first
+  const directMedia = this.extractRowMedia(item);
+  if (directMedia.length) {
+    // console.log("Using direct media from row:", directMedia);
+    return directMedia;
   }
+
+  // 🔹 2) Existing logic for PENDING → CONSOLES
+  if (this.selectedFilter === "PENDING") {
+    if (this.selectedpendingFilter === "CONSOLES") {
+      const list =
+        item.image_list ??
+        item.imageList ??
+        item.images ??
+        item.frames ??
+        item.videoFile;
+
+      if (Array.isArray(list)) {
+        return list.filter((x: any) => !!x);
+      }
+      if (typeof list === "string" && list) {
+        const maybeSplit = list.includes(",") ? list.split(",") : [list];
+        return maybeSplit.map((s) => s.trim()).filter(Boolean);
+      }
+      return [];
+    }
+
+    // QUEUES branch becomes basically unnecessary now because we
+    // already checked imageUrl/videoUrl above, but we keep a fallback:
+    if (this.selectedpendingFilter === "QUEUES") {
+      const v =
+        item.videoFile ?? item.images ?? item.imageList ?? null;
+
+      if (!v) return [];
+
+      if (Array.isArray(v)) {
+        return v.filter((x: any) => !!x);
+      }
+      if (typeof v === "string" && v) {
+        const maybeSplit = v.includes(",") ? v.split(",") : [v];
+        return maybeSplit.map((s) => s.trim()).filter(Boolean);
+      }
+      return [];
+    }
+  }
+
+  // 🔹 3) CLOSED tab (SUSPICIOUS / FALSE)
+  const vf = item.videoFile ?? item.videoFiles ?? item.images ?? item.imageList;
+  if (Array.isArray(vf)) {
+    return vf.filter((x: any) => !!x);
+  }
+  if (typeof vf === "string" && vf) {
+    const maybeSplit = vf.includes(",") ? vf.split(",") : [vf];
+    return maybeSplit.map((s) => s.trim()).filter(Boolean);
+  }
+
+  return [];
+}
+
+/** Prefer imageUrl, then videoUrl (string or array, comma-separated supported) */
+private extractRowMedia(item: any): string[] {
+  const urls: string[] = [];
+
+  const addFrom = (val: any) => {
+    if (!val) return;
+
+    if (Array.isArray(val)) {
+      val
+        .filter((x) => !!x)
+        .forEach((x) => urls.push(String(x).trim()));
+    } else if (typeof val === "string") {
+      val
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .forEach((u) => urls.push(u));
+    }
+  };
+
+  // 1️⃣ Prefer images
+  addFrom(item.imageUrl ?? item.imageURL);
+  if (urls.length) return urls;
+
+  // 2️⃣ Fallback to videos
+  addFrom(item.videoUrl ?? item.videoURL);
+  return urls;
+}
 
   ngOnDestroy(): void {
     this.stopAutoRefresh();
@@ -496,40 +574,76 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- Auto-refresh -------------------- */
-  refreshData(): void {
-    if (this.selectedFilter === "PENDING") {
-      this.loadPendingEvents({ silent: false });
+ refreshData(): void {
+  console.log(
+    '%c[REFRESH BUTTON]',
+    'color: #7b1fa2; font-weight: bold;',
+    'Manual refresh clicked. Current interval (min):',
+    this.refreshInterval,
+    '| selectedFilter:',
+    this.selectedFilter
+  );
+
+  if (this.selectedFilter === 'PENDING') {
+    this.loadPendingEvents({ silent: false });
+  } else {
+    if (this.selectedStartDate && this.selectedEndDate) {
+      this.loadClosedAndEscalatedDetails({ silent: false });
     } else {
+      this.showToast(
+        'warn',
+        'Pick a date range',
+        'Select dates in the calendar to refresh CLOSED events.'
+      );
+      return;
+    }
+  }
+
+  this.scheduleAutoRefresh(this.refreshInterval);
+  this.hasStartedAutoRefresh = true;
+}
+
+
+ private scheduleAutoRefresh(minutes: number): void {
+  this.stopAutoRefresh();
+
+  console.log(
+    '%c[INTERVAL SCHEDULE]',
+    'color: #388e3c; font-weight: bold;',
+    'Scheduling auto-refresh every',
+    minutes,
+    'minute(s)'
+  );
+
+  if (!minutes || minutes <= 0) {
+    console.log(
+      '%c[INTERVAL SCHEDULE]',
+      'color: #f57c00; font-weight: bold;',
+      'Minutes is 0 or invalid → no auto-refresh scheduled.'
+    );
+    return;
+  }
+
+  this.refreshSub = interval(minutes * 60_000).subscribe(() => {
+    console.log(
+      '%c[AUTO REFRESH TICK]',
+      'color: #d32f2f; font-weight: bold;',
+      'Tick at:',
+      new Date().toISOString(),
+      '| selectedFilter =',
+      this.selectedFilter
+    );
+
+    if (this.selectedFilter === 'PENDING') {
+      this.loadPendingEvents({ silent: true });
+    } else if (this.selectedFilter === 'CLOSED') {
       if (this.selectedStartDate && this.selectedEndDate) {
-        this.loadClosedAndEscalatedDetails({ silent: false });
-      } else {
-        this.showToast(
-          "warn",
-          "Pick a date range",
-          "Select dates in the calendar to refresh CLOSED events."
-        );
-        return;
+        this.loadClosedAndEscalatedDetails({ silent: true });
       }
     }
+  });
+}
 
-    this.scheduleAutoRefresh(this.refreshInterval);
-    this.hasStartedAutoRefresh = true;
-  }
-
-  private scheduleAutoRefresh(minutes: number): void {
-    this.stopAutoRefresh();
-    if (!minutes || minutes <= 0) return;
-
-    this.refreshSub = interval(minutes * 60_000).subscribe(() => {
-      if (this.selectedFilter === "PENDING") {
-        this.loadPendingEvents({ silent: true });
-      } else if (this.selectedFilter === "CLOSED") {
-        if (this.selectedStartDate && this.selectedEndDate) {
-          this.loadClosedAndEscalatedDetails({ silent: true });
-        }
-      }
-    });
-  }
 
   private stopAutoRefresh(): void {
     if (this.refreshSub) {
@@ -538,14 +652,26 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  onIntervalChange(intervalMin: number): void {
-    this.refreshInterval = Number(intervalMin) || 1;
-    this.showToast(
-      "info",
-      "Auto-refresh Interval Updated",
-      `Refresh will occur every ${this.refreshInterval} minute(s).`
-    );
-  }
+onIntervalChange(newInterval: number): void {
+  this.refreshInterval = Number(newInterval) || 1;
+
+  console.log(
+    '%c[INTERVAL CHANGE]',
+    'color: #1976d2; font-weight: bold;',
+    'User selected interval (min):',
+    newInterval,
+    '→ refreshInterval set to:',
+    this.refreshInterval
+  );
+
+  this.scheduleAutoRefresh(this.refreshInterval);
+
+  this.showToast(
+    'info',
+    'Auto-refresh Interval Updated',
+    `Refresh will occur every ${this.refreshInterval} minute(s).`
+  );
+}
 
   /** -------------------- AG Grid setup -------------------- */
   onGridReady(params: GridReadyEvent): void {
@@ -620,10 +746,24 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** -------------------- REFRESH MORE INFO (used by child + after add comment) -------------------- */
+  onRefreshMoreInfo(eventId: number): void {
+    this.eventsService.getEventMoreInfo(eventId).subscribe({
+      next: (res) => {
+        console.log("Refreshed event more info:", res);
+        this.selectedItem = res; // new object -> triggers ngOnChanges in popup
+        this.isTablePopupVisible = true;
+      },
+      error: (err) => {
+        console.error("Error refreshing more info:", err);
+      },
+    });
+  }
+
   fetchMoreInfo(eventId: number): void {
     this.eventsService.getEventMoreInfo(eventId).subscribe({
       next: (res) => {
-        this.selectedItem = res;
+        this.selectedItem = res; // 🔁 new reference
         this.isTablePopupVisible = true;
       },
       error: (err) => console.error("Error fetching more info:", err),
@@ -633,15 +773,87 @@ export class EventsComponent implements OnInit, OnDestroy {
   /** -------------------- Popup handling -------------------- */
   openTablePopup(item: any): void {
     this.selectedItem = item;
+    this.isAddCommentPopupVisible = false; // ensure add comment popup hidden
     this.isTablePopupVisible = true;
   }
 
   closePopup(): void {
     this.isPopupVisible = false;
     this.isTablePopupVisible = false;
+    this.isAddCommentPopupVisible = false; // close add comment popup as well
   }
 
-    /** -------------------- Play popup / image loop -------------------- */
+  /** NEW: From child – "+ ADD" button */
+  openAddCommentPopup(): void {
+    // reset form
+    this.addCommentForm = { tag: null, notes: "" };
+
+    // hide ESCALATION popup, show ADD COMMENT popup
+    this.isTablePopupVisible = false;
+    this.isAddCommentPopupVisible = true;
+  }
+
+  /** NEW: Cancel/close Add Comment popup */
+  cancelAddComment(): void {
+    this.isAddCommentPopupVisible = false;
+    this.isTablePopupVisible = true; // show ESCALATION DETAILS again
+  }
+
+  /** NEW: Submit Add Comment popup */
+  submitAddComment(): void {
+    if (!this.selectedItem?.eventDetails?.[0]?.eventId) {
+      console.error("No eventId on selectedItem");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem.eventDetails[0].eventId);
+    const notes = (this.addCommentForm.notes || "").trim();
+
+    if (!notes) {
+      console.warn("Comment cannot be empty");
+      // optional: show toast
+      this.showToast("warn", "Validation", "Comment cannot be empty.");
+      return;
+    }
+
+    const remarks = this.addCommentForm.tag
+      ? `Tag: ${this.addCommentForm.tag} | Added via escalation popup`
+      : "Added via escalation popup";
+
+    const payload = {
+      eventsId: String(eventId),
+      commentsInfo: notes,
+      createdBy: this.currentUser?.UserId || 0,
+      remarks,
+    };
+
+    console.log("Sending comment payload from parent:", payload);
+
+    this.eventsService.addComment(payload).subscribe({
+      next: (res) => {
+        console.log("Comment saved successfully", res);
+
+        // close add comment popup
+        this.isAddCommentPopupVisible = false;
+
+        // re-open escalation popup
+        this.isTablePopupVisible = true;
+
+        // refresh data so comments grid updates
+        this.onRefreshMoreInfo(eventId);
+      },
+      error: (err) => {
+        console.error("Error saving comment", err);
+        this.showToast(
+          "error",
+          "Error",
+          "Failed to save comment. Please try again."
+        );
+      },
+    });
+  }
+
+  /** -------------------- Play popup / image loop -------------------- */
   openPlayPopup(item: any): void {
     const media = this.resolveMediaUrls(item);
 
@@ -660,31 +872,32 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  openPlayTooltip(event: MouseEvent, params: any): void {
-    const item = params.data;
-    const media = this.resolveMediaUrls(item);
+openPlayTooltip(event: MouseEvent, params: any): void {
+  const item = params.data;
+  const media = this.resolveMediaUrls(item);
 
-    this.selectedPlayItem = {
-      ...item,
-      videoFile: media, // again normalize
-    };
+  console.log("DEBUG media for tooltip:", media, "from item:", item);
 
-    this.currentSlideIndex = 0;
+  this.selectedPlayItem = {
+    ...item,
+    videoFile: media,
+  };
 
-    if (media.length > 0) {
-      this.startImageLoop();
-      this.playOverlay.show(event);
-    } else {
-      console.warn("No media found to play for item (tooltip):", item);
-    }
+  this.currentSlideIndex = 0;
+
+  if (media.length > 0) {
+    this.startImageLoop();
+    this.playOverlay.show(event);
+  } else {
+    console.warn("No media found to play for item (tooltip):", item);
   }
+}
 
   closePlayPopup(): void {
     this.stopImageLoop();
     this.isPlayPopupVisible = false;
     this.selectedPlayItem = null;
     this.playOverlay.hide();
-
   }
 
   private startImageLoop(): void {
@@ -962,7 +1175,9 @@ export class EventsComponent implements OnInit, OnDestroy {
         const allRows: any[] = [];
 
         if (consoleRes) {
-          const consoleRows = this.transformConsolePendingMessages(consoleRes);
+          const consoleRows = this.transformConsolePendingMessages(
+            consoleRes
+          );
           allRows.push(...consoleRows);
         }
 
@@ -983,6 +1198,39 @@ export class EventsComponent implements OnInit, OnDestroy {
         } else {
           this.pendingRowData = allRows;
         }
+
+        /** 🔴 Normalize alertType + employee for ALL pending rows */
+        this.pendingRowData = this.pendingRowData.map((row: any) => {
+          const type = row.eventType ?? row.eventTag;
+          const empName =
+            row.employee?.name ??
+            row.employeeName ??
+            row.userName ??
+            row.user ??
+            "";
+          const empLevel =
+            row.employee?.level ??
+            row.userLevels ??
+            row.userLevel ??
+            "N/A";
+
+          return {
+            ...row,
+            alertType:
+              row.alertType ??
+              this.ALERT_COLORS[type as keyof typeof this.ALERT_COLORS] ??
+              "#53BF8B",
+            employee:
+              row.employee ??
+              (empName
+                ? {
+                    avatar: "assets/user1.png",
+                    level: empLevel,
+                    name: empName,
+                  }
+                : undefined),
+          };
+        });
 
         this.pendingDisplayRows = [...this.pendingRowData];
 
@@ -1122,6 +1370,9 @@ export class EventsComponent implements OnInit, OnDestroy {
           if (e?.eventType === "Manual_Wall") alertColor = "#FFC400";
           else if (e?.eventType === "Event_Wall") alertColor = "#53BF8B";
 
+          const empName = e?.userName ?? e?.user ?? "";
+          const empLevel = e?.userLevels ?? "N/A";
+
           return {
             ...e,
             siteId: e?.siteId,
@@ -1135,8 +1386,8 @@ export class EventsComponent implements OnInit, OnDestroy {
             subActionTag: e?.subActionTag ?? e?.actionTag,
             employee: {
               avatar: "assets/user1.png",
-              level: e?.userLevels || "N/A",
-              name: e?.userName ?? e?.user ?? "",
+              level: empLevel,
+              name: empName,
             },
             alertType: alertColor,
             more: true,
@@ -1200,72 +1451,62 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   loadEscalatedDetails(): void {
     // CLOSED
- if (this.selectedFilter === "CLOSED") {
-    const actionTag = this.suspiciousChecked ? 2 : 1;
+    if (this.selectedFilter === "CLOSED") {
+      const actionTag = this.suspiciousChecked ? 2 : 1;
 
-    const start = this.formatDateTimeFull(this.selectedStartDate!);
-    const end = this.formatDateTimeFull(this.selectedEndDate!);
+      const start = this.formatDateTimeFull(this.selectedStartDate!);
+      const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-    this.eventsService
-      .getEventReportCountsForActionTag(start, end, actionTag)
-      .subscribe({
-        next: (res) => {
-          const counts = res?.counts || {};
-          const keys = Object.keys(counts);
+      this.eventsService
+        .getEventReportCountsForActionTag(start, end, actionTag)
+        .subscribe({
+          next: (res) => {
+            const counts = res?.counts || {};
+            const keys = Object.keys(counts);
 
-          /** ------------------------------
-           *  CASE 1: API returned ONLY "null"
-           *  → show NO DATA
-           * ------------------------------*/
-          if (
-            keys.length === 1 &&
-            (keys[0] === "null" || keys[0] === null)
-          ) {
-            this.escalatedDetailsClosed = [];
-            return;
-          }
+            if (keys.length === 1 && (keys[0] === "null" || keys[0] === null)) {
+              this.escalatedDetailsClosed = [];
+              return;
+            }
 
-          const details: EscalatedDetail[] = [];
+            const details: EscalatedDetail[] = [];
 
-          /** ------------------------------
-           *  Normalize real category
-           * ------------------------------*/
-          Object.entries(counts).forEach(([label, data]: any) => {
-            if (label === "null") return; // ignore "null" response completely
+            Object.entries(counts).forEach(([label, data]: any) => {
+              if (label === "null") return;
 
-            details.push({
-              label,
-              value: data.totalCount || 0,
-              color: ESCALATED_COLORS[0],
-              icons: [
-                { iconPath: "assets/home.svg", count: data.sites || 0 },
-                { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-              ],
-              colordot: [
-                {
-                  iconcolor: "#53BF8B",
-                  label: "Event Wall",
-                  count: data.Event_Wall || 0,
-                },
-                {
-                  iconcolor: "#FFC400",
-                  label: "Manual Wall",
-                  count: data.Manual_Wall || 0,
-                },
-              ],
+              details.push({
+                label,
+                value: data.totalCount || 0,
+                color: ESCALATED_COLORS[0],
+                icons: [
+                  { iconPath: "assets/home.svg", count: data.sites || 0 },
+                  { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+                ],
+                colordot: [
+                  {
+                    iconcolor: "#53BF8B",
+                    label: "Event Wall",
+                    count: data.Event_Wall || 0,
+                  },
+                  {
+                    iconcolor: "#FFC400",
+                    label: "Manual Wall",
+                    count: data.Manual_Wall || 0,
+                  },
+                ],
+              });
             });
-          });
 
-          this.escalatedDetailsClosed = details;
-        },
+            this.escalatedDetailsClosed = details;
+          },
 
-        error: () => {
-          this.escalatedDetailsClosed = [];
-        }
-      });
+          error: () => {
+            this.escalatedDetailsClosed = [];
+          },
+        });
 
-    return;
-  }
+      return;
+    }
 
     // PENDING
     if (!this.consolesChecked && !this.queuesChecked) {
@@ -1308,7 +1549,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       res?.total ??
       res?.totalCount ??
       0;
-
 
     const qs = res?.totalQCount ?? res?.Q ?? 0;
     const pdqs = res?.totalPDQCount ?? res?.PDQ ?? 0;
@@ -1361,7 +1601,9 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
     this.filterLists.employees = this.uniq(
-      rows.map((r) => r.employeeName ?? r.userName ?? r.user)
+      rows.map(
+        (r) => r.employee?.name ?? r.employeeName ?? r.userName ?? r.user
+      )
     );
   }
 
@@ -1374,8 +1616,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       rows.map((r) => r.employee?.name ?? r.userName ?? r.user)
     );
   }
-
-
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
@@ -1451,10 +1691,12 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         valueFormatter: (params) => params.value?.name || "",
         cellRenderer: (params: any) =>
-          `<div style="display:flex; align-items:center; gap:8px;">
+          params.value
+            ? `<div style="display:flex; align-items:center; gap:8px;">
             <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
             <span>${params.value.level}</span>
-          </div>`,
+          </div>`
+            : "",
         suppressHeaderMenuButton: true,
       },
       {
@@ -1469,7 +1711,9 @@ export class EventsComponent implements OnInit, OnDestroy {
           alignItems: "center",
         },
         cellRenderer: (params: any) =>
-          `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`,
+          params.value
+            ? `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`
+            : "",
         suppressHeaderMenuButton: true,
       },
       {
@@ -1537,11 +1781,13 @@ export class EventsComponent implements OnInit, OnDestroy {
       },
       {
         headerName: "EVENT TIME",
-        // field: "displayTime",
-       valueGetter: (params) => {
-          return params.data.eventTime || params.data.eventStartTime || params.data.timestamp;
-       },
-
+        valueGetter: (params) => {
+          return (
+            params.data.eventTime ||
+            params.data.eventStartTime ||
+            params.data.timestamp
+          );
+        },
         sortable: true,
         headerClass: "custom-header",
         cellClass: "custom-cell",
@@ -1596,7 +1842,9 @@ export class EventsComponent implements OnInit, OnDestroy {
           alignItems: "center",
         },
         cellRenderer: (params: any) =>
-          `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`,
+          params.value
+            ? `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`
+            : "",
         suppressHeaderMenuButton: true,
       },
       {
@@ -1606,10 +1854,12 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         valueFormatter: (params) => params.value?.name || "",
         cellRenderer: (params: any) =>
-          `<div style="display:flex; align-items:center; gap:8px;">
+          params.value
+            ? `<div style="display:flex; align-items:center; gap:8px;">
             <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
             <span>${params.value.level}</span>
-          </div>`,
+          </div>`
+            : "",
         suppressHeaderMenuButton: true,
       },
       {

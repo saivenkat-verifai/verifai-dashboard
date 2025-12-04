@@ -40,7 +40,10 @@ interface SecondEscalatedDetail {
 export class GroupsComponent implements OnInit, OnDestroy {
   selectedQueueId: number | null = null;
 
+ currentUser: any = null;   // 👈 add this
+
   currentDate: Date = new Date();
+
   selectedDate: Date | null = null;
   private boundResize?: () => void;
   gridApi!: GridApi;
@@ -48,10 +51,26 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
   constructor(private groupsService: GroupsService) { }
 
-  ngOnInit() {
-    this.selectedDate = new Date();
-    this.loadGroups();
+ngOnInit() {
+  this.selectedDate = new Date();
+
+  // 👇 Read whatever you stored when logging in
+  const raw =
+    localStorage.getItem('verifai_user') ||
+    sessionStorage.getItem('verifai_user');
+    console.log('Stored user data:', raw);
+
+  if (raw) {
+    try {
+      this.currentUser = JSON.parse(raw);
+      console.log('Current user in Groups:', this.currentUser);
+    } catch (e) {
+      console.error('Error parsing stored user data', e);
+    }
   }
+
+  this.loadGroups();
+}
 
   /** Close popups */
   closePopup() {
@@ -111,6 +130,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
   columnDefs: ColDef[] = [
     { headerName: "ID", field: "id", sortable: true ,flex: 1, minWidth: 80,  cellStyle: { opacity: "0.5" }},
     { headerName: "NAME", field: "name", flex: 2, minWidth: 120, sortable: true },
+    { headerName: "CATEGORY", field: "category", flex: 2, minWidth: 120, sortable: true, cellStyle: { opacity: "0.5" }},
+
     {
       headerName: "LEVEL",
       field: "level",
@@ -197,9 +218,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
     const payload = {
       queueName: this.newQueue.queueName,
       levelId: this.newQueue.levelId,
-      category: this.newQueue.category,          // ⭐ NEW - sent to API
-      remarks: "created by sai venkat",
-      createdBy: 0,
+      queueCategory: this.newQueue.category,          // ⭐ NEW - sent to API
+      remarks: "",
+      createdBy:  this.currentUser?.UserId || 0, // get from current user context
     };
 
     console.log("Create Queue payload:", payload);
@@ -279,6 +300,7 @@ loadGroups(preserveId?: number) {
       if (res?.status === "Success" && Array.isArray(res.queuesData)) {
         this.rowData = res.queuesData.map((g: any) => ({
           id: g.queueId,
+          category: g.category,
           name: g.queueName,
           level: g.levelId,
           site: g.sites,
@@ -437,7 +459,7 @@ get filteredUsers() {
     const payload = {
       queueId: this.selectedItem?.id || 0, // fallback 0 if null
       userId: this.selectedUserIds,
-      createdBy: 0, // dummy value
+      createdBy:  this.currentUser?.UserId || 0, // get from current user context
     };
 
     this.groupsService.addUsersToQueue(payload).subscribe({
@@ -468,7 +490,7 @@ get filteredUsers() {
     queueId: this.selectedItem.id,
     siteId: this.selectedSiteId,
     cameraIds: this.selectedCameraIds, // <-- multiple cameras
-    createdBy: 0,
+    createdBy:  this.currentUser?.UserId,
   };
 
   console.log("Payload for addSiteCamera:", payload);
@@ -541,8 +563,8 @@ onSectionChange(section: string) {
     this.groupsService.getSites().subscribe({
       next: (res: any) => {
         this.sitesDropdown = res.data.map((s: any) => ({
-          label: s.siteName,
-          value: s.siteId,
+          label: `${s.siteId} - ${s.siteName}`,   // 👈 ID + Name
+  value: s.siteId,
         }));
         console.log("Sites dropdown:", this.sitesDropdown);
       },
@@ -584,8 +606,8 @@ onSiteChange(siteId: number) {
       const cams = Array.isArray(res.data) ? res.data : [];
 
       this.camerasDropdown = cams.map((c: any) => ({
-        label: c.cameraName || c.name || `Camera ${c.cameraId}`,
-        value: c.cameraId,
+        label: `${c.cameraId} - ${c.cameraName || c.name || 'Camera'}`,
+  value: c.cameraId,
       }));
 
       console.log("Cameras dropdown:", this.camerasDropdown);

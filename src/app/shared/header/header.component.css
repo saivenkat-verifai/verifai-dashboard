@@ -218,3 +218,99 @@ nav a.active {
   height: 17px;
   /* margin-right: 6px; */
 }
+
+
+/* ================= USER CARD POPUP ================= */
+
+.header-section.user {
+  position: relative; /* anchor popup to this area */
+}
+
+/* card container */
+.user-card {
+  position: absolute;
+  top: 60px;          /* slightly below header */
+  right: 0;
+  width: 260px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.15);
+  padding: 20px 18px;
+  z-index: 1000;
+  text-align: center;
+  font-family: 'Neometric Regular';
+}
+
+/* top avatar */
+.user-card-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 10px auto;
+  background-color: #fbe4e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-card-avatar img {
+  width: 36px;
+  height: 36px;
+}
+
+/* name in red */
+.user-card-name {
+  font-family: 'NasalizationLight';
+  color: #ed3237;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+/* role + id */
+.user-card-role {
+  font-family: 'Neometric Medium';
+  font-size: 12px;
+  color: #000;
+  margin-bottom: 8px;
+}
+
+/* email + phone */
+.user-card-contact {
+  font-size: 12px;
+  color: #444;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+/* Terms & Conditions */
+.user-card-terms {
+  display: inline-block;
+  font-size: 12px;
+  color: #ed3237;
+  text-decoration: none;
+  margin-bottom: 14px;
+}
+
+/* footer: version + logout */
+.user-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.user-card-version {
+  color: #777;
+}
+
+/* logout button */
+.logout-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Neometric Medium';
+}

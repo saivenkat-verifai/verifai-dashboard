@@ -5,6 +5,7 @@ import {
   EventEmitter,
   SimpleChanges,
   OnChanges,
+  OnInit,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { AgGridModule } from "ag-grid-angular";
@@ -13,7 +14,6 @@ import { DialogModule } from "primeng/dialog";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { EventsService } from "src/app/pages/events/events.service";
-
 @Component({
   selector: "app-escalation-popup",
   templateUrl: "./escalation-popup.component.html",
@@ -26,36 +26,88 @@ import { EventsService } from "src/app/pages/events/events.service";
     DialogModule,
     ButtonModule,
   ],
+  providers: [], // 👈 provide pipe here
 })
-export class EscalationPopupComponent implements OnChanges {
+export class EscalationPopupComponent implements OnChanges, OnInit {
   @Input() isVisible = false;
   @Input() selectedItem: any;
   @Input() selectedDate: Date | null = null;
-  @Input() data: any; // escalationData
-
-  constructor(private eventsService: EventsService) {}
+  @Input() data: any; // not used, kept for compatibility
 
   @Input() tableConfigs: {
     [key: string]: { columnDefs: ColDef[]; rowData: any[] };
   } = {};
   @Input() popupType: "MORE" | "DETAILS" = "DETAILS";
 
+  // 👇 NEW: queueUsers from your queue API response
+  @Input() queueUsers: any[] = [];
+
   @Output() close = new EventEmitter<void>();
+  @Output() refreshMoreInfo = new EventEmitter<number>();
+  @Output() addCommentClicked = new EventEmitter<void>();
+
+  currentUser: any = null;
+
+  /** View toggle: false = ESCALATION DETAILS, true = ADD COMMENT **/
+  isAddCommentView = false;
+
+  /** ADD COMMENT form model **/
+  commentTags = [
+    { label: "Suspicious", value: "SUSPICIOUS" },
+    { label: "False", value: "FALSE" },
+    { label: "Info", value: "INFO" },
+  ];
+
+  addCommentForm: { tag: string | null; notes: string } = {
+    tag: null,
+    notes: "",
+  };
 
   // Row data for escalation and alarm events
   escalationRowData: any[] = [];
   alarmRowData: any[] = [];
+  commentRowData: any[] = [];
+
   selectedTZ: "MT" | "CT" | "IST" = "MT";
 
+  escalationGridApi!: GridApi;
+  commentGridApi!: GridApi;
+  commentGridColumnApi!: Column;
+
+  selectedEvent: any = null;
+
+  constructor(
+    private eventsService: EventsService,
+  ) {}
+
+  // ------------------------ INIT ------------------------
+  ngOnInit() {
+    const raw =
+      localStorage.getItem("verifai_user") ||
+      sessionStorage.getItem("verifai_user");
+    console.log("Stored user data:", raw);
+
+    if (raw) {
+      try {
+        this.currentUser = JSON.parse(raw);
+        console.log("Current user in Groups:", this.currentUser);
+      } catch (e) {
+        console.error("Error parsing stored user data", e);
+      }
+    }
+  }
+
+  handleAddClick() {
+    // just tell the parent; parent will open a new popup
+    this.addCommentClicked.emit();
+  }
+
+  // ------------------------ TZ Handling ------------------------
   onTzChange(tz: "MT" | "CT" | "IST") {
     this.selectedTZ = tz;
     this.refreshTimeColumns();
   }
 
-  /**
-   * Returns the appropriate time string for the given base field
-   * ('receiveAt' | 'reviewStart' | 'reviewEnd') based on selectedTZ.
-   */
   private getTimeValue =
     (baseField: "receiveAt" | "reviewStart" | "reviewEnd") => (params: any) => {
       let key: string = baseField;
@@ -89,7 +141,8 @@ export class EscalationPopupComponent implements OnChanges {
     );
   }
 
-  /** ================= ESCALATION COLUMN DEFS ================= */
+
+  // ------------------------ ESCALATION COLUMNS ------------------------
   escalationColumnDefs: ColDef[] = [
     {
       headerName: "USER",
@@ -149,7 +202,6 @@ export class EscalationPopupComponent implements OnChanges {
       field: "subActionTag",
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      // editable ONLY for duplicate row in edit mode
       editable: (params) => params.data.isDuplicate && params.data.isEditing,
     },
     {
@@ -173,20 +225,25 @@ export class EscalationPopupComponent implements OnChanges {
         const isDuplicate = !!params.data.isDuplicate;
         const isEditing = !!params.data.isEditing;
 
-        // CASE 1: duplicate row in edit -> show ✓ / X
+        // duplicate row in edit -> ✓ / X
         if (isDuplicate && isEditing) {
           const saveBtn = document.createElement("button");
           saveBtn.className = "action-btn save-btn";
           saveBtn.innerText = "✓";
-          saveBtn.addEventListener("click", () => {
+          saveBtn.addEventListener("mousedown", (e) => {
+            e.stopPropagation();
             params.api.stopEditing();
-            this.saveEscalation(params.data);
+
+            setTimeout(() => {
+              this.saveEscalation(params.node.data);
+            }, 0);
           });
 
           const cancelBtn = document.createElement("button");
           cancelBtn.className = "action-btn delete-btn";
           cancelBtn.innerText = "x";
-          cancelBtn.addEventListener("click", () => {
+          cancelBtn.addEventListener("mousedown", (e) => {
+            e.stopPropagation();
             params.api.applyTransaction({ remove: [params.data] });
           });
 
@@ -195,7 +252,7 @@ export class EscalationPopupComponent implements OnChanges {
           return container;
         }
 
-        // CASE 2: last ORIGINAL row (not duplicate) -> show pencil
+        // last ORIGINAL row -> pencil icon
         if (!isDuplicate && rowIndex === lastRowIndex) {
           const editBtn = document.createElement("button");
           editBtn.className = "action-btn1 edit-btn1";
@@ -216,7 +273,6 @@ export class EscalationPopupComponent implements OnChanges {
           return container;
         }
 
-        // Other rows: no icon
         return container;
       },
     },
@@ -248,55 +304,65 @@ export class EscalationPopupComponent implements OnChanges {
     });
   }
 
-saveEscalation(data: any) {
-  if (!this.selectedEvent) {
-    console.error("No event selected");
-    return;
+  saveEscalation(data: any) {
+    if (!this.selectedEvent) {
+      console.error("No event selected");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+    if (!eventId) {
+      console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+      return;
+    }
+
+    const levelId =
+      typeof data.levelId === "number"
+        ? data.levelId
+        : Number(data.levelId) || 0;
+
+    const payload = {
+      eventsId: String(eventId),
+      userlevel: levelId,
+      user: this.currentUser?.UserId || 0,
+      alarm: "N",
+      landingTime: data.receiveAt || "",
+      receivedTime: "",
+      reviewStartTime: data.reviewStart || "",
+      reviewEndTime: data.reviewEnd || "",
+      actionTag: this.mapActionTag(data.actionTag),
+      subActionTag: Number(data.subActionTag),
+      notes: data.notes || "",
+    };
+
+    console.log("Sending escalation update payload:", payload);
+
+    this.eventsService.putEventsMoreInfo(payload).subscribe({
+      next: (res) => {
+        console.log("Escalation updated successfully", res);
+        data.isEditing = false;
+        data.isDuplicate = false;
+        this.escalationGridApi.applyTransaction({ update: [data] });
+        this.refreshMoreInfo.emit(eventId);
+      },
+      error: (err) => {
+        console.error("Error updating escalation", err);
+      },
+    });
   }
 
-  const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
-  if (!eventId) {
-    console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
-    return;
+  private mapActionTag(value: any): number {
+    if (!value) return 3;
+
+    const v = String(value).trim().toLowerCase();
+
+    if (v === "suspicious") return 2;
+    if (v === "false" || v === "false alarm") return 1;
+
+    return 3;
   }
 
-  // Make sure we have a number (in case it's a string "1")
-  const levelId =
-    typeof data.levelId === "number" ? data.levelId : Number(data.levelId) || 0;
-
-  const payload = {
-    eventsId: String(eventId),
-    userlevel: levelId,                 // ✅ use levelId from API row
-    user: data.user?.id || 0,
-    alarm: data.alarm || "",
-    landingTime: data.landingTime || "",
-    receivedTime: data.receiveAt || "",
-    reviewStartTime: data.reviewStart || "",
-    reviewEndTime: data.reviewEnd || "",
-    actionTag: Number(data.actionTag) || 0,
-    subActionTag: Number(data.subActionTag) || 0,
-    notes: data.notes || "",
-  };
-
-  console.log("Sending escalation update payload:", payload);
-
-  this.eventsService.putEventsMoreInfo(payload).subscribe({
-    next: (res) => {
-      console.log("Escalation updated successfully", res);
-      data.isEditing = false;
-      data.isDuplicate = false;
-      this.escalationGridApi.applyTransaction({ update: [data] });
-    },
-    error: (err) => {
-      console.error("Error updating escalation", err);
-    },
-  });
-}
-
-
-  escalationGridApi!: GridApi;
-
-  /** ================= ALARM COLUMN DEFS ================= */
+  // ------------------------ ALARM COLUMNS ------------------------
   alarmColumnDefs: ColDef[] = [
     {
       headerName: "Time",
@@ -364,6 +430,7 @@ saveEscalation(data: any) {
     },
   ];
 
+  // ------------------------ BASIC INFO ------------------------
   basicInfoFields: { label: string; field: string; default?: string }[] = [
     { label: "Escalation ID", field: "eventId" },
     { label: "Ticket No.", field: "ticketNo", default: "--" },
@@ -396,28 +463,34 @@ saveEscalation(data: any) {
     resizable: true,
   };
 
-  selectedEvent: any = null;
-
-  /** ================= CHANGES HANDLER ================= */
+  // ------------------------ ON CHANGES ------------------------
   ngOnChanges(changes: SimpleChanges) {
     if (changes["selectedItem"] && this.selectedItem) {
       console.log("API Data received in popup:", this.selectedItem);
 
-      // Escalation rows
-      this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map(
-        (item: any) => ({
-          ...item,
-          user: {
-            img: "https://i.pravatar.cc/30?img=1",
-            name: item.userName ?? String(item.user ?? ""),
-            id: item.user ?? null,
-          },
-          isEditing: false,
-          isDuplicate: false,
-        })
-      );
+      // 🧩 Map userId -> profileImage from queueUsers
+      const userImageMap = new Map<number, string>();
+      (this.queueUsers || []).forEach((u: any) => {
+        if (u?.userId && u?.profileImage) {
+          userImageMap.set(Number(u.userId), u.profileImage);
+        }
+      });
 
-      // Alarm rows
+      this.escalationRowData = (
+        this.selectedItem.eventEscalationInfo || []
+      ).map((item: any) => ({
+        ...item,
+        user: {
+          // custom user object used by userCellRenderer
+          imgUrl: userImageMap.get(Number(item.user)) || null, // profileImage from API
+          img: "https://i.pravatar.cc/30?img=1", // fallback
+          name: item.userName ?? String(item.user ?? ""),
+          id: item.user ?? null,
+        },
+        isEditing: false,
+        isDuplicate: false,
+      }));
+
       this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
         (item: any) => ({
           ...item,
@@ -425,18 +498,16 @@ saveEscalation(data: any) {
         })
       );
 
-      // Comments rows
       this.commentRowData = (this.selectedItem.eventComments || []).map(
         (c: any) => ({
           user: { img: "https://i.pravatar.cc/30?img=1" },
-          name: c.NAME || "",
+          name: c.name || "",
           level: c.level || "",
           submittedtime: this.formatDateTime(c.submittedTime || new Date()),
           notes: c.notes || "",
         })
       );
 
-      // Event details
       this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
     }
   }
@@ -468,16 +539,13 @@ saveEscalation(data: any) {
     return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
   }
 
-  // Grid ready handler (for escalation + alarm grid)
+  // ------------------------ GRID READY ------------------------
   onGridReady(params: any) {
     this.escalationGridApi = params.api;
     params.api.sizeColumnsToFit();
     params.columnApi.autoSizeAllColumns();
-    this.commentGridApi = params.api; // you already had this line; keeping as-is
+    this.commentGridApi = params.api; // kept for compatibility
   }
-
-  commentGridApi!: GridApi;
-  commentGridColumnApi!: Column;
 
   onCommentGridReady(params: any) {
     params.api.sizeColumnsToFit();
@@ -485,7 +553,7 @@ saveEscalation(data: any) {
     this.commentGridColumnApi = params.columnApi;
   }
 
-  // Column definitions for comments
+  // ------------------------ COMMENTS GRID (READ-ONLY) ------------------------
   commentColumnDefs: ColDef[] = [
     {
       headerName: "USER",
@@ -498,102 +566,66 @@ saveEscalation(data: any) {
     {
       headerName: "NAME",
       field: "name",
-      editable: true,
+      editable: false,
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
     {
       headerName: "LEVEL",
       field: "level",
-      editable: true,
+      editable: false,
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
     {
       headerName: "SUBMITTED TIME",
       field: "submittedtime",
-      editable: true,
+      editable: false,
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
     {
       headerName: "NOTES",
       field: "notes",
-      editable: true,
+      editable: false,
       headerClass: "custom-header",
       cellClass: "custom-cell",
-    },
-    {
-      headerName: "ACTIONS",
-      headerClass: "custom-header",
-      cellClass: "custom-cell",
-      cellRenderer: (params: any) => {
-        if (!params.data.isNew) return "";
-
-        const container = document.createElement("div");
-        container.style.display = "flex";
-        container.style.gap = "6px";
-
-        const saveBtn = document.createElement("button");
-        saveBtn.className = "action-btn save-btn";
-        saveBtn.innerText = "✓";
-        saveBtn.addEventListener("click", () => {
-          params.api.stopEditing();
-          this.saveComment(params.data);
-        });
-
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "action-btn delete-btn";
-        deleteBtn.innerText = "X";
-        deleteBtn.addEventListener("click", () => {
-          this.deleteComment(params.data);
-        });
-
-        container.appendChild(saveBtn);
-        container.appendChild(deleteBtn);
-
-        return container;
-      },
     },
   ];
 
-  addComments() {
-    if (!this.commentGridApi) return;
-
-    const newComment = {
-      user: { img: "https://i.pravatar.cc/30?img=3" },
-      name: "",
-      level: "",
-      submittedtime: new Date().toISOString(),
-      notes: "",
-      isNew: true,
-    };
-
-    this.commentGridApi.applyTransaction({ add: [newComment] });
-
-    const rowIndex = this.commentRowData.length;
-    this.commentGridApi.setFocusedCell(rowIndex, "name");
-    this.commentGridApi.startEditingCell({ rowIndex, colKey: "name" });
-    this.commentGridApi.ensureIndexVisible(rowIndex, "bottom");
+  // ------------------------ ADD COMMENT VIEW LOGIC ------------------------
+  openAddCommentView() {
+    this.addCommentForm = { tag: null, notes: "" };
+    this.isAddCommentView = true;
   }
 
-  saveComment(data: any) {
+  onCancelAddComment() {
+    this.isAddCommentView = false;
+  }
+
+  onSubmitAddComment() {
     if (!this.selectedEvent) {
       console.error("No event selected");
       return;
     }
 
-    const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
+    const eventId = Number(this.selectedItem?.eventDetails?.[0]?.eventId);
     if (!eventId) {
-      console.error("Invalid eventId:", this.selectedItem.eventDetails[0]);
+      console.error("Invalid eventId:", this.selectedItem?.eventDetails?.[0]);
+      return;
+    }
+
+    const notes = (this.addCommentForm.notes || "").trim();
+    if (!notes) {
+      console.warn("Comment cannot be empty");
       return;
     }
 
     const payload = {
-      eventsId: String(this.selectedItem.eventDetails[0]?.eventId),
-      commentsInfo: data.notes || "",
-      createdBy: 123,
-      remarks: "Added via escalation popup",
+      eventsId: String(eventId),
+      commentsInfo: notes,
+      createdBy: this.currentUser?.UserId || 0,
+      remarks: "",
     };
 
     console.log("Sending comment payload:", payload);
@@ -601,8 +633,10 @@ saveEscalation(data: any) {
     this.eventsService.addComment(payload).subscribe({
       next: (res) => {
         console.log("Comment saved successfully", res);
-        data.submittedtime = new Date().toISOString();
-        this.commentGridApi.applyTransaction({ update: [data] });
+        // Close ADD COMMENT view, show details again
+        this.isAddCommentView = false;
+        // Ask parent to refresh more-info for this event
+        this.refreshMoreInfo.emit(eventId);
       },
       error: (err) => {
         console.error("Error saving comment", err);
@@ -610,22 +644,37 @@ saveEscalation(data: any) {
     });
   }
 
-  deleteComment(data: any) {
-    this.commentGridApi.applyTransaction({ remove: [data] });
-  }
-
-  commentRowData: any[] = [];
-
+  // ------------------------ Helpers ------------------------
   userCellRenderer(params: any) {
     const u = params.value;
-    if (u?.img) {
-      return `
-        <div style="display:flex;align-items:center;gap:6px;">
-          <img src="${u.img}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"/>
-          ${u.name ? `<span>${u.name}</span>` : ""}
-        </div>
-      `;
+
+    const container = document.createElement("div");
+    container.style.display = "flex";
+    container.style.alignItems = "center";
+    container.style.gap = "6px";
+
+    const img = document.createElement("img");
+    img.style.width = "28px";
+    img.style.height = "28px";
+    img.style.borderRadius = "50%";
+    img.style.objectFit = "cover";
+
+    // default placeholder
+    img.src = "assets/icons/dummy_300x300.png";
+
+    // Prefer profileImage (imgUrl); fall back to plain img
+    const rawUrl: string | undefined = u?.imgUrl || u?.img;
+
+   
+
+    container.appendChild(img);
+
+    if (u?.name) {
+      const nameSpan = document.createElement("span");
+      nameSpan.innerText = u.name;
+      container.appendChild(nameSpan);
     }
-    return u?.name || "";
+
+    return container;
   }
 }

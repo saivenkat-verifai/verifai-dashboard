@@ -10,11 +10,7 @@
   <!-- Navigation Menu -->
   <div class="header-section nav">
     <nav>
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        #rlaDashboard="routerLinkActive"
-      >
+      <a routerLink="/dashboard" routerLinkActive="active" #rlaDashboard="routerLinkActive">
         <img
           [src]="
             rlaDashboard.isActive
@@ -27,11 +23,7 @@
         DASHBOARD
       </a>
 
-      <a
-        routerLink="/events"
-        routerLinkActive="active"
-        #rlaEvents="routerLinkActive"
-      >
+      <a routerLink="/events" routerLinkActive="active" #rlaEvents="routerLinkActive">
         <img
           [src]="
             rlaEvents.isActive
@@ -44,11 +36,7 @@
         EVENTS
       </a>
 
-      <a
-        routerLink="/groups"
-        routerLinkActive="active"
-        #rlaGroups="routerLinkActive"
-      >
+      <a routerLink="/groups" routerLinkActive="active" #rlaGroups="routerLinkActive">
         <img
           [src]="
             rlaGroups.isActive
@@ -60,11 +48,8 @@
         />
         QUEUES
       </a>
-      <a
-        routerLink="/clients"
-        routerLinkActive="active"
-        #rlaClients="routerLinkActive"
-      >
+
+      <a routerLink="/clients" routerLinkActive="active" #rlaClients="routerLinkActive">
         <img
           [src]="
             rlaClients.isActive
@@ -76,11 +61,8 @@
         />
         CLIENTS
       </a>
-      <a
-        routerLink="/sites"
-        routerLinkActive="active"
-        #rlaSites="routerLinkActive"
-      >
+
+      <a routerLink="/sites" routerLinkActive="active" #rlaSites="routerLinkActive">
         <img
           [src]="
             rlaSites.isActive
@@ -92,14 +74,6 @@
         />
         SITES
       </a>
-      <!-- <a routerLink="/employees" routerLinkActive="active" #rlaEmployees="routerLinkActive">
-        <img [src]="
-            rlaEmployees.isActive
-              ? 'assets/headericons/employees-icon-active.svg'
-              : 'assets/headericons/employees-icon.svg'
-          " alt="Employees" class="nav-icon" />
-        EMPLOYEES
-      </a> -->
     </nav>
   </div>
 
@@ -114,15 +88,40 @@
         <span class="ticket-count">{{ ticketCount }}</span>
       </button>
     </div>
+
     <div class="div">
-      <button class="user-icon">
+      <button class="user-icon" (click)="toggleUserCard()">
         <img src="assets/user.svg" alt="header" class="nav-icon1" />
       </button>
     </div>
+
     <div class="user-info">
-      <!-- <p class="username">Username</p> -->
-      <p class="userPosition1">Username</p>
-      <p class="userPosition">Monitoring Head</p>
+      <p class="userPosition1">{{ userProfile.name }}</p>
+      <p class="userPosition">{{ userProfile.role }}</p>
+    </div>
+
+    <!-- User profile popup card -->
+    <div class="user-card" *ngIf="showUserCard">
+      <div class="user-card-avatar">
+        <img src="assets/user.svg" alt="User" />
+      </div>
+
+      <div class="user-card-name">{{ userProfile.name }}</div>
+      <div class="user-card-role">
+        {{ userProfile.role }} | {{ userProfile.id }}
+      </div>
+
+      <div class="user-card-contact">
+        <div>{{ userProfile.email }}</div>
+        <div>{{ userProfile.phone }}</div>
+      </div>
+
+      <a class="user-card-terms" href="javascript:void(0)">Terms &amp; Conditions</a>
+
+      <div class="user-card-footer">
+        <span class="user-card-version">Version : {{ userProfile.version }}</span>
+        <button class="logout-btn" (click)="logout()">Logout</button>
+      </div>
     </div>
   </div>
 </header>

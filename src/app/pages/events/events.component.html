@@ -29,7 +29,7 @@
 
       <!-- ===================== Calendar & Toggles Section ===================== -->
       <div class="calender-section-body">
-        <!-- Calendar -->
+        <!-- Calendar / DateTime -->
         <div class="calendar-section-wrapper calender-first-section">
           <!-- Show Calendar if CLOSED -->
           <app-calendar
@@ -120,30 +120,87 @@
             </div>
             <button class="close-btn" (click)="closePopup()">×</button>
           </div>
+
           <div class="popup-body">
             <div class="escalated-content-section">
               <app-escalation-popup
                 [isVisible]="isTablePopupVisible"
                 [selectedItem]="selectedItem"
+                [selectedDate]="selectedDate"
                 (close)="closePopup()"
-              >
-              </app-escalation-popup>
+                (refreshMoreInfo)="onRefreshMoreInfo($event)"
+                (addCommentClicked)="openAddCommentPopup()"
+              ></app-escalation-popup>
             </div>
           </div>
         </div>
 
-        <!-- ===================== Search Section ===================== -->
-        <!-- <div class="calender-escalated-section calender-third-section">
-          <div class="search-wrapper">
-            <input
-              type="text"
-              placeholder="Search here"
-              [(ngModel)]="searchTerm"
-              class="search-input"
-              (input)="onFilterTextBoxChanged()"
-            />
+        <!-- ===================== Right-side ADD COMMENT Popup ===================== -->
+        <div class="comment-right-tablepopup" *ngIf="isAddCommentPopupVisible">
+          <div class="comment-popup-header add-comment-header">
+            <div class="popup-header-content">
+              <!-- back arrow -->
+              <button class="circle-icon-btn" (click)="cancelAddComment()">
+                ←
+              </button>
+              <div class="icon-info">
+                <p class="label">ADD COMMENT</p>
+              </div>
+            </div>
+
+            <!-- close X -->
+            <button class="close-btn" (click)="cancelAddComment()">×</button>
           </div>
-        </div> -->
+
+          <div class="popup-body add-comment-body">
+            <!-- Tag -->
+            <div class="form-group">
+              <label class="form-label">Tag</label>
+              <select
+                class="select-input"
+                [(ngModel)]="addCommentForm.tag"
+                name="commentTag"
+              >
+                <option [ngValue]="null">Select</option>
+                <option *ngFor="let t of commentTags" [ngValue]="t.value">
+                  {{ t.label }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Comment -->
+            <div class="form-group">
+              <label class="form-label">Comment</label>
+              <textarea
+                class="textarea-input"
+                rows="6"
+                placeholder="Text Here"
+                [(ngModel)]="addCommentForm.notes"
+                name="commentNotes"
+              ></textarea>
+            </div>
+
+            <!-- Buttons -->
+            <div class="add-comment-actions">
+              <button
+                class="btn btn-outline"
+                type="button"
+                (click)="cancelAddComment()"
+              >
+                CANCEL
+              </button>
+              <button
+                class="btn btn-primary"
+                type="button"
+                (click)="submitAddComment()"
+              >
+                ADD
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================== Search + Filter Panel ===================== -->
         <div class="calender-escalated-section calender-third-section">
           <div class="search-wrapper">
             <input
@@ -168,21 +225,28 @@
             </button>
           </div>
         </div>
+
         <app-events-filter-panel
           *ngIf="isFilterOpen"
+          [showDateRange]="selectedFilter === 'CLOSED'"
           [cities]="cities"
           [sites]="sites"
           [cameras]="cameras"
           [actionTags]="actionTags"
           [eventTypes]="eventTypes"
           [employees]="employees"
+          [queueLevels]="queueLevels"
+          [queues]="queues"
+          [consoleTypes]="consoleTypes"
+          [consolesChecked]="consolesChecked"
+          [queuesChecked]="queuesChecked"
           [filter]="currentFilter"
-          [showDateRange]="selectedFilter === 'CLOSED'"
-          (apply)="onFilterApply($event)"
-          (reset)="onFilterReset()"
           (close)="onFilterClose()"
-        >
-        </app-events-filter-panel>
+          (reset)="onFilterReset()"
+          (apply)="onFilterApply($event)"
+          (consolesToggle)="onconsolesToggle()"
+          (queuesToggle)="onqueuesToggle()"
+        ></app-events-filter-panel>
 
         <!-- ===================== Centered Play Popup ===================== -->
         <p-overlayPanel
@@ -304,10 +368,8 @@
       <!-- ===================== Expandable More Section ===================== -->
       <div class="m-t-20" *ngIf="showMore">
         <!-- CLOSED More Section -->
-        <!-- CLOSED More Section -->
         <ng-container *ngIf="selectedFilter === 'CLOSED'">
           <div class="escalated-content-section">
-            <!-- ✅ Only show cards if we have data -->
             <ng-container
               *ngIf="escalatedDetailsClosed.length > 0; else noClosedData"
             >
@@ -317,12 +379,10 @@
                     class="escalated-card"
                     *ngFor="let e of escalatedDetailsClosed"
                   >
-                    <!-- card header -->
                     <div class="escalated-card-content">
                       <h4 class="labelmargin">{{ e.label }}</h4>
                     </div>
 
-                    <!-- card body (dots + icons) -->
                     <div class="icons">
                       <div class="dots-column" *ngIf="e.colordot">
                         <div
@@ -354,7 +414,6 @@
               </div>
             </ng-container>
 
-            <!-- ✅ When escalatedDetailsClosed is empty -->
             <ng-template #noClosedData>
               <div class="no-data-wrapper">No data available</div>
             </ng-template>
@@ -415,42 +474,8 @@
               (gridReady)="onGridReady($event)"
               [icons]="gridIcons"
               (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar"
             >
             </ag-grid-angular>
-          </div>
-
-          <!-- Hidden template for pagination controls -->
-          <div
-            #paginationControls
-            class="pagination-controls"
-            style="display: none"
-          >
-            <div class="dot-eventwall"></div>
-            <label class="event-wall-label">Event Wall</label>
-            <div class="dot-manualwall"></div>
-            <label class="manual-wall-label">Manual Wall</label>
-            <div class="dot-timedOutWallCount"></div>
-            <label class="timedOut-wall-label">Timed-Out </label>
-
-            <button class="refreshbutton" (click)="refreshData()">
-              <img
-                src="assets/refresh-circle-sharp.svg"
-                alt="icon"
-                class="escalated-icon refresh-icon"
-              />
-              Refresh
-            </button>
-
-            <select
-              class="refresh-interval-select"
-              [(ngModel)]="refreshInterval"
-              (change)="onIntervalChange(refreshInterval)"
-            >
-              <option *ngFor="let min of [1, 5, 10, 15, 30]" [value]="min">
-                {{ min }} min
-              </option>
-            </select>
           </div>
         </div>
       </div>
@@ -481,18 +506,26 @@
             (cellClicked)="onCellClicked($event)"
           ></ag-grid-angular>
         </div>
+      </div>
 
-        <div
-          #paginationControlsClosed
-          class="pagination-controls"
-          style="display: none"
-        >
+      <!-- ========= Hidden template for pagination toolbar (cloned into .ag-paging-panel) ========= -->
+      <div
+        #paginationControls
+        class="pagination-controls"
+        style="display: none"
+      >
+        <div class="legend-group">
           <div class="dot-eventwall"></div>
           <label class="event-wall-label">Event Wall</label>
           <div class="dot-manualwall"></div>
           <label class="manual-wall-label">Manual Wall</label>
+          <!-- Timed-Out only for PENDING; we'll hide via TS for CLOSED -->
+          <div class="dot-timedOutWallCount" data-type="timed"></div>
+          <label class="timedOut-wall-label" data-type="timed">Timed-Out</label>
+        </div>
 
-          <button class="refreshbutton" (click)="refreshData()">
+        <div class="refresh-group">
+          <button class="refreshbutton" type="button">
             <img
               src="assets/refresh-circle-sharp.svg"
               alt="icon"
@@ -501,17 +534,16 @@
             Refresh
           </button>
 
-          <select
-            class="refresh-interval-select"
-            [(ngModel)]="refreshInterval"
-            (change)="onIntervalChange(refreshInterval)"
-          >
-            <option *ngFor="let min of [1, 5, 10, 15, 30]" [value]="min">
-              {{ min }} min
-            </option>
+          <select class="refresh-interval-select">
+            <option value="1">1 min</option>
+            <option value="5">5 min</option>
+            <option value="10">10 min</option>
+            <option value="15">15 min</option>
+            <option value="30">30 min</option>
           </select>
         </div>
       </div>
+      <!-- ========================================================================= -->
     </div>
   </div>
 </div>
