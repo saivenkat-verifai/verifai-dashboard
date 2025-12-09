@@ -590,29 +590,42 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
     this.forceEmit();
   }
 
-  goToday() {
-    const now = new Date();
-    this.viewMode = 'day';
-    this.currentMonth = new Date(now);
+goToday() {
+  const now = new Date();
+  this.viewMode = 'day';
+  this.currentMonth = new Date(now);
 
-    const dayStart = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      0,
-      0,
-      0,
-      0
-    );
+  // Start of today
+  const dayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0
+  );
 
-    this.startDate = dayStart;
-    this.endDate = now;
-    this.startTime = '00:00:00';
-    this.endTime = this.formatTime24(now);
-    this.inlineDate = new Date(this.startDate);
+  // End of today (23:59:59)
+  const dayEnd = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    23,
+    59,
+    59,
+    999
+  );
 
-    this.forceEmit();
-  }
+  this.startDate = dayStart;
+  this.endDate = dayEnd;
+  this.startTime = '00:00:00';
+  this.endTime = '23:59:59';
+  this.inlineDate = new Date(this.startDate);
+
+  this.forceEmit();
+}
+
 
   // ---------------------------------------------------------------------------
   // TOGGLES & POPUP HANDLERS

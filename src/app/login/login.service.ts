@@ -2,28 +2,28 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
-
-
+import { Router } from '@angular/router';
 
 export interface LoginResponse {
   token?: string;
   message?: string;
   status?: string;
-  // add more fields based on API response
+  // add more fields based on API response (e.g. userId, roles, etc.)
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  // 🔹 Put your correct API URL from Swagger
+  // 🔹 API URL from Swagger
   private readonly loginUrl =
-    'https://usstaging.ivisecurity.com/userDetails/user_login_1_0'; 
+    'https://usstaging.ivisecurity.com/userDetails/user_login_1_0';
 
-  private readonly encryptionKey = 'verifai'; // AES KEY
+  private readonly encryptionKey = 'verifai'; // AES KEY (must match backend)
+  private readonly USER_KEY = 'verifai_user';
+  private readonly TOKEN_KEY = 'verifai_token';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   /** =========================
    *  AES Encrypt Password to Base64
@@ -51,4 +51,52 @@ export class AuthService {
 
     return this.http.post<LoginResponse>(this.loginUrl, body);
   }
+
+  /** =========================
+   *  SAVE LOGIN (localStorage / sessionStorage)
+   *  ========================= */
+  saveLogin(res: LoginResponse, rememberMe: boolean): void {
+    const storage = rememberMe ? localStorage : sessionStorage;
+
+    storage.setItem(this.USER_KEY, JSON.stringify(res));
+
+    if (res.token) {
+      storage.setItem(this.TOKEN_KEY, res.token);
+    }
+  }
+
+  /** =========================
+   *  CHECK LOGIN STATUS
+   *  ========================= */
+  isLoggedIn(): boolean {
+    const user =
+      localStorage.getItem(this.USER_KEY) ||
+      sessionStorage.getItem(this.USER_KEY);
+
+    return !!user; // true if exists, false otherwise
+  }
+
+  /** =========================
+   *  GET TOKEN (for interceptors, API calls, etc.)
+   *  ========================= */
+  getToken(): string | null {
+    return (
+      localStorage.getItem(this.TOKEN_KEY) ||
+      sessionStorage.getItem(this.TOKEN_KEY)
+    );
+  }
+
+  /** =========================
+   *  LOGOUT (clear storage + redirect)
+   *  ========================= */
+ // auth.service.ts
+logout(): void {
+  localStorage.removeItem(this.USER_KEY);
+  localStorage.removeItem(this.TOKEN_KEY);
+  sessionStorage.removeItem(this.USER_KEY);
+  sessionStorage.removeItem(this.TOKEN_KEY);
+
+  // ✅ replaceUrl so Back button can't go back to previous protected page
+  this.router.navigate(['/login'], { replaceUrl: true });
+}
 }

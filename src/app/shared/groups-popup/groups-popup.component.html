@@ -122,8 +122,9 @@
           <div class="user-info">
             <img
               class="user-img"
-              [src]="user.profileImage || 'assets/user1.png'"
+              [src]="user.profileImage ? (user.profileImage | image | async) : ''"
               [alt]="user.User_Name || 'User'"
+              onerror="this.src=''"
             />
 
             <div class="user-text">

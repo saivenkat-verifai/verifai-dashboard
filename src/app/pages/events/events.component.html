@@ -234,7 +234,7 @@
           [cameras]="cameras"
           [actionTags]="actionTags"
           [eventTypes]="eventTypes"
-          [employees]="employees"
+         [employees]="userLevels"
           [queueLevels]="queueLevels"
           [queues]="queues"
           [consoleTypes]="consoleTypes"
@@ -265,18 +265,49 @@
                 </p>
               </div>
 
-              <button class="close-btn" (click)="closePlayPopup()">
-                <img
-                  src="assets/Dounload.svg"
-                  alt="download"
-                  class="escalated-icon"
-                />
-                <img
-                  src="assets/close-filled-black.svg"
-                  alt="close"
-                  class="escalated-icon"
-                />
-              </button>
+            <div class="play-popup-actions">
+  <!-- Download all images -->
+  <button
+    type="button"
+    class="icon-btn"
+   (click)="downloadAllImages($event)"
+    title="Download all images"
+  >
+    <img
+      src="assets/Dounload.svg"
+      alt="download"
+      class="escalated-icon"
+    />
+  </button>
+
+  <!-- Open all images in new tabs -->
+  <button
+    type="button"
+    class="icon-btn"
+    (click)="openAllImagesInNewTabs($event)"
+    title="Open all images in new tabs"
+  >
+    <img
+      src="assets/expand.png"
+      alt="open in new tab"
+      class="escalated-icon"
+    />
+  </button>
+
+  <!-- Close popup -->
+  <button
+    type="button"
+    class="icon-btn"
+    (click)="closePlayPopup()"
+    title="Close"
+  >
+    <img
+      src="assets/close-filled-black.svg"
+      alt="close"
+      class="escalated-icon"
+    />
+  </button>
+</div>
             </div>
 
             <div class="popup-body">
@@ -381,6 +412,7 @@
                   >
                     <div class="escalated-card-content">
                       <h4 class="labelmargin">{{ e.label }}</h4>
+                      <h4 class="labelmargin">{{ e.value }}</h4>
                     </div>
 
                     <div class="icons">
@@ -431,6 +463,7 @@
                 >
                   <div class="escalated-card-content">
                     <h4 class="labelmargin">{{ e.label }}</h4>
+                       <h4 class="labelmargin">{{ e.value }}</h4>
                   </div>
 
                   <div class="icons">

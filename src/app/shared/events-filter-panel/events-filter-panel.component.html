@@ -124,14 +124,7 @@
     </div>
   </div>
 
-  <!-- City -->
-  <div class="events-filter-group">
-    <label class="events-filter-label">Select City</label>
-    <select class="events-filter-select" [(ngModel)]="model.city">
-      <option value="All">All</option>
-      <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
-    </select>
-  </div>
+
 
   <!-- Site -->
   <div class="events-filter-group">
@@ -151,63 +144,20 @@
     </select>
   </div>
 
-  <!-- Alert Type (eventType) -->
-  <div class="events-filter-group">
-    <label class="events-filter-label">Select Alert Type</label>
-    <select class="events-filter-select" [(ngModel)]="model.eventType">
-      <option value="All">All</option>
-      <option *ngFor="let e of eventTypes" [value]="e">{{ e }}</option>
-    </select>
-  </div>
+  <!-- Action Tag  (eventType) -->
+<div class="events-filter-group">
+  <label class="events-filter-label">Select Action Tag</label>
+  <select class="events-filter-select" [(ngModel)]="model.eventType">
+    <option value="All">All</option>
+    <option *ngFor="let e of eventTypes" [value]="e">{{ e }}</option>
+  </select>
+</div>
 
-  <!-- Consoles / Queues toggles -->
-  <!-- <div class="events-filter-toggle-row">
-    <div class="events-filter-toggle-group">
-      <span class="events-filter-label-inline">CONSOLES</span>
-      <label class="toggle-switch">
-        <input
-          type="checkbox"
-          [checked]="consolesChecked"
-          (change)="onConsolesToggle()"
-        />
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
 
-    <div class="events-filter-toggle-group">
-      <span class="events-filter-label-inline">QUEUES</span>
-      <label class="toggle-switch">
-        <input
-          type="checkbox"
-          [checked]="queuesChecked"
-          (change)="onQueuesToggle()"
-        />
-        <span class="toggle-slider"></span>
-      </label>
-    </div>
-  </div> -->
-
-  <!-- Q Level -->
-  <div class="events-filter-group">
-    <label class="events-filter-label">Select Q Level</label>
-    <select class="events-filter-select" [(ngModel)]="model.queueLevel">
-      <option value="All">All</option>
-      <option *ngFor="let ql of queueLevels" [value]="ql">{{ ql }}</option>
-    </select>
-  </div>
-
-  <!-- Q -->
-  <div class="events-filter-group">
-    <label class="events-filter-label">Select Q</label>
-    <select class="events-filter-select" [(ngModel)]="model.queueName">
-      <option value="All">All</option>
-      <option *ngFor="let q of queues" [value]="q">{{ q }}</option>
-    </select>
-  </div>
 
   <!-- Console Type -->
   <div class="events-filter-group">
-    <label class="events-filter-label">Select Console Type</label>
+    <label class="events-filter-label">Select Alert Type</label>
     <select class="events-filter-select" [(ngModel)]="model.consoleType">
       <option value="All">All</option>
       <option *ngFor="let c of consoleTypes" [value]="c">{{ c }}</option>

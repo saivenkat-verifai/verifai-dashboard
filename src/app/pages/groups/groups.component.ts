@@ -11,6 +11,8 @@ import { DropdownModule } from "primeng/dropdown";
 import { ButtonModule } from "primeng/button";
 import { MultiSelectModule } from "primeng/multiselect";
 
+import { NotificationService } from 'src/app/shared/notification.service';
+
 
 // Register module
 ModuleRegistry.registerModules([QuickFilterModule]);
@@ -49,7 +51,7 @@ export class GroupsComponent implements OnInit, OnDestroy {
   gridApi!: GridApi;
   private apiSub?: Subscription;
 
-  constructor(private groupsService: GroupsService) { }
+  constructor(private groupsService: GroupsService,  private notificationService: NotificationService) { }
 
 ngOnInit() {
   this.selectedDate = new Date();
@@ -70,6 +72,13 @@ ngOnInit() {
   }
 
   this.loadGroups();
+}
+private showSuccess(summary: string, detail?: string) {
+  this.notificationService.success(summary, detail);
+}
+
+private showError(summary: string, detail?: string) {
+  this.notificationService.error(summary, detail);
 }
 
   /** Close popups */
@@ -204,53 +213,67 @@ ngOnInit() {
     this.getLevelsData();
   }
 
- createQueue() {
-    // ⭐ Now also require category
-    if (
-      !this.newQueue.queueName ||
-      !this.newQueue.levelId ||
-      !this.newQueue.category
-    ) {
-      console.warn("Queue Name, Level, and Category are required");
-      return;
-    }
-
-    const payload = {
-      queueName: this.newQueue.queueName,
-      levelId: this.newQueue.levelId,
-      queueCategory: this.newQueue.category,          // ⭐ NEW - sent to API
-      remarks: "",
-      createdBy:  this.currentUser?.UserId || 0, // get from current user context
-    };
-
-    console.log("Create Queue payload:", payload);
-
-    this.groupsService.postQueues(payload).subscribe({
-      next: (res) => {
-        const newId =
-          res?.queueId ??
-          res?.data?.queueId ??
-          res?.createdQueueId;
-
-        // reset form, including category
-        this.newQueue = {
-          queueName: "",
-          levelId: null,
-          category: null,                        // ⭐ NEW
-        };
-
-        this.goBack();
-
-        if (newId) {
-          this.selectedQueueId = newId;
-          this.loadGroups(newId);
-        } else {
-          this.loadGroups(this.selectedQueueId ?? undefined);
-        }
-      },
-      error: (err) => console.error("Error creating queue:", err),
-    });
+createQueue() {
+  if (
+    !this.newQueue.queueName ||
+    !this.newQueue.levelId ||
+    !this.newQueue.category
+  ) {
+    console.warn("Queue Name, Level, and Category are required");
+    this.showError('Create Queue', 'Queue Name, Level, and Category are required');
+    return;
   }
+
+  const payload = {
+    queueName: this.newQueue.queueName,
+    levelId: this.newQueue.levelId,
+    queueCategory: this.newQueue.category,
+    remarks: "",
+    createdBy: this.currentUser?.UserId || 0,
+  };
+
+  console.log("Create Queue payload:", payload);
+
+  this.groupsService.postQueues(payload).subscribe({
+    next: (res) => {
+      const msg =
+        res?.message ||
+        res?.msg ||
+        res?.statusMessage ||
+        'Queue created successfully';
+
+      const newId =
+        res?.queueId ??
+        res?.data?.queueId ??
+        res?.createdQueueId;
+
+      this.newQueue = {
+        queueName: "",
+        levelId: null,
+        category: null,
+      };
+
+      this.goBack();
+
+      if (newId) {
+        this.selectedQueueId = newId;
+        this.loadGroups(newId);
+      } else {
+        this.loadGroups(this.selectedQueueId ?? undefined);
+      }
+
+      this.showSuccess('Create Queue', msg);
+    },
+    error: (err) => {
+      const msg =
+        err?.error?.message ||
+        err?.error?.msg ||
+        'Failed to create queue';
+      console.error("Error creating queue:", err);
+      this.showError('Create Queue Failed', msg);
+    },
+  });
+}
 
 
   onAddClick() {
@@ -450,66 +473,95 @@ get filteredUsers() {
   }
 
   errorMessage: string = ""; // Add this at the top of your component
-  addSelectedUsers() {
-    if (!this.selectedUserIds.length) {
-      this.errorMessage = "Please select at least one user.";
-      return;
-    }
-
-    const payload = {
-      queueId: this.selectedItem?.id || 0, // fallback 0 if null
-      userId: this.selectedUserIds,
-      createdBy:  this.currentUser?.UserId || 0, // get from current user context
-    };
-
-    this.groupsService.addUsersToQueue(payload).subscribe({
-      next: (res) => {
-        console.log("Users added successfully", res);
-        this.selectedUserIds = []; // clear selection
-        this.errorMessage = ""; // clear any previous errors
-        this.goBack(); // close form
-        this.loadGroups(); //reload the queues api
-      },
-      error: (err) => {
-        console.error("Error adding users:", err);
-        this.errorMessage = "Failed to add users. Please try again.";
-      },
-    });
+addSelectedUsers() {
+  if (!this.selectedUserIds.length) {
+    this.errorMessage = "Please select at least one user.";
+    this.showError('Add Employees', this.errorMessage);
+    return;
   }
+
+  const payload = {
+    queueId: this.selectedItem?.id || 0,
+    userId: this.selectedUserIds,
+    createdBy: this.currentUser?.UserId || 0,
+  };
+
+  this.groupsService.addUsersToQueue(payload).subscribe({
+    next: (res) => {
+      const msg =
+        res?.message ||
+        res?.msg ||
+        res?.statusMessage ||
+        'Employees added successfully';
+
+      console.log("Users added successfully", res);
+      this.selectedUserIds = [];
+      this.errorMessage = "";
+      this.goBack();
+      this.loadGroups();
+
+      this.showSuccess('Add Employees', msg);
+    },
+    error: (err) => {
+      const msg =
+        err?.error?.message ||
+        err?.error?.msg ||
+        'Failed to add employees';
+      console.error("Error adding users:", err);
+      this.errorMessage = "Failed to add users. Please try again.";
+      this.showError('Add Employees Failed', msg);
+    },
+  });
+}
+
 
   selectedCameraIds: string[] = [];
 
-
-  addSiteCamera() {
+addSiteCamera() {
   if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraIds.length) {
     console.warn("Form is incomplete: select queue, site, and at least one camera");
+    this.showError('Add Site & Cameras', 'Please select queue, site, and at least one camera.');
     return;
   }
 
   const payload = {
     queueId: this.selectedItem.id,
     siteId: this.selectedSiteId,
-    cameraIds: this.selectedCameraIds, // <-- multiple cameras
-    createdBy:  this.currentUser?.UserId,
+    cameraIds: this.selectedCameraIds,
+    createdBy: this.currentUser?.UserId,
   };
 
   console.log("Payload for addSiteCamera:", payload);
 
   this.groupsService.postSiteCamera(payload).subscribe({
     next: (res) => {
+      const msg =
+        res?.message ||
+        res?.msg ||
+        res?.statusMessage ||
+        'Site & cameras added successfully';
+
       console.log("Site & Cameras added successfully:", res);
-      // Reset selections
+
       this.selectedSiteId = null;
       this.selectedCameraIds = [];
       this.camerasDropdown = [];
-      this.goBack(); // close form
-      this.loadGroups(); // reload
+      this.goBack();
+      this.loadGroups();
+
+      this.showSuccess('Add Site & Cameras', msg);
     },
     error: (err) => {
+      const msg =
+        err?.error?.message ||
+        err?.error?.msg ||
+        'Failed to add site & cameras';
       console.error("Error adding site & cameras:", err);
+      this.showError('Add Site & Cameras Failed', msg);
     },
   });
 }
+
 
   sites: any[] = []; // initially empty
   showPopup = false;

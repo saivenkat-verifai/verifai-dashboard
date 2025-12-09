@@ -14,14 +14,14 @@ import { HttpClientModule } from '@angular/common/http';
 import { AgGridModule } from 'ag-grid-angular';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
-import { routes } from './app/app-routing.module'; // your route array
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
+import { routes } from './app/app-routing.module';
 
 // Register AG Grid modules before bootstrap
 ModuleRegistry.registerModules([AllCommunityModule]);
 
-// ============================
 // GLOBAL PATCH: passive touch events
-// ============================
 const origAddEventListener = EventTarget.prototype.addEventListener;
 EventTarget.prototype.addEventListener = function (
   type: string,
@@ -34,7 +34,6 @@ EventTarget.prototype.addEventListener = function (
   return origAddEventListener.call(this, type, listener, options);
 };
 
-// Bootstrap your app
 bootstrapApplication(AppComponent, {
   providers: [
     provideAnimations(),
@@ -49,7 +48,9 @@ bootstrapApplication(AppComponent, {
       BrowserAnimationsModule,
       HttpClientModule,
       AgGridModule,
-      HighchartsChartModule
-    )
+      HighchartsChartModule,
+      ToastModule,           // ✅ module stays here
+    ),
+    MessageService           // ✅ service is provided here
   ]
 });

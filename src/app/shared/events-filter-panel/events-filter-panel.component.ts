@@ -17,6 +17,7 @@ export interface EventsFilterCriteria {
   actionTag: string;   // used mainly in CLOSED tab
   eventType: string;   // used as "Alert Type"
   employee: string;
+  userLevels: string;
 
   // 👉 Pending-only filters
   queueLevel: string;
@@ -71,6 +72,7 @@ export class EventsFilterPanelComponent {
     endTime: '23:59',
     minDuration: 0,
     maxDuration: 120,
+    userLevels: 'All',
     city: 'All',
     site: 'All',
     camera: 'All',
@@ -134,6 +136,7 @@ export class EventsFilterPanelComponent {
       endTime: '23:59',
       minDuration: 0,
       maxDuration: 120,
+      userLevels: 'All',
       city: 'All',
       site: 'All',
       camera: 'All',

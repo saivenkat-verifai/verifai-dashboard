@@ -10,7 +10,11 @@
   <!-- Navigation Menu -->
   <div class="header-section nav">
     <nav>
-      <a routerLink="/dashboard" routerLinkActive="active" #rlaDashboard="routerLinkActive">
+      <a
+        routerLink="/dashboard"
+        routerLinkActive="active"
+        #rlaDashboard="routerLinkActive"
+      >
         <img
           [src]="
             rlaDashboard.isActive
@@ -23,7 +27,11 @@
         DASHBOARD
       </a>
 
-      <a routerLink="/events" routerLinkActive="active" #rlaEvents="routerLinkActive">
+      <a
+        routerLink="/events"
+        routerLinkActive="active"
+        #rlaEvents="routerLinkActive"
+      >
         <img
           [src]="
             rlaEvents.isActive
@@ -36,7 +44,11 @@
         EVENTS
       </a>
 
-      <a routerLink="/groups" routerLinkActive="active" #rlaGroups="routerLinkActive">
+      <a
+        routerLink="/groups"
+        routerLinkActive="active"
+        #rlaGroups="routerLinkActive"
+      >
         <img
           [src]="
             rlaGroups.isActive
@@ -49,7 +61,11 @@
         QUEUES
       </a>
 
-      <a routerLink="/clients" routerLinkActive="active" #rlaClients="routerLinkActive">
+      <a
+        routerLink="/clients"
+        routerLinkActive="active"
+        #rlaClients="routerLinkActive"
+      >
         <img
           [src]="
             rlaClients.isActive
@@ -62,7 +78,11 @@
         CLIENTS
       </a>
 
-      <a routerLink="/sites" routerLinkActive="active" #rlaSites="routerLinkActive">
+      <a
+        routerLink="/sites"
+        routerLinkActive="active"
+        #rlaSites="routerLinkActive"
+      >
         <img
           [src]="
             rlaSites.isActive
@@ -83,10 +103,55 @@
   <!-- User Section -->
   <div class="header-section user">
     <div class="div">
-      <button class="ticket-icon">
+      <button class="ticket-icon" (click)="toggleNotifications()">
         <img src="assets/ticket-icon.svg" alt="header" class="nav-icon1" />
-        <span class="ticket-count">{{ ticketCount }}</span>
+        <span class="ticket-count" *ngIf="ticketCount > 0">
+          {{ ticketCount }}
+        </span>
       </button>
+
+      <!-- 🔔 Notifications popup -->
+      <div class="ticket-popup" *ngIf="showNotifications">
+        <div class="ticket-popup-header">
+          <span class="ticket-popup-title">
+            Notifications ({{ ticketCount }})
+          </span>
+          <button class="clear-btn" (click)="clearNotifications()">
+            Clear
+          </button>
+          <!-- NEW CLOSE BUTTON -->
+      <button class="close-btn" (click)="closeNotifications()">
+        ✕
+      </button>
+        </div>
+
+        <div class="ticket-popup-body">
+          <div class="ticket-item" *ngFor="let n of notifications">
+            <div class="ticket-item-main">
+              <span class="badge" [ngClass]="n.severity">
+                {{ n.severity | uppercase }}
+              </span>
+
+              <div class="ticket-text">
+                <div class="ticket-summary">
+                  {{ n.summary }}
+                </div>
+                <div class="ticket-detail" *ngIf="n.detail">
+                  {{ n.detail }}
+                </div>
+              </div>
+            </div>
+
+            <div class="ticket-time">
+              {{ n.timestamp | date : "shortTime" }}
+            </div>
+          </div>
+
+          <div class="ticket-empty" *ngIf="ticketCount === 0">
+            No notifications in this session.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="div">
@@ -116,10 +181,14 @@
         <div>{{ userProfile.phone }}</div>
       </div>
 
-      <a class="user-card-terms" href="javascript:void(0)">Terms &amp; Conditions</a>
+      <a class="user-card-terms" href="javascript:void(0)"
+        >Terms &amp; Conditions</a
+      >
 
       <div class="user-card-footer">
-        <span class="user-card-version">Version : {{ userProfile.version }}</span>
+        <span class="user-card-version"
+          >Version : {{ userProfile.version }}</span
+        >
         <button class="logout-btn" (click)="logout()">Logout</button>
       </div>
     </div>

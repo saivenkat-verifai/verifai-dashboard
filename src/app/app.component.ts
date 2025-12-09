@@ -4,19 +4,21 @@ import { filter } from 'rxjs/operators';
 import { HeaderComponent } from './shared/header/header.component';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ToastModule } from 'primeng/toast';
+import { NotificationService } from 'src/app/shared/notification.service';
 
 
 @Component({
   selector: 'app-root',
    standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent],
+  imports: [CommonModule, RouterModule, HeaderComponent, ToastModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   showHeader = true;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private notificationService: NotificationService) {}
 
   ngOnInit() {
     this.router.events

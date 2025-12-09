@@ -27,6 +27,8 @@ import { EscalationPopupComponent } from './shared/escalation-popup/escalation-p
 import { HttpClientModule } from '@angular/common/http';
 import { GroupsPopupComponent } from './shared/groups-popup/groups-popup.component';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import { ToastModule } from 'primeng/toast';
+import { NotificationService } from 'src/app/shared/notification.service';
 
 // ✅ Register all AG Grid community modules (outside @NgModule)
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -49,9 +51,9 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     BrowserAnimationsModule,
     HighchartsChartModule,
     AgGridModule,  // only once
-    HttpClientModule
+    HttpClientModule,    ToastModule, 
   ],
-  providers: [],
+  providers: [NotificationService],
   bootstrap: [] // <--- must specify root component
 })
 export class AppModule { }

@@ -1,8 +1,14 @@
-import { Component, OnInit } from "@angular/core";
-import { Router } from "@angular/router";
-import { CommonModule } from "@angular/common";
-import { RouterModule } from "@angular/router";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from 'src/app/login/login.service';
+import {
+  NotificationService,
+  AppNotification,
+} from 'src/app/shared/notification.service';
+import { Subscription } from 'rxjs';
 
+/** 👇 Add this back */
 interface UserProfile {
   name: string;
   role: string;
@@ -13,54 +19,72 @@ interface UserProfile {
 }
 
 @Component({
-  selector: "app-header",
-  templateUrl: "./header.component.html",
-  styleUrls: ["./header.component.css"],
+  selector: 'app-header',
+  templateUrl: './header.component.html',
+  styleUrls: ['./header.component.css'],
   standalone: true,
   imports: [CommonModule, RouterModule],
 })
-export class HeaderComponent implements OnInit {
-  activeMenu = "dashboard";
-  ticketCount: number = 209;
+export class HeaderComponent implements OnInit, OnDestroy {
+  activeMenu = 'dashboard';
 
+  ticketCount = 0;
   showUserCard = false;
+  showNotifications = false;
+
+  notifications: AppNotification[] = [];
+  private notifSub?: Subscription;
 
   userProfile: UserProfile = {
-    name: "Username",
-    role: "Screener",
-    id: "",
-    email: "",
-    phone: "",
-    version: "V1.01",
+    name: 'Username',
+    role: 'Screener',
+    id: '',
+    email: '',
+    phone: '',
+    version: 'V1.01',
   };
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    private notification: NotificationService
+  ) {}
 
   ngOnInit(): void {
-    // Read login response from storage (whatever you stored in login component)
+    // user profile (your existing logic)
     const stored =
-      localStorage.getItem("verifai_user") ||
-      sessionStorage.getItem("verifai_user");
+      localStorage.getItem('verifai_user') ||
+      sessionStorage.getItem('verifai_user');
 
     if (stored) {
       try {
         const data = JSON.parse(stored);
-
-        // Map fields based on your API response shape
         this.userProfile = {
           name:
-            `${data.FirstName ?? ""} ${data.LastName ?? ""}`.trim() ||
-            "Username",
-          role: data.roleList[0].roleName || "",
-          id: data.UserId || "0",
-          email: data.email || "user@example.com",
-          phone: data.phone || data.mobileNo || "+91 99999 99999",
-          version: data.version || "V1.01",
+            `${data.FirstName ?? ''} ${data.LastName ?? ''}`.trim() ||
+            'Username',
+          role: data.roleList[0].roleName || '',
+          id: data.UserId || '0',
+          email: data.email || 'user@example.com',
+          phone: data.phone || data.mobileNo || '+91 99999 99999',
+          version: data.version || 'V1.01',
         };
       } catch (e) {
-        console.error("Error parsing stored user data:", e);
+        console.error('Error parsing stored user data:', e);
       }
     }
+
+    // 🔔 subscribe to notifications
+    this.notifSub = this.notification.notifications$.subscribe(
+      (list) => {
+        this.notifications = list;
+        this.ticketCount = list.length;
+      }
+    );
+  }
+
+  ngOnDestroy() {
+    this.notifSub?.unsubscribe();
   }
 
   setActive(menu: string) {
@@ -70,16 +94,31 @@ export class HeaderComponent implements OnInit {
 
   toggleUserCard() {
     this.showUserCard = !this.showUserCard;
+    if (this.showUserCard) {
+      this.showNotifications = false;
+    }
   }
 
-  logout() {
-    // clear storage
-    localStorage.removeItem("verifai_user");
-    localStorage.removeItem("verifai_token");
-    sessionStorage.removeItem("verifai_user");
-    sessionStorage.removeItem("verifai_token");
+  closeNotifications() {
+  this.showNotifications = false;
+}
 
+  toggleNotifications() {
+    this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.showUserCard = false;
+    }
+  }
+
+clearNotifications() {
+  this.notification.clear();
+  this.showNotifications = false; // 👈 auto close popup
+}
+
+  logout() {
     this.showUserCard = false;
-    this.router.navigate(["/login"]);
+    this.showNotifications = false;
+    this.notification.clear();  // 🔄 reset on logout
+    this.authService.logout();
   }
 }

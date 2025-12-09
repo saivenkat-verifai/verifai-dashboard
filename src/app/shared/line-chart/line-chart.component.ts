@@ -43,7 +43,7 @@ export class LineChartComponent implements OnChanges {
         },
       },
 
-      accessibility: { enabled: true },
+      accessibility: { enabled: false },
 
       title: { text: "", align: "center" },
        xAxis: { categories: this.categories,  title: { text: "Hours" }, },
@@ -89,7 +89,7 @@ export class LineChartComponent implements OnChanges {
           },
         },
       },
-      accessibility: { enabled: true },
+      accessibility: { enabled: false },
       title: { text: "No Data", align: "left" },
       credits: { enabled: false },
       xAxis: { categories: this.categories,  title: { text: "Hours" }, },

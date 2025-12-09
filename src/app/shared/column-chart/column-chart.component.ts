@@ -10,6 +10,8 @@ import { HighchartsChartModule } from "highcharts-angular";
 import { CommonModule } from "@angular/common";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 
+
+
 @Component({
   selector: "app-column-chart",
   templateUrl: "./column-chart.component.html",
@@ -53,7 +55,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
     if (this.compareData && this.compareData.length > 0) {
       this.chartOptions = {
         chart: { type: "column" },
-        accessibility: { enabled: true },
+        accessibility: { enabled: false },
         title: { text: "", align: "center" },
         credits: { enabled: false },
         xAxis: { categories: this.compareData.map((d) => d.label) },
@@ -83,7 +85,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
     } else {
       this.chartOptions = {
         chart: { type: "column" },
-        accessibility: { enabled: true },
+        accessibility: { enabled: false },
         title: { text: "", align: "center" },
         credits: { enabled: false },
         xAxis: { categories: this.chartData.map((d) => d.label) },

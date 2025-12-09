@@ -29,6 +29,11 @@ import {
   EventsFilterPanelComponent,
   EventsFilterCriteria,
 } from "src/app/shared/events-filter-panel/events-filter-panel.component";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { NotificationService } from 'src/app/shared/notification.service';
+
+
+import { ProfileImageRendererComponent } from "./profile-image-renderer.component";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -116,24 +121,25 @@ export class EventsComponent implements OnInit, OnDestroy {
   onFilterClose() {
     this.isFilterOpen = false;
   }
-// currentFilter initial value:
-currentFilter: EventsFilterCriteria = {
-  startDate: null,
-  endDate: null,
-  startTime: '00:00',
-  endTime: '23:59',
-  minDuration: 0,
-  maxDuration: 120,
-  city: 'All',
-  site: 'All',
-  camera: 'All',
-  actionTag: 'All',
-  eventType: 'All',
-  employee: 'All',
-  queueLevel: 'All',
-  queueName: 'All',
-  consoleType: 'All',
-};
+  // currentFilter initial value:
+  currentFilter: EventsFilterCriteria = {
+    startDate: null,
+    endDate: null,
+    startTime: "00:00",
+    endTime: "23:59",
+    minDuration: 0,
+    maxDuration: 120,
+    userLevels: "All",
+    city: "All",
+    site: "All",
+    camera: "All",
+    actionTag: "All",
+    eventType: "All",
+    employee: "All",
+    queueLevel: "All",
+    queueName: "All",
+    consoleType: "All",
+  };
 
   /** -------------------- Display arrays (post-filter) -------------------- */
   rowData: any[] = []; // CLOSED table data (raw)
@@ -171,20 +177,34 @@ currentFilter: EventsFilterCriteria = {
         return false;
       if (criteria.camera !== "All" && row.cameraId !== criteria.camera)
         return false;
-      if (
-        criteria.actionTag !== "All" &&
-        (row.actionTag ?? row.subActionTag) !== criteria.actionTag
-      )
-        return false;
-      if (
-        criteria.eventType !== "All" &&
-        (row.eventType ?? row.eventTag) !== criteria.eventType
-      )
-        return false;
 
-      const emp = row.employee?.name ?? row.userName ?? row.user;
-      if (criteria.employee !== "All" && emp !== criteria.employee)
+      // 🔹 Action Tag filter (using eventType from dropdown)
+      const selectedActionTag = criteria.eventType;
+      if (selectedActionTag !== "All") {
+        const rowActionTag =
+          this.selectedFilter === "PENDING"
+            ? row.actionTag
+            : row.subActionTag ?? row.actionTag;
+
+        if (rowActionTag !== selectedActionTag) {
+          return false;
+        }
+      }
+
+      // 🔹 Employee (userLevel) filter
+      const level =
+        row.employee?.level ?? row.userLevels ?? row.userLevel ?? "N/A";
+      if (criteria.employee !== "All" && level !== criteria.employee) {
         return false;
+      }
+
+      // 🔹 Alert Type filter
+      if (criteria.consoleType !== "All") {
+        const rowAlertType = row.eventType ?? row.eventTag;
+        if (rowAlertType !== criteria.consoleType) {
+          return false;
+        }
+      }
 
       // duration
       const durationStr = row.duration ?? row.eventDuration;
@@ -258,7 +278,7 @@ currentFilter: EventsFilterCriteria = {
   pendingGridApi: GridApi | undefined;
 
   /** -------------------- Popup handling -------------------- */
-  isTablePopupVisible = false;     // ESCALATION DETAILS right popup
+  isTablePopupVisible = false; // ESCALATION DETAILS right popup
   isPopupVisible = false;
   selectedItem: any = null;
 
@@ -320,31 +340,70 @@ currentFilter: EventsFilterCriteria = {
   };
 
   /** -------------------- Filters (dropdown lists) -------------------- */
-filterLists = {
-  cities: [] as string[],
-  sites: [] as string[],
-  cameras: [] as string[],
-  actionTags: ['Suspicious', 'False', 'Event_Wall', 'Manual_Wall'],
-  eventTypes: ['Event_Wall', 'Manual_Wall'],
-  employees: [] as string[],
-  queueLevels: [] as string[],
-  queues: [] as string[],
-  consoleTypes: [] as string[],
-};
+  filterLists = {
+    cities: [] as string[],
+    sites: [] as string[],
+    cameras: [] as string[],
+    actionTags: ["Suspicious", "False", "Event_Wall", "Manual_Wall"],
+    eventTypes: ["Event_Wall", "Manual_Wall", "Timed_Out"],
+    userLevels: [] as string[],
+    queueLevels: [] as string[],
+    queues: [] as string[],
+    consoleTypes: [] as string[],
+  };
 
-get cities() { return this.filterLists.cities; }
-get sites() { return this.filterLists.sites; }
-get cameras() { return this.filterLists.cameras; }
-get actionTags() { return this.filterLists.actionTags; }
-get eventTypes() { return this.filterLists.eventTypes; }
-get employees() { return this.filterLists.employees; }
-get queueLevels() { return this.filterLists.queueLevels; }
-get queues() { return this.filterLists.queues; }
-get consoleTypes() { return this.filterLists.consoleTypes; }
-
+  get cities() {
+    return this.filterLists.cities;
+  }
+  get sites() {
+    return this.filterLists.sites;
+  }
+  get cameras() {
+    return this.filterLists.cameras;
+  }
+  get actionTags() {
+    return this.filterLists.actionTags;
+  }
+  get eventTypes() {
+    return this.filterLists.eventTypes;
+  }
+  get userLevels() {
+    return this.filterLists.userLevels;
+  }
+  get queueLevels() {
+    return this.filterLists.queueLevels;
+  }
+  get queues() {
+    return this.filterLists.queues;
+  }
+  get consoleTypes() {
+    return this.filterLists.consoleTypes;
+  }
 
   /** -------------------- Constructor -------------------- */
-  constructor(private eventsService: EventsService) {}
+  constructor(private eventsService: EventsService, private http: HttpClient,     private notification: NotificationService
+
+) {}
+
+  private getAuthHeaders(): HttpHeaders {
+    let rawToken = localStorage.getItem("acTok");
+    let token: string | null = null;
+
+    try {
+      if (rawToken) {
+        token = rawToken.startsWith('"') ? JSON.parse(rawToken) : rawToken;
+      }
+    } catch (e) {
+      console.error(
+        "EventsComponent: failed to parse token from localStorage",
+        e
+      );
+    }
+
+    return token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+  }
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
@@ -382,100 +441,115 @@ get consoleTypes() { return this.filterLists.consoleTypes; }
     }, 0);
   }
 
- /**
- * Resolve which media array to use based on:
- * - First: explicit imageUrl / videoUrl on the row
- * - Then: PENDING + CONSOLES  => image_list / imageList / images / frames / videoFile
- * - Then: CLOSED              => videoFile / videoFiles / images / imageList
- */
-private resolveMediaUrls(item: any): string[] {
-  // 🔹 1) If this row already has imageUrl / videoUrl, use that first
-  const directMedia = this.extractRowMedia(item);
-  if (directMedia.length) {
-    // console.log("Using direct media from row:", directMedia);
-    return directMedia;
-  }
+  private readonly DOT_IMAGES_BASE =
+    "https://usstaging.ivisecurity.com/dotimages/";
 
-  // 🔹 2) Existing logic for PENDING → CONSOLES
-  if (this.selectedFilter === "PENDING") {
-    if (this.selectedpendingFilter === "CONSOLES") {
-      const list =
-        item.image_list ??
-        item.imageList ??
-        item.images ??
-        item.frames ??
-        item.videoFile;
+  private buildImageUrl(imageName?: string | null): string | null {
+    if (!imageName) return null;
 
-      if (Array.isArray(list)) {
-        return list.filter((x: any) => !!x);
-      }
-      if (typeof list === "string" && list) {
-        const maybeSplit = list.includes(",") ? list.split(",") : [list];
-        return maybeSplit.map((s) => s.trim()).filter(Boolean);
-      }
-      return [];
+    const trimmed = String(imageName).trim();
+    if (!trimmed) return null;
+
+    // If it’s already a full URL, just return it
+    if (/^https?:\/\//i.test(trimmed)) {
+      return trimmed;
     }
 
-    // QUEUES branch becomes basically unnecessary now because we
-    // already checked imageUrl/videoUrl above, but we keep a fallback:
-    if (this.selectedpendingFilter === "QUEUES") {
-      const v =
-        item.videoFile ?? item.images ?? item.imageList ?? null;
+    // Remove any leading slashes before concatenating
+    const cleaned = trimmed.replace(/^\/+/, "");
+    return `${this.DOT_IMAGES_BASE}${cleaned}`;
+  }
 
-      if (!v) return [];
-
-      if (Array.isArray(v)) {
-        return v.filter((x: any) => !!x);
-      }
-      if (typeof v === "string" && v) {
-        const maybeSplit = v.includes(",") ? v.split(",") : [v];
-        return maybeSplit.map((s) => s.trim()).filter(Boolean);
-      }
-      return [];
+  /**
+   * Resolve which media array to use based on:
+   * - First: explicit imageUrl / videoUrl on the row
+   * - Then: PENDING + CONSOLES  => image_list / imageList / images / frames / videoFile / imageName
+   * - Then: CLOSED              => videoFile / videoFiles / images / imageList
+   */
+  private resolveMediaUrls(item: any): string[] {
+    // ✅ 0) Best source: image_list if present
+    if (Array.isArray(item.image_list) && item.image_list.length) {
+      return item.image_list.filter((x: any) => !!x);
     }
-  }
 
-  // 🔹 3) CLOSED tab (SUSPICIOUS / FALSE)
-  const vf = item.videoFile ?? item.videoFiles ?? item.images ?? item.imageList;
-  if (Array.isArray(vf)) {
-    return vf.filter((x: any) => !!x);
-  }
-  if (typeof vf === "string" && vf) {
-    const maybeSplit = vf.includes(",") ? vf.split(",") : [vf];
-    return maybeSplit.map((s) => s.trim()).filter(Boolean);
-  }
-
-  return [];
-}
-
-/** Prefer imageUrl, then videoUrl (string or array, comma-separated supported) */
-private extractRowMedia(item: any): string[] {
-  const urls: string[] = [];
-
-  const addFrom = (val: any) => {
-    if (!val) return;
-
-    if (Array.isArray(val)) {
-      val
-        .filter((x) => !!x)
-        .forEach((x) => urls.push(String(x).trim()));
-    } else if (typeof val === "string") {
-      val
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .forEach((u) => urls.push(u));
+    // ✅ 1) Next best: imageUrl / videoUrl
+    const directMedia = this.extractRowMedia(item);
+    if (directMedia.length) {
+      return directMedia;
     }
-  };
 
-  // 1️⃣ Prefer images
-  addFrom(item.imageUrl ?? item.imageURL);
-  if (urls.length) return urls;
+    // ✅ 2) Existing fallback for strings / other shapes
+    if (this.selectedFilter === "PENDING") {
+      if (this.selectedpendingFilter === "CONSOLES") {
+        const list =
+          item.imageList ??
+          item.images ??
+          item.frames ??
+          item.imageName ??
+          item.videoFile;
 
-  // 2️⃣ Fallback to videos
-  addFrom(item.videoUrl ?? item.videoURL);
-  return urls;
-}
+        if (Array.isArray(list)) {
+          return list.filter((x: any) => !!x);
+        }
+        if (typeof list === "string" && list) {
+          const maybeSplit = list.includes(",") ? list.split(",") : [list];
+          return maybeSplit.map((s) => s.trim()).filter(Boolean);
+        }
+        return [];
+      }
+
+      if (this.selectedpendingFilter === "QUEUES") {
+        const v = item.videoFile ?? item.images ?? item.imageList ?? null;
+        if (!v) return [];
+        if (Array.isArray(v)) return v.filter((x: any) => !!x);
+        if (typeof v === "string" && v) {
+          const maybeSplit = v.includes(",") ? v.split(",") : [v];
+          return maybeSplit.map((s) => s.trim()).filter(Boolean);
+        }
+        return [];
+      }
+    }
+
+    // CLOSED
+    const vf =
+      item.videoFile ?? item.videoFiles ?? item.images ?? item.imageList;
+    if (Array.isArray(vf)) {
+      return vf.filter((x: any) => !!x);
+    }
+    if (typeof vf === "string" && vf) {
+      const maybeSplit = vf.includes(",") ? vf.split(",") : [vf];
+      return maybeSplit.map((s) => s.trim()).filter(Boolean);
+    }
+
+    return [];
+  }
+
+  /** Prefer imageUrl, then videoUrl (string or array, comma-separated supported) */
+  private extractRowMedia(item: any): string[] {
+    const urls: string[] = [];
+
+    const addFrom = (val: any) => {
+      if (!val) return;
+
+      if (Array.isArray(val)) {
+        val.filter((x) => !!x).forEach((x) => urls.push(String(x).trim()));
+      } else if (typeof val === "string") {
+        val
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+          .forEach((u) => urls.push(u));
+      }
+    };
+
+    // 1️⃣ Prefer images
+    addFrom(item.imageUrl ?? item.imageURL);
+    if (urls.length) return urls;
+
+    // 2️⃣ Fallback to videos
+    addFrom(item.videoUrl ?? item.videoURL);
+    return urls;
+  }
 
   ngOnDestroy(): void {
     this.stopAutoRefresh();
@@ -483,16 +557,43 @@ private extractRowMedia(item: any): string[] {
   }
 
   /** -------------------- Toast helpers -------------------- */
-  onToastClose(event: any) {
-    this.toastMessages = this.toastMessages.filter((m) => m !== event.message);
-  }
+  // onToastClose(event: any) {
+  //   this.toastMessages = this.toastMessages.filter((m) => m !== event.message);
+  // }
 
-  showToast(severity: string, summary: string, detail: string, life = 3000) {
-    this.toastMessages = [
-      ...this.toastMessages,
-      { severity, summary, detail, life },
-    ];
-  }
+  // showToast(severity: string, summary: string, detail: string, life = 3000) {
+  //   this.toastMessages = [
+  //     ...this.toastMessages,
+  //     { severity, summary, detail, life },
+  //   ];
+  // }
+
+  /** -------------------- Toast helpers (PrimeNG) -------------------- */
+private showSuccess(summary: string, detail?: string) {
+  this.notification.success(summary, detail);
+}
+
+private showError(summary: string, detail?: string) {
+  this.notification.error(summary, detail);
+}
+
+private showWarn(summary: string, detail?: string) {
+  this.notification.warn(summary, detail);
+}
+
+private showInfo(summary: string, detail?: string) {
+  this.notification.info(summary, detail);
+}
+
+// Optional – keep a generic wrapper if you still want it
+showToast(
+  severity: 'success' | 'error' | 'warn' | 'info',
+  summary: string,
+  detail: string
+) {
+  this.notification[severity](summary, detail);
+}
+
 
   /** -------------------- Filter & toggle actions -------------------- */
   setFilter(filter: "CLOSED" | "PENDING"): void {
@@ -574,76 +675,74 @@ private extractRowMedia(item: any): string[] {
   }
 
   /** -------------------- Auto-refresh -------------------- */
- refreshData(): void {
-  console.log(
-    '%c[REFRESH BUTTON]',
-    'color: #7b1fa2; font-weight: bold;',
-    'Manual refresh clicked. Current interval (min):',
-    this.refreshInterval,
-    '| selectedFilter:',
-    this.selectedFilter
-  );
-
-  if (this.selectedFilter === 'PENDING') {
-    this.loadPendingEvents({ silent: false });
-  } else {
-    if (this.selectedStartDate && this.selectedEndDate) {
-      this.loadClosedAndEscalatedDetails({ silent: false });
-    } else {
-      this.showToast(
-        'warn',
-        'Pick a date range',
-        'Select dates in the calendar to refresh CLOSED events.'
-      );
-      return;
-    }
-  }
-
-  this.scheduleAutoRefresh(this.refreshInterval);
-  this.hasStartedAutoRefresh = true;
-}
-
-
- private scheduleAutoRefresh(minutes: number): void {
-  this.stopAutoRefresh();
-
-  console.log(
-    '%c[INTERVAL SCHEDULE]',
-    'color: #388e3c; font-weight: bold;',
-    'Scheduling auto-refresh every',
-    minutes,
-    'minute(s)'
-  );
-
-  if (!minutes || minutes <= 0) {
+  refreshData(): void {
     console.log(
-      '%c[INTERVAL SCHEDULE]',
-      'color: #f57c00; font-weight: bold;',
-      'Minutes is 0 or invalid → no auto-refresh scheduled.'
-    );
-    return;
-  }
-
-  this.refreshSub = interval(minutes * 60_000).subscribe(() => {
-    console.log(
-      '%c[AUTO REFRESH TICK]',
-      'color: #d32f2f; font-weight: bold;',
-      'Tick at:',
-      new Date().toISOString(),
-      '| selectedFilter =',
+      "%c[REFRESH BUTTON]",
+      "color: #7b1fa2; font-weight: bold;",
+      "Manual refresh clicked. Current interval (min):",
+      this.refreshInterval,
+      "| selectedFilter:",
       this.selectedFilter
     );
 
-    if (this.selectedFilter === 'PENDING') {
-      this.loadPendingEvents({ silent: true });
-    } else if (this.selectedFilter === 'CLOSED') {
+    if (this.selectedFilter === "PENDING") {
+      this.loadPendingEvents({ silent: false });
+    } else {
       if (this.selectedStartDate && this.selectedEndDate) {
-        this.loadClosedAndEscalatedDetails({ silent: true });
+        this.loadClosedAndEscalatedDetails({ silent: false });
+      } else {
+        this.showToast(
+          "warn",
+          "Pick a date range",
+          "Select dates in the calendar to refresh CLOSED events."
+        );
+        return;
       }
     }
-  });
-}
 
+    this.scheduleAutoRefresh(this.refreshInterval);
+    this.hasStartedAutoRefresh = true;
+  }
+
+  private scheduleAutoRefresh(minutes: number): void {
+    this.stopAutoRefresh();
+
+    console.log(
+      "%c[INTERVAL SCHEDULE]",
+      "color: #388e3c; font-weight: bold;",
+      "Scheduling auto-refresh every",
+      minutes,
+      "minute(s)"
+    );
+
+    if (!minutes || minutes <= 0) {
+      console.log(
+        "%c[INTERVAL SCHEDULE]",
+        "color: #f57c00; font-weight: bold;",
+        "Minutes is 0 or invalid → no auto-refresh scheduled."
+      );
+      return;
+    }
+
+    this.refreshSub = interval(minutes * 60_000).subscribe(() => {
+      console.log(
+        "%c[AUTO REFRESH TICK]",
+        "color: #d32f2f; font-weight: bold;",
+        "Tick at:",
+        new Date().toISOString(),
+        "| selectedFilter =",
+        this.selectedFilter
+      );
+
+      if (this.selectedFilter === "PENDING") {
+        this.loadPendingEvents({ silent: true });
+      } else if (this.selectedFilter === "CLOSED") {
+        if (this.selectedStartDate && this.selectedEndDate) {
+          this.loadClosedAndEscalatedDetails({ silent: true });
+        }
+      }
+    });
+  }
 
   private stopAutoRefresh(): void {
     if (this.refreshSub) {
@@ -652,26 +751,26 @@ private extractRowMedia(item: any): string[] {
     }
   }
 
-onIntervalChange(newInterval: number): void {
-  this.refreshInterval = Number(newInterval) || 1;
+  onIntervalChange(newInterval: number): void {
+    this.refreshInterval = Number(newInterval) || 1;
 
-  console.log(
-    '%c[INTERVAL CHANGE]',
-    'color: #1976d2; font-weight: bold;',
-    'User selected interval (min):',
-    newInterval,
-    '→ refreshInterval set to:',
-    this.refreshInterval
-  );
+    console.log(
+      "%c[INTERVAL CHANGE]",
+      "color: #1976d2; font-weight: bold;",
+      "User selected interval (min):",
+      newInterval,
+      "→ refreshInterval set to:",
+      this.refreshInterval
+    );
 
-  this.scheduleAutoRefresh(this.refreshInterval);
+    this.scheduleAutoRefresh(this.refreshInterval);
 
-  this.showToast(
-    'info',
-    'Auto-refresh Interval Updated',
-    `Refresh will occur every ${this.refreshInterval} minute(s).`
-  );
-}
+    this.showToast(
+      "info",
+      "Auto-refresh Interval Updated",
+      `Refresh will occur every ${this.refreshInterval} minute(s).`
+    );
+  }
 
   /** -------------------- AG Grid setup -------------------- */
   onGridReady(params: GridReadyEvent): void {
@@ -800,56 +899,120 @@ onIntervalChange(newInterval: number): void {
   }
 
   /** NEW: Submit Add Comment popup */
-  submitAddComment(): void {
-    if (!this.selectedItem?.eventDetails?.[0]?.eventId) {
-      console.error("No eventId on selectedItem");
+ submitAddComment(): void {
+  if (!this.selectedItem?.eventDetails?.[0]?.eventId) {
+    console.error("No eventId on selectedItem");
+    this.showError('Add Comment', 'Missing event ID for this record.');
+    return;
+  }
+
+  const eventId = Number(this.selectedItem.eventDetails[0].eventId);
+  const notes = (this.addCommentForm.notes || "").trim();
+
+  if (!notes) {
+    this.showWarn('Validation', 'Comment cannot be empty.');
+    return;
+  }
+
+  const remarks = this.addCommentForm.tag
+    ? `Tag: ${this.addCommentForm.tag} | Added via escalation popup`
+    : 'Added via escalation popup';
+
+  const payload = {
+    eventsId: String(eventId),
+    commentsInfo: notes,
+    createdBy: this.currentUser?.UserId || 0,
+    remarks,
+  };
+
+  console.log('Sending comment payload from parent:', payload);
+
+  this.eventsService.addComment(payload).subscribe({
+    next: (res) => {
+      console.log('Comment saved successfully', res);
+
+      const msg =
+        res?.message ||
+        res?.msg ||
+        res?.statusMessage ||
+        'Comment added successfully.';
+
+      this.showSuccess('Add Comment', msg);
+
+      // close add comment popup
+      this.isAddCommentPopupVisible = false;
+
+      // re-open escalation popup
+      this.isTablePopupVisible = true;
+
+      // refresh data so comments grid updates
+      this.onRefreshMoreInfo(eventId);
+    },
+    error: (err) => {
+      console.error('Error saving comment', err);
+
+      const msg =
+        err?.error?.message ||
+        err?.error?.msg ||
+        'Failed to save comment. Please try again.';
+
+      this.showError('Add Comment Failed', msg);
+    },
+  });
+}
+
+
+  downloadAllImages(event: MouseEvent): void {
+    // Don't close the overlay
+    event.stopPropagation();
+
+    const files: string[] | undefined = this.selectedPlayItem?.videoFile;
+    if (!files || !files.length) {
+      this.showToast("warn", "No images", "There are no images to download.");
       return;
     }
 
-    const eventId = Number(this.selectedItem.eventDetails[0].eventId);
-    const notes = (this.addCommentForm.notes || "").trim();
+    files.forEach((rawUrl: string, index: number) => {
+      if (!rawUrl) return;
 
-    if (!notes) {
-      console.warn("Comment cannot be empty");
-      // optional: show toast
-      this.showToast("warn", "Validation", "Comment cannot be empty.");
+      // Normalize (handles file names vs full URLs)
+      const url = this.buildImageUrl(rawUrl) ?? rawUrl;
+
+      // Create a temporary <a> and click it
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Try to construct a reasonable filename
+      const urlPath = url.split("?")[0]; // strip query string if any
+      const ext = (urlPath.split(".").pop() || "jpg").toLowerCase();
+
+      const baseName =
+        this.selectedPlayItem?.eventId != null
+          ? `event_${this.selectedPlayItem.eventId}`
+          : "event_image";
+
+      link.download = `${baseName}_${index + 1}.${ext}`;
+      link.target = "_blank"; // optional
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+  }
+
+  openAllImagesInNewTabs(event: MouseEvent): void {
+    // Prevent bubbling to overlay
+    event.stopPropagation();
+
+    const files: string[] | undefined = this.selectedPlayItem?.videoFile;
+    if (!files || !files.length) {
+      this.showToast("warn", "No images", "There are no images to open.");
       return;
     }
 
-    const remarks = this.addCommentForm.tag
-      ? `Tag: ${this.addCommentForm.tag} | Added via escalation popup`
-      : "Added via escalation popup";
-
-    const payload = {
-      eventsId: String(eventId),
-      commentsInfo: notes,
-      createdBy: this.currentUser?.UserId || 0,
-      remarks,
-    };
-
-    console.log("Sending comment payload from parent:", payload);
-
-    this.eventsService.addComment(payload).subscribe({
-      next: (res) => {
-        console.log("Comment saved successfully", res);
-
-        // close add comment popup
-        this.isAddCommentPopupVisible = false;
-
-        // re-open escalation popup
-        this.isTablePopupVisible = true;
-
-        // refresh data so comments grid updates
-        this.onRefreshMoreInfo(eventId);
-      },
-      error: (err) => {
-        console.error("Error saving comment", err);
-        this.showToast(
-          "error",
-          "Error",
-          "Failed to save comment. Please try again."
-        );
-      },
+    files.forEach((url: string) => {
+      if (!url) return;
+      window.open(url, "_blank");
     });
   }
 
@@ -872,26 +1035,26 @@ onIntervalChange(newInterval: number): void {
     }
   }
 
-openPlayTooltip(event: MouseEvent, params: any): void {
-  const item = params.data;
-  const media = this.resolveMediaUrls(item);
+  openPlayTooltip(event: MouseEvent, params: any): void {
+    const item = params.data;
+    const media = this.resolveMediaUrls(item);
 
-  console.log("DEBUG media for tooltip:", media, "from item:", item);
+    console.log("DEBUG media for tooltip:", media, "from item:", item);
 
-  this.selectedPlayItem = {
-    ...item,
-    videoFile: media,
-  };
+    this.selectedPlayItem = {
+      ...item,
+      videoFile: media,
+    };
 
-  this.currentSlideIndex = 0;
+    this.currentSlideIndex = 0;
 
-  if (media.length > 0) {
-    this.startImageLoop();
-    this.playOverlay.show(event);
-  } else {
-    console.warn("No media found to play for item (tooltip):", item);
+    if (media.length > 0) {
+      this.startImageLoop();
+      this.playOverlay.show(event);
+    } else {
+      console.warn("No media found to play for item (tooltip):", item);
+    }
   }
-}
 
   closePlayPopup(): void {
     this.stopImageLoop();
@@ -1065,6 +1228,9 @@ openPlayTooltip(event: MouseEvent, params: any): void {
             ? msg.userLevelAlarmInfo[msg.userLevelAlarmInfo.length - 1]
             : null;
 
+          // 🔹 Build full URL from imageName (for consoleManualWallMessages and others)
+          const imageUrl = this.buildImageUrl(msg.imageName);
+
           rows.push({
             ...msg,
             queueName: q.queueName,
@@ -1075,6 +1241,7 @@ openPlayTooltip(event: MouseEvent, params: any): void {
             actionTime: msg.actionTime,
             timezone: msg.timezone,
             alertType: this.ALERT_COLORS[tag],
+            imageUrl,
           });
         });
       });
@@ -1175,9 +1342,7 @@ openPlayTooltip(event: MouseEvent, params: any): void {
         const allRows: any[] = [];
 
         if (consoleRes) {
-          const consoleRows = this.transformConsolePendingMessages(
-            consoleRes
-          );
+          const consoleRows = this.transformConsolePendingMessages(consoleRes);
           allRows.push(...consoleRows);
         }
 
@@ -1209,10 +1374,10 @@ openPlayTooltip(event: MouseEvent, params: any): void {
             row.user ??
             "";
           const empLevel =
-            row.employee?.level ??
-            row.userLevels ??
-            row.userLevel ??
-            "N/A";
+            row.employee?.level ?? row.userLevels ?? row.userLevel ?? "N/A";
+
+          const empProfileImage =
+            row.employee?.profileImage ?? row.profileImage ?? null;
 
           return {
             ...row,
@@ -1224,9 +1389,9 @@ openPlayTooltip(event: MouseEvent, params: any): void {
               row.employee ??
               (empName
                 ? {
-                    avatar: "assets/user1.png",
-                    level: empLevel,
                     name: empName,
+                    level: empLevel,
+                    profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
                   }
                 : undefined),
           };
@@ -1264,6 +1429,20 @@ openPlayTooltip(event: MouseEvent, params: any): void {
         ];
 
         this.refreshDropdownListsFromPending();
+
+        // 🔹 PENDING: "Action Tag" options come from actionTag in the response
+        this.filterLists.eventTypes = this.uniq(
+          this.pendingRowData
+            .map((r) => r.actionTag)
+            .filter((v) => v != null && v !== "")
+        );
+
+        // 🔹 PENDING: Alert Type options (Event_Wall / Manual_Wall / Timed_Out)
+        this.filterLists.consoleTypes = this.uniq(
+          this.pendingRowData
+            .map((r) => r.eventType ?? r.eventTag)
+            .filter((v) => v != null && v !== "")
+        );
 
         if (!this.hasStartedAutoRefresh && this.selectedFilter === "PENDING") {
           this.hasStartedAutoRefresh = true;
@@ -1372,6 +1551,7 @@ openPlayTooltip(event: MouseEvent, params: any): void {
 
           const empName = e?.userName ?? e?.user ?? "";
           const empLevel = e?.userLevels ?? "N/A";
+          const empProfileImage = e?.profileImage ?? null;
 
           return {
             ...e,
@@ -1385,9 +1565,9 @@ openPlayTooltip(event: MouseEvent, params: any): void {
             actionTag: e?.actionTag ?? e?.subActionTag,
             subActionTag: e?.subActionTag ?? e?.actionTag,
             employee: {
-              avatar: "assets/user1.png",
-              level: empLevel,
               name: empName,
+              level: empLevel,
+              profileImage: empProfileImage, // 👈 renderer uses this
             },
             alertType: alertColor,
             more: true,
@@ -1434,6 +1614,19 @@ openPlayTooltip(event: MouseEvent, params: any): void {
         ];
 
         this.refreshDropdownListsFromClosed();
+        // 🔹 CLOSED: "Action Tag" options come from subActionTag in the response
+        this.filterLists.eventTypes = this.uniq(
+          this.rowData
+            .map((r) => r.subActionTag)
+            .filter((v) => v != null && v !== "")
+        );
+
+        // 🔹 CLOSED: Alert Type options from eventType / eventTag in CLOSED data
+        this.filterLists.consoleTypes = this.uniq(
+          this.rowData
+            .map((r) => r.eventType ?? r.eventTag)
+            .filter((v) => v != null && v !== "")
+        );
       },
       error: (err) => {
         if (!silent) this.isLoading = false;
@@ -1545,6 +1738,7 @@ openPlayTooltip(event: MouseEvent, params: any): void {
   private buildQueuesEscalationCard(res: any): EscalatedDetail {
     const total =
       res?.totalQeventsCount ??
+      res?.allQueuesCount ?? // 👈 NEW: your current API
       res?.totalQueues ??
       res?.total ??
       res?.totalCount ??
@@ -1572,6 +1766,7 @@ openPlayTooltip(event: MouseEvent, params: any): void {
     const total =
       res?.totalConsoleEvents ??
       res?.totalConsoles ??
+      res?.allConsoleCount ??
       res?.total ??
       res?.totalCount ??
       0;
@@ -1600,10 +1795,10 @@ openPlayTooltip(event: MouseEvent, params: any): void {
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
-    this.filterLists.employees = this.uniq(
-      rows.map(
-        (r) => r.employee?.name ?? r.employeeName ?? r.userName ?? r.user
-      )
+
+    // 🔁 Now build options from userLevels / employee.level
+    this.filterLists.userLevels = this.uniq(
+      rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
     );
   }
 
@@ -1612,8 +1807,10 @@ openPlayTooltip(event: MouseEvent, params: any): void {
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
-    this.filterLists.employees = this.uniq(
-      rows.map((r) => r.employee?.name ?? r.userName ?? r.user)
+
+    // 🔁 Use levels instead of names
+    this.filterLists.userLevels = this.uniq(
+      rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
     );
   }
 
@@ -1853,13 +2050,8 @@ openPlayTooltip(event: MouseEvent, params: any): void {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         valueFormatter: (params) => params.value?.name || "",
-        cellRenderer: (params: any) =>
-          params.value
-            ? `<div style="display:flex; align-items:center; gap:8px;">
-            <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
-            <span>${params.value.level}</span>
-          </div>`
-            : "",
+        cellRenderer: ProfileImageRendererComponent,
+
         suppressHeaderMenuButton: true,
       },
       {
