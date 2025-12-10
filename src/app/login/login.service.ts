@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 
 export interface LoginResponse {
   token?: string;
@@ -15,9 +16,13 @@ export interface LoginResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  // 🔹 API URL from Swagger
+  // 🔹 Base URL from environment (changes per build)
+  private readonly baseUrl =
+    environment.authBaseUrl ?? environment.apiBaseUrl;
+
+  // 🔹 Login endpoint (same path in all envs)
   private readonly loginUrl =
-    'https://usstaging.ivisecurity.com/userDetails/user_login_1_0';
+    `${this.baseUrl}/userDetails/user_login_1_0`;
 
   private readonly encryptionKey = 'verifai'; // AES KEY (must match backend)
   private readonly USER_KEY = 'verifai_user';
@@ -89,14 +94,13 @@ export class AuthService {
   /** =========================
    *  LOGOUT (clear storage + redirect)
    *  ========================= */
- // auth.service.ts
-logout(): void {
-  localStorage.removeItem(this.USER_KEY);
-  localStorage.removeItem(this.TOKEN_KEY);
-  sessionStorage.removeItem(this.USER_KEY);
-  sessionStorage.removeItem(this.TOKEN_KEY);
+  logout(): void {
+    localStorage.removeItem(this.USER_KEY);
+    localStorage.removeItem(this.TOKEN_KEY);
+    sessionStorage.removeItem(this.USER_KEY);
+    sessionStorage.removeItem(this.TOKEN_KEY);
 
-  // ✅ replaceUrl so Back button can't go back to previous protected page
-  this.router.navigate(['/login'], { replaceUrl: true });
-}
+    // ✅ replaceUrl so Back button can't go back to previous protected page
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
 }

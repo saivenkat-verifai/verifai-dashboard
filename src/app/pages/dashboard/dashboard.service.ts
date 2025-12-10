@@ -1,14 +1,15 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, of, concat } from "rxjs";
-import { catchError, delay } from "rxjs/operators";
+import { catchError } from "rxjs/operators";
+import { environment } from "src/environments/environment";  // 👈 IMPORTANT
 
 @Injectable({
   providedIn: "root",
 })
 export class DashboardService {
-  private baseUrl =
-    "https://stagingmq.ivisecurity.com/queueManagement/getEventDashboardHourlyCounts_1_0";
+  // 👇 Build the full endpoint from the env MQ base URL
+  private readonly baseUrl = `${environment.mqApiBaseUrl}/queueManagement/getEventDashboardHourlyCounts_1_0`;
 
   constructor(private http: HttpClient) {}
 
@@ -20,11 +21,10 @@ export class DashboardService {
   ): Observable<any> {
     const fromDateTime = this.formatDateTime(startDate, startTime);
     const toDateTime = this.formatDateTime(endDate, endTime);
+
     const apiUrl = `${this.baseUrl}?fromDate=${encodeURIComponent(
       fromDateTime
     )}&toDate=${encodeURIComponent(toDateTime)}`;
-    // const apiUrl = `${this.baseUrl}?fromDate=${fromDate}&toDate=${toDate}`;
-    // const apiUrl = `${this.baseUrl}?`;
 
     const defaultData = {
       total: {
@@ -66,14 +66,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
           arrest: {
@@ -83,14 +77,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
           deterred: {
@@ -100,14 +88,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
           information: {
@@ -117,14 +99,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
           "police call": {
@@ -134,14 +110,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
           oversight: {
@@ -151,14 +121,8 @@ export class DashboardService {
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {
-              HourlyEventWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
-              HourlyManualWall: [
-                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0,
-              ],
+              HourlyEventWall: new Array(24).fill(0),
+              HourlyManualWall: new Array(24).fill(0),
             },
           },
         },
@@ -180,19 +144,17 @@ export class DashboardService {
       })
     );
 
-    // Emit default data immediately, then API data
     return concat(of(defaultData), apiRequest$);
   }
 
   private formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = ("0" + (date.getMonth() + 1)).slice(-2);
-  const d = ("0" + date.getDate()).slice(-2);
-  return `${y}-${m}-${d}`;
-}
+    const y = date.getFullYear();
+    const m = ("0" + (date.getMonth() + 1)).slice(-2);
+    const d = ("0" + date.getDate()).slice(-2);
+    return `${y}-${m}-${d}`;
+  }
 
   private formatDateTime(date: Date, time: string): string {
-    // If time is like "01:03 PM" → convert to 24hr
     const dateObj = new Date(`${this.formatDate(date)} ${time}`);
     const y = dateObj.getFullYear();
     const m = ("0" + (dateObj.getMonth() + 1)).slice(-2);

@@ -1,37 +1,40 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
+import { environment } from "src/environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class EventsService {
-  private eventReportFullData =
-    "https://usstaging.ivisecurity.com/events_data/getEventReportFullData_1_0";
-  private actionTagCategoriesUrl =
-    "https://usstaging.ivisecurity.com/events_data/getActionTagCategories_1_0";
+  // 🔹 Base URLs from environment
+  private readonly apiBaseUrl = environment.apiBaseUrl;
+  private readonly mqBaseUrl =
+    environment.mqApiBaseUrl ?? environment.apiBaseUrl;
 
-  private pendingMessagesUrl =
-    "https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0";
+  // 🔹 events_data endpoints
+  private readonly eventReportFullData = `${this.apiBaseUrl}/events_data/getEventReportFullData_1_0`;
 
-  private consolePendingMessagesUrl =
-    "https://stagingmq.ivisecurity.com/queueManagement/getConsolePendingMessages_1_0";
+  private readonly actionTagCategoriesUrl = `${this.apiBaseUrl}/events_data/getActionTagCategories_1_0`;
 
-  private eventReportCountsForActionTag =
-    "https://usstaging.ivisecurity.com/events_data/getEventReportCountsForActionTag_1_0";
-  private getEventsMoreInfo =
-    "https://usstaging.ivisecurity.com/events_data/getEventsMoreInfo_1_0";
-  private addCommentForEvent =
-    "https://usstaging.ivisecurity.com/events_data/addCommentForEvent_1_0";
-  private updateEventsMoreInfo =
-    "https://usstaging.ivisecurity.com/events_data/updateEventsMoreInfo_1_0";
+  private readonly eventReportCountsForActionTag = `${this.apiBaseUrl}/events_data/getEventReportCountsForActionTag_1_0`;
 
-      private consoleEventsCountsUrl =
-    'https://usstaging.ivisecurity.com/events_data/getConsoleEventsCounts_1_0';
+  private readonly getEventsMoreInfoUrl = `${this.apiBaseUrl}/events_data/getEventsMoreInfo_1_0`;
 
-  private pendingEventsCountsUrl =
-    'https://stagingmq.ivisecurity.com/queueManagement/getPendingEventsCounts_1_0';
+  private readonly addCommentForEventUrl = `${this.apiBaseUrl}/events_data/addCommentForEvent_1_0`;
 
+  private readonly updateEventsMoreInfoUrl = `${this.apiBaseUrl}/events_data/updateEventsMoreInfo_1_0`;
+
+  private readonly consoleEventsCountsUrl = `${this.apiBaseUrl}/events_data/getConsoleEventsCounts_1_0`;
+
+  private readonly consolePendingMessagesDataUrl = `${this.apiBaseUrl}/events_data/getConsolePendingMessages_1_0`;
+
+  // 🔹 MQ / queueManagement endpoints
+  private readonly pendingMessagesUrl = `${this.mqBaseUrl}/queueManagement/getEventsPendingMessages_1_0`;
+
+  private readonly consolePendingMessagesUrl = `${this.mqBaseUrl}/queueManagement/getConsolePendingMessages_1_0`;
+
+  private readonly pendingEventsCountsUrl = `${this.mqBaseUrl}/queueManagement/getPendingEventsCounts_1_0`;
 
   constructor(private http: HttpClient) {}
 
@@ -40,27 +43,12 @@ export class EventsService {
     startDate?: string,
     endDate?: string
   ): Observable<any> {
-    console.log(startDate, "dates");
-    console.log(endDate, "date");
-    // let startDates = "2025-09-01 00:00:00";
-    // let endDates = "2025-10-01 03:00:00";
-    // Send suspiciousChecked as a query parameter https://usstaging.ivisecurity.com/events_data/getEventReportCountsForActionTag_1_0?date=2025-09-25&actionTag=2
     return this.http.get<any>(
       `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`
     );
   }
 
-  // getEventsPendingEventa(actionTag: number): Observable<any> {
-  //   // Replace with the correct API endpoint if needed
-  //   return this.http.get<any>(`${this.pendingMessagesUrl}`);
-  // }
-
-  // getConsolePendingMessagesUrl(actionTag: number): Observable<any> {
-  //   // Replace with the correct API endpoint if needed
-  //   return this.http.get<any>(`${this.consolePendingMessagesUrl}`);
-  // }
-
-    getConsoleEventsCounts_1_0(): Observable<any> {
+  getConsoleEventsCounts_1_0(): Observable<any> {
     return this.http.get<any>(this.consoleEventsCountsUrl);
   }
 
@@ -68,18 +56,14 @@ export class EventsService {
     return this.http.get<any>(this.pendingEventsCountsUrl);
   }
 
-  getConsolePendingMessages_1_0() {
-    // GET https://usstaging.ivisecurity.com/events_data/getConsolePendingMessages_1_0
-    return this.http.get<any>(
-      "https://usstaging.ivisecurity.com/events_data/getConsolePendingMessages_1_0"
-    );
+  // ✅ From events_data
+  getConsolePendingMessages_1_0(): Observable<any> {
+    return this.http.get<any>(this.consolePendingMessagesDataUrl);
   }
 
-  getEventsPendingMessages_1_0() {
-    // GET https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0
-    return this.http.get<any>(
-      "https://stagingmq.ivisecurity.com/queueManagement/getEventsPendingMessages_1_0"
-    );
+  // ✅ From MQ queueManagement
+  getEventsPendingMessages_1_0(): Observable<any> {
+    return this.http.get<any>(this.pendingMessagesUrl);
   }
 
   getActionTagCategories(): Observable<any> {
@@ -91,12 +75,14 @@ export class EventsService {
     endDate?: string,
     actionTag?: number
   ): Observable<any> {
-    const url = `${this.eventReportCountsForActionTag}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`;
+    const url =
+      `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
+      `&toDate=${endDate}&actionTag=${actionTag}`;
     return this.http.get<any>(url);
   }
 
   getEventMoreInfo(eventId: number): Observable<any> {
-    const url = `${this.getEventsMoreInfo}?eventId=${eventId}`;
+    const url = `${this.getEventsMoreInfoUrl}?eventId=${eventId}`;
     return this.http.get<any>(url);
   }
 
@@ -106,7 +92,7 @@ export class EventsService {
     createdBy: number;
     remarks: string;
   }): Observable<any> {
-    return this.http.post<any>(this.addCommentForEvent, event, {
+    return this.http.post<any>(this.addCommentForEventUrl, event, {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -125,7 +111,7 @@ export class EventsService {
     notes: string;
   }): Observable<any> {
     console.log(event, "kk");
-    return this.http.put<any>(this.updateEventsMoreInfo, event, {
+    return this.http.put<any>(this.updateEventsMoreInfoUrl, event, {
       headers: { "Content-Type": "application/json" },
     });
   }
