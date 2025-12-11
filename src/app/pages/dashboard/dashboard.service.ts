@@ -162,7 +162,6 @@ export class DashboardService {
     const hh = ("0" + dateObj.getHours()).slice(-2);
     const mm = ("0" + dateObj.getMinutes()).slice(-2);
     const ss = ("0" + dateObj.getSeconds()).slice(-2);
-
     return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
   }
 }
