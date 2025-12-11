@@ -29,7 +29,7 @@ Thumbs.db
 .angular/tsconfig.tsbuildinfo
 
 # environment files (keep them private!)
-src/environments/environment*.ts
+# src/environments/environment*.ts
 
 # Optional npm/yarn/pnpm logs
 npm-debug.log*
