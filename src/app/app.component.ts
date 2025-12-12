@@ -16,7 +16,7 @@ import { NotificationService } from 'src/app/shared/notification.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  showHeader = true;
+  showHeader = false;
 
   constructor(private router: Router, private notificationService: NotificationService) {}
 

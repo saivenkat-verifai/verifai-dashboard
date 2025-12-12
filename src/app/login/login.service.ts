@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
 import { Router } from '@angular/router';
@@ -17,18 +17,13 @@ export interface LoginResponse {
 })
 export class AuthService {
   // 🔹 Base URL from environment (changes per build)
-  private readonly baseUrl =
-    environment.authBaseUrl ?? environment.apiBaseUrl;
-
-  // 🔹 Login endpoint (same path in all envs)
-  private readonly loginUrl =
-    `${this.baseUrl}/userDetails/user_login_1_0`;
+  private readonly baseUrl = `${environment.authBaseUrl}/userDetails`;
 
   private readonly encryptionKey = 'verifai'; // AES KEY (must match backend)
   private readonly USER_KEY = 'verifai_user';
   private readonly TOKEN_KEY = 'verifai_token';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   /** =========================
    *  AES Encrypt Password to Base64
@@ -47,14 +42,21 @@ export class AuthService {
    *  ========================= */
   login(userName: string, password: string): Observable<LoginResponse> {
     const encryptedPassword = this.encryptPassword(password);
-
     const body = {
       userName: userName,
       password: encryptedPassword,
       callingSystemDetail: 'events-dashboard'
     };
+    return this.http.post<LoginResponse>(`${this.baseUrl}/user_login_1_0`, body);
+  }
 
-    return this.http.post<LoginResponse>(this.loginUrl, body);
+  getUserInfoForId() {
+    const data = JSON.parse(sessionStorage.getItem('verifai_user')!);
+    let url = `${this.baseUrl}/getUserInfoForUserId_1_0/${data?.UserId}`;
+    const headers = new HttpHeaders({
+      'authorization': `Bearer ${data?.AccessToken}`
+    })
+    return this.http.get(url, {headers});
   }
 
   /** =========================

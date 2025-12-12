@@ -168,7 +168,7 @@
     <!-- User profile popup card -->
     <div class="user-card" *ngIf="showUserCard">
       <div class="user-card-avatar">
-        <img src="assets/user.svg" alt="User" />
+        <img [src]="userData?.profileImage | image | async" alt="User" />
       </div>
 
       <div class="user-card-name">{{ userProfile.name }}</div>
