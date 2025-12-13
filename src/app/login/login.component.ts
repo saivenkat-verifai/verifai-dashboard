@@ -48,25 +48,31 @@ export class LoginComponent {
     this.loading = true;
 
     this.authService.login(this.username, this.password).subscribe({
-      next: (res: LoginResponse) => {
+      next: (res: any) => {
         this.loading = false;
-
-        // 🔹 Decide which storage to use based on "Remember Me"
-        const storage = this.rememberMe ? localStorage : sessionStorage;
-
-        // 🔹 Save the whole response object (user/session info)
-        storage.setItem('verifai_user', JSON.stringify(res));
-
-        // 🔹 If backend sends a token, store it separately too
-        if (res.token) {
-          storage.setItem('verifai_token', res.token);
+        if(res.Status == 'Success') {
+          const isAdmin = res.roleList.some((el: any) => el.category === 'Admin');
+          if(!isAdmin)  return alert('You are not an admin!') ;
+          // 🔹 Decide which storage to use based on "Remember Me"
+          const storage = this.rememberMe ? localStorage : sessionStorage;
+  
+          // 🔹 Save the whole response object (user/session info)
+          storage.setItem('verifai_user', JSON.stringify(res));
+  
+          // 🔹 If backend sends a token, store it separately too
+          if (res.token) {
+            storage.setItem('verifai_token', res.token);
+          }
+  
+          // 👉 If API sends an explicit status, you can check it:
+          // if (res.status === 'SUCCESS') { ... }
+  
+          // 🔹 Navigate to dashboard after successful login
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.errorMessage = res.message;
         }
 
-        // 👉 If API sends an explicit status, you can check it:
-        // if (res.status === 'SUCCESS') { ... }
-
-        // 🔹 Navigate to dashboard after successful login
-        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;

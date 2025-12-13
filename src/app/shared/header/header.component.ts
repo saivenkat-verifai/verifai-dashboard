@@ -7,6 +7,7 @@ import {
   AppNotification,
 } from 'src/app/shared/notification.service';
 import { Subscription } from 'rxjs';
+import { ImagePipe } from '../image.pipe';
 
 /** 👇 Add this back */
 interface UserProfile {
@@ -23,7 +24,7 @@ interface UserProfile {
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css'],
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ImagePipe],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   activeMenu = 'dashboard';
@@ -50,6 +51,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private notification: NotificationService
   ) {}
 
+  userData: any;
   ngOnInit(): void {
     // user profile (your existing logic)
     const stored =
@@ -81,6 +83,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.ticketCount = list.length;
       }
     );
+
+    this.authService.getUserInfoForId().subscribe((res) => this.userData = res)
   }
 
   ngOnDestroy() {
