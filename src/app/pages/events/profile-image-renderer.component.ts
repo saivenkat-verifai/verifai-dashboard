@@ -1,31 +1,28 @@
-import { Component } from '@angular/core';
-import { AsyncPipe, CommonModule } from '@angular/common';
-import { ICellRendererAngularComp } from 'ag-grid-angular';
-import { ICellRendererParams } from 'ag-grid-community';
-
-import { ImagePipe } from 'src/app/shared/image.pipe';
-
+import { Component } from "@angular/core";
+import { CommonModule, AsyncPipe } from "@angular/common";
+import { ICellRendererAngularComp } from "ag-grid-angular";
+import { ICellRendererParams } from "ag-grid-community";
+import { ImagePipe } from "src/app/shared/image.pipe";
 @Component({
-  selector: 'app-profile-image-renderer',
+  selector: "app-profile-image-renderer",
   standalone: true,
+  imports: [CommonModule, ImagePipe, AsyncPipe],
   template: `
-    <div style="display: flex; align-items: center; gap: 8px;">
-      <img
-        [src]="(!value?.profileImage || hasError)
-          ? 'assets/icons/dummy_300x300.png'
-          : (value.profileImage | image | async)"
-        (error)="onError()"
-        style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;"
-        alt="Emp"
-      />
-      <span>{{ value?.name || value?.level || '' }}</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+<img
+  [src]="
+    (!hasError && value?.profileImage
+      ? ((value.profileImage | image | async) || 'assets/icons/dummy_300x300.png')
+      : 'assets/icons/dummy_300x300.png')
+  "
+  (error)="onError()"
+  style="width:24px;height:24px;border-radius:50%;object-fit:cover;"
+/>
+      <span>{{ value?.name || value?.level || 'N/A' }}</span>
     </div>
   `,
-  imports: [CommonModule, ImagePipe, AsyncPipe],
 })
-export class ProfileImageRendererComponent
-  implements ICellRendererAngularComp
-{
+export class ProfileImageRendererComponent implements ICellRendererAngularComp {
   params!: ICellRendererParams;
   hasError = false;
 
@@ -41,12 +38,10 @@ export class ProfileImageRendererComponent
   }
 
   get value() {
-    // value is the "user" field from your row
     return this.params?.value;
   }
 
   onError() {
-    // Just flip the flag so we fall back to the dummy image
     this.hasError = true;
   }
 }

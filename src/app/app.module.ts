@@ -29,6 +29,9 @@ import { GroupsPopupComponent } from './shared/groups-popup/groups-popup.compone
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { ToastModule } from 'primeng/toast';
 import { NotificationService } from 'src/app/shared/notification.service';
+import { AuthTokenInterceptor } from 'src/app/core/interceptors/auth-token.interceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+
 
 // ✅ Register all AG Grid community modules (outside @NgModule)
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -53,7 +56,11 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     AgGridModule,  // only once
     HttpClientModule,    ToastModule, 
   ],
-  providers: [NotificationService],
+  providers: [NotificationService, {
+    provide: HTTP_INTERCEPTORS,
+    useClass: AuthTokenInterceptor,
+    multi: true
+  }],
   bootstrap: [] // <--- must specify root component
 })
 export class AppModule { }

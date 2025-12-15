@@ -9,6 +9,7 @@ import {
   GridApi,
   GridReadyEvent,
   ColDef,
+  Column,
   ModuleRegistry,
   AllCommunityModule,
   QuickFilterModule,
@@ -30,10 +31,12 @@ import {
   EventsFilterCriteria,
 } from "src/app/shared/events-filter-panel/events-filter-panel.component";
 import { HttpClient, HttpHeaders } from "@angular/common/http";
-import { NotificationService } from 'src/app/shared/notification.service';
-
+import { NotificationService } from "src/app/shared/notification.service";
 
 import { ProfileImageRendererComponent } from "./profile-image-renderer.component";
+import { NgZone } from "@angular/core";
+import { RefreshStatusPanelComponent } from "./refresh-status-panel.component";
+import { ImagePipe } from "src/app/shared/image.pipe"; // adjust path
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -81,6 +84,7 @@ interface SecondEscalatedDetail {
     CalendarComponent,
     OverlayPanelModule,
     EventsFilterPanelComponent,
+    ImagePipe,
   ],
 })
 export class EventsComponent implements OnInit, OnDestroy {
@@ -150,7 +154,12 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   onFilterReset() {
     this.pendingDisplayRows = [...this.pendingRowData];
+    setTimeout(() => this.autoSizeAllColumns(), 0);
     this.closedDisplayRows = [...this.rowData];
+  }
+
+  onFirstDataRendered() {
+    this.autoSizeAllColumns();
   }
 
   onFilterApply(criteria: EventsFilterCriteria) {
@@ -169,7 +178,22 @@ export class EventsComponent implements OnInit, OnDestroy {
     const filtered = base.filter((row) => {
       const timeField = row.eventTime || row.eventStartTime || row.timestamp;
       if (!this.withinRange(timeField, start, end)) return false;
+      // ✅ Queue filters (PENDING only)
+      if (this.selectedFilter === "PENDING") {
+        if (
+          criteria.queueLevel !== "All" &&
+          row.queueLevel !== criteria.queueLevel
+        ) {
+          return false;
+        }
 
+        if (
+          criteria.queueName !== "All" &&
+          row.queueName !== criteria.queueName
+        ) {
+          return false;
+        }
+      }
       // dropdowns
       const city = row.cityName ?? row.city;
       if (criteria.city !== "All" && city !== criteria.city) return false;
@@ -325,17 +349,32 @@ export class EventsComponent implements OnInit, OnDestroy {
   };
 
   /** -------------------- Auto-refresh state -------------------- */
-  refreshInterval = 1; // minutes; default 1
+  // ✅ interval actually being used for auto refresh timer
+  refreshInterval = 1; // minutes; applied interval
+
+  // ✅ dropdown selection (NOT applied until Refresh click)
+  pendingRefreshInterval = 1;
+
   private refreshSub?: Subscription;
+
+  // ✅ start timer only after first Refresh click (manual)
   private hasStartedAutoRefresh = false;
 
   toastMessages: any[] = [];
-
   statusBar = {
     statusPanels: [
       { statusPanel: "agTotalRowCountComponent", align: "left" },
-      { statusPanel: "myEventWallLabel", align: "left" },
-      { statusPanel: "agPaginationPanel", align: "right" },
+      {
+        statusPanelFramework: RefreshStatusPanelComponent, // ✅ use this
+        align: "right",
+        statusPanelParams: {
+          onIntervalChange: (v: number) => {
+            console.log("Dropdown selected:", v);
+            this.onIntervalChange(v);
+          },
+          getInterval: () => this.refreshInterval,
+        },
+      },
     ],
   };
 
@@ -348,6 +387,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     eventTypes: ["Event_Wall", "Manual_Wall", "Timed_Out"],
     userLevels: [] as string[],
     queueLevels: [] as string[],
+    queueNames: [] as string[],
     queues: [] as string[],
     consoleTypes: [] as string[],
   };
@@ -373,6 +413,9 @@ export class EventsComponent implements OnInit, OnDestroy {
   get queueLevels() {
     return this.filterLists.queueLevels;
   }
+  get queueNames() {
+    return this.filterLists.queueNames;
+  }
   get queues() {
     return this.filterLists.queues;
   }
@@ -381,9 +424,12 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- Constructor -------------------- */
-  constructor(private eventsService: EventsService, private http: HttpClient,     private notification: NotificationService
-
-) {}
+  constructor(
+    private eventsService: EventsService,
+    private http: HttpClient,
+    private notification: NotificationService,
+    private zone: NgZone
+  ) {}
 
   private getAuthHeaders(): HttpHeaders {
     let rawToken = localStorage.getItem("acTok");
@@ -413,6 +459,9 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     this.setupColumnDefs();
     this.loadPendingEvents();
+    this.preloadPendingCounts(); 
+    this.preloadClosedCounts();
+    
 
     // load logged-in user (for comments)
     const raw =
@@ -440,6 +489,98 @@ export class EventsComponent implements OnInit, OnDestroy {
       }
     }, 0);
   }
+
+  /** ✅ Preload PENDING counts card data (without needing MORE click) */
+private preloadPendingCounts(): void {
+  if (this.selectedFilter !== "PENDING") return;
+
+  // if both unchecked -> nothing
+  if (!this.consolesChecked && !this.queuesChecked) {
+    this.escalatedDetailsPending = [];
+    return;
+  }
+
+  const consoles$ = this.consolesChecked
+    ? this.eventsService.getConsoleEventsCounts_1_0()
+    : of(null);
+
+  const queues$ = this.queuesChecked
+    ? this.eventsService.getPendingEventsCounts_1_0()
+    : of(null);
+
+  forkJoin([consoles$, queues$]).subscribe({
+    next: ([consolesRes, queuesRes]) => {
+      const details: EscalatedDetail[] = [];
+
+      if (queuesRes) details.push(this.buildQueuesEscalationCard(queuesRes));
+      if (consolesRes) details.push(this.buildConsoleEscalationCard(consolesRes));
+
+      this.escalatedDetailsPending = details;
+    },
+    error: (err) => {
+      console.error("preloadPendingCounts failed:", err);
+      this.escalatedDetailsPending = [];
+    },
+  });
+}
+
+/** ✅ Preload CLOSED counts cards (without needing MORE click) */
+private preloadClosedCounts(): void {
+  if (this.selectedFilter !== "CLOSED") return;
+
+  if (!this.selectedStartDate || !this.selectedEndDate) {
+    this.escalatedDetailsClosed = [];
+    return;
+  }
+
+  if (!this.suspiciousChecked && !this.falseChecked) {
+    this.escalatedDetailsClosed = [];
+    return;
+  }
+
+  const actionTag = this.suspiciousChecked ? 2 : 1;
+  const start = this.formatDateTimeFull(this.selectedStartDate);
+  const end = this.formatDateTimeFull(this.selectedEndDate);
+
+  this.eventsService.getEventReportCountsForActionTag(start, end, actionTag).subscribe({
+    next: (res) => {
+      const counts = res?.counts || {};
+      const keys = Object.keys(counts);
+
+      if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
+        this.escalatedDetailsClosed = [];
+        return;
+      }
+
+      const details: EscalatedDetail[] = [];
+
+      Object.entries(counts).forEach(([label, data]: any) => {
+        if (!label || label === "null") return;
+
+        details.push({
+          label,
+          value: data.totalCount || 0,
+          color: ESCALATED_COLORS[0],
+          icons: [
+            { iconPath: "assets/home.svg", count: data.sites || 0 },
+            { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+          ],
+          colordot: [
+            { iconcolor: "#53BF8B", label: "Event Wall", count: data.Event_Wall || 0 },
+            { iconcolor: "#FFC400", label: "Manual Wall", count: data.Manual_Wall || 0 },
+          ],
+        });
+      });
+
+      this.escalatedDetailsClosed = details;
+    },
+    error: (err) => {
+      console.error("preloadClosedCounts failed:", err);
+      this.escalatedDetailsClosed = [];
+    },
+  });
+}
+
 
   private readonly DOT_IMAGES_BASE =
     "https://usstaging.ivisecurity.com/dotimages/";
@@ -469,9 +610,10 @@ export class EventsComponent implements OnInit, OnDestroy {
   private resolveMediaUrls(item: any): string[] {
     // ✅ 0) Best source: image_list if present
     if (Array.isArray(item.image_list) && item.image_list.length) {
-      return item.image_list.filter((x: any) => !!x);
+      return item.image_list
+        .filter((x: any) => !!x)
+        .map((x: any) => this.buildImageUrl(String(x)) ?? String(x));
     }
-
     // ✅ 1) Next best: imageUrl / videoUrl
     const directMedia = this.extractRowMedia(item);
     if (directMedia.length) {
@@ -543,8 +685,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     };
 
     // 1️⃣ Prefer images
-    addFrom(item.imageUrl ?? item.imageURL);
-    if (urls.length) return urls;
+    // addFrom(item.imageUrl ?? item.imageURL);
+    // if (urls.length) return urls;
 
     // 2️⃣ Fallback to videos
     addFrom(item.videoUrl ?? item.videoURL);
@@ -569,31 +711,30 @@ export class EventsComponent implements OnInit, OnDestroy {
   // }
 
   /** -------------------- Toast helpers (PrimeNG) -------------------- */
-private showSuccess(summary: string, detail?: string) {
-  this.notification.success(summary, detail);
-}
+  private showSuccess(summary: string, detail?: string) {
+    this.notification.success(summary, detail);
+  }
 
-private showError(summary: string, detail?: string) {
-  this.notification.error(summary, detail);
-}
+  private showError(summary: string, detail?: string) {
+    this.notification.error(summary, detail);
+  }
 
-private showWarn(summary: string, detail?: string) {
-  this.notification.warn(summary, detail);
-}
+  private showWarn(summary: string, detail?: string) {
+    this.notification.warn(summary, detail);
+  }
 
-private showInfo(summary: string, detail?: string) {
-  this.notification.info(summary, detail);
-}
+  private showInfo(summary: string, detail?: string) {
+    this.notification.info(summary, detail);
+  }
 
-// Optional – keep a generic wrapper if you still want it
-showToast(
-  severity: 'success' | 'error' | 'warn' | 'info',
-  summary: string,
-  detail: string
-) {
-  this.notification[severity](summary, detail);
-}
-
+  // Optional – keep a generic wrapper if you still want it
+  showToast(
+    severity: "success" | "error" | "warn" | "info",
+    summary: string,
+    detail: string
+  ) {
+    this.notification[severity](summary, detail);
+  }
 
   /** -------------------- Filter & toggle actions -------------------- */
   setFilter(filter: "CLOSED" | "PENDING"): void {
@@ -674,72 +815,50 @@ showToast(
     this.loadPendingEvents();
   }
 
-  /** -------------------- Auto-refresh -------------------- */
+  /** -------------------- ✅ REFRESH button handler (called from status bar) -------------------- */
+  /** ✅ Refresh button click (APPLY interval + call API + start/restart timer) */
   refreshData(): void {
+    // ✅ Apply the selection only when Refresh is clicked
+    this.refreshInterval = this.pendingRefreshInterval;
+
     console.log(
-      "%c[REFRESH BUTTON]",
-      "color: #7b1fa2; font-weight: bold;",
-      "Manual refresh clicked. Current interval (min):",
+      "[REFRESH CLICK] Applied interval(min):",
       this.refreshInterval,
-      "| selectedFilter:",
+      "selectedFilter:",
       this.selectedFilter
     );
 
+    // ✅ Call API only on refresh click
     if (this.selectedFilter === "PENDING") {
       this.loadPendingEvents({ silent: false });
     } else {
-      if (this.selectedStartDate && this.selectedEndDate) {
-        this.loadClosedAndEscalatedDetails({ silent: false });
-      } else {
-        this.showToast(
-          "warn",
-          "Pick a date range",
-          "Select dates in the calendar to refresh CLOSED events."
-        );
-        return;
-      }
+      this.loadClosedAndEscalatedDetails({ silent: false });
     }
 
+    // ✅ Start/restart timer after manual refresh
     this.scheduleAutoRefresh(this.refreshInterval);
     this.hasStartedAutoRefresh = true;
+
+    // Optional toast
+    this.notification.info(
+      "Refresh Applied",
+      `Now refreshing every ${this.refreshInterval} minute(s).`
+    );
   }
 
+  /** -------------------- ✅ Timer scheduler -------------------- */
   private scheduleAutoRefresh(minutes: number): void {
     this.stopAutoRefresh();
 
-    console.log(
-      "%c[INTERVAL SCHEDULE]",
-      "color: #388e3c; font-weight: bold;",
-      "Scheduling auto-refresh every",
-      minutes,
-      "minute(s)"
-    );
-
-    if (!minutes || minutes <= 0) {
-      console.log(
-        "%c[INTERVAL SCHEDULE]",
-        "color: #f57c00; font-weight: bold;",
-        "Minutes is 0 or invalid → no auto-refresh scheduled."
-      );
-      return;
-    }
+    if (!minutes || minutes <= 0) return;
 
     this.refreshSub = interval(minutes * 60_000).subscribe(() => {
-      console.log(
-        "%c[AUTO REFRESH TICK]",
-        "color: #d32f2f; font-weight: bold;",
-        "Tick at:",
-        new Date().toISOString(),
-        "| selectedFilter =",
-        this.selectedFilter
-      );
+      console.log("[AUTO REFRESH TICK] selectedFilter:", this.selectedFilter);
 
       if (this.selectedFilter === "PENDING") {
         this.loadPendingEvents({ silent: true });
-      } else if (this.selectedFilter === "CLOSED") {
-        if (this.selectedStartDate && this.selectedEndDate) {
-          this.loadClosedAndEscalatedDetails({ silent: true });
-        }
+      } else {
+        this.loadClosedAndEscalatedDetails({ silent: true });
       }
     });
   }
@@ -751,40 +870,23 @@ showToast(
     }
   }
 
+  /** -------------------- ✅ Interval dropdown handler (called from status bar) -------------------- */
+  /** ✅ Dropdown change (ONLY select, do NOT apply / do NOT call API / do NOT restart timer) */
   onIntervalChange(newInterval: number): void {
-    this.refreshInterval = Number(newInterval) || 1;
+    this.pendingRefreshInterval = Number(newInterval) || 1;
 
     console.log(
-      "%c[INTERVAL CHANGE]",
-      "color: #1976d2; font-weight: bold;",
-      "User selected interval (min):",
-      newInterval,
-      "→ refreshInterval set to:",
-      this.refreshInterval
+      "[INTERVAL SELECTED - NOT APPLIED YET] pendingRefreshInterval:",
+      this.pendingRefreshInterval
     );
 
-    this.scheduleAutoRefresh(this.refreshInterval);
-
-    this.showToast(
-      "info",
-      "Auto-refresh Interval Updated",
-      `Refresh will occur every ${this.refreshInterval} minute(s).`
-    );
+    // Optional toast (purely informational)
+    // this.notification.info("Interval selected", `Click Refresh to apply ${this.pendingRefreshInterval} min`);
   }
 
   /** -------------------- AG Grid setup -------------------- */
   onGridReady(params: GridReadyEvent): void {
     this.gridApi = params.api;
-
-    const resizeAll = () => {
-      const ids = this.gridApi.getColumns()?.map((col) => col.getColId()) ?? [];
-      this.gridApi.autoSizeColumns(ids, false);
-      this.gridApi.sizeColumnsToFit();
-    };
-
-    setTimeout(resizeAll);
-    this.gridApi.addEventListener("firstDataRendered", resizeAll);
-    window.addEventListener("resize", resizeAll);
 
     setTimeout(() => {
       const paginationPanel = document.querySelector(
@@ -792,19 +894,45 @@ showToast(
       ) as HTMLElement | null;
       if (!paginationPanel) return;
 
-      const tplRef =
-        this.selectedFilter === "PENDING"
-          ? this.paginationControls
-          : this.paginationControlsClosed;
+      // ✅ remove any existing injected toolbar first
+      const existing = paginationPanel.querySelector(
+        ".custom-pagination-toolbar"
+      );
+      if (existing) existing.remove();
 
-      if (tplRef) {
-        const clone = tplRef.nativeElement.cloneNode(true) as HTMLElement;
-        clone.style.display = "flex";
-        clone.style.alignItems = "center";
-        clone.style.gap = "12px";
-        clone.style.marginRight = "25%";
-        paginationPanel.prepend(clone);
+      // ✅ clone your hidden template div
+      const tplRef = this.paginationControls;
+      const clone = tplRef.nativeElement.cloneNode(true) as HTMLElement;
+
+      // ✅ mark it so we can find/remove next time
+      clone.classList.add("custom-pagination-toolbar");
+      clone.style.display = "flex";
+
+      // ✅ dropdown wiring (ONLY set pending value)
+      const select = clone.querySelector(
+        ".refresh-interval-select"
+      ) as HTMLSelectElement | null;
+      if (select) {
+        // ✅ show current pending selection in UI
+        select.value = String(this.pendingRefreshInterval);
+
+        select.addEventListener("change", (e) => {
+          const val = Number((e.target as HTMLSelectElement).value);
+          this.zone.run(() => this.onIntervalChange(val)); // <-- only sets pending now
+        });
       }
+
+      // ✅ refresh button wiring (apply + call API + start timer)
+      const btn = clone.querySelector(
+        ".refreshbutton"
+      ) as HTMLButtonElement | null;
+      if (btn) {
+        btn.addEventListener("click", () =>
+          this.zone.run(() => this.refreshData())
+        );
+      }
+
+      paginationPanel.prepend(clone);
     }, 100);
   }
 
@@ -899,68 +1027,67 @@ showToast(
   }
 
   /** NEW: Submit Add Comment popup */
- submitAddComment(): void {
-  if (!this.selectedItem?.eventDetails?.[0]?.eventId) {
-    console.error("No eventId on selectedItem");
-    this.showError('Add Comment', 'Missing event ID for this record.');
-    return;
+  submitAddComment(): void {
+    if (!this.selectedItem?.eventDetails?.[0]?.eventId) {
+      console.error("No eventId on selectedItem");
+      this.showError("Add Comment", "Missing event ID for this record.");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem.eventDetails[0].eventId);
+    const notes = (this.addCommentForm.notes || "").trim();
+
+    if (!notes) {
+      this.showWarn("Validation", "Comment cannot be empty.");
+      return;
+    }
+
+    const remarks = this.addCommentForm.tag
+      ? `Tag: ${this.addCommentForm.tag} | Added via escalation popup`
+      : "Added via escalation popup";
+
+    const payload = {
+      eventsId: String(eventId),
+      commentsInfo: notes,
+      createdBy: this.currentUser?.UserId || 0,
+      remarks,
+    };
+
+    console.log("Sending comment payload from parent:", payload);
+
+    this.eventsService.addComment(payload).subscribe({
+      next: (res) => {
+        console.log("Comment saved successfully", res);
+
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          "Comment added successfully.";
+
+        this.showSuccess("Add Comment", msg);
+
+        // close add comment popup
+        this.isAddCommentPopupVisible = false;
+
+        // re-open escalation popup
+        this.isTablePopupVisible = true;
+
+        // refresh data so comments grid updates
+        this.onRefreshMoreInfo(eventId);
+      },
+      error: (err) => {
+        console.error("Error saving comment", err);
+
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          "Failed to save comment. Please try again.";
+
+        this.showError("Add Comment Failed", msg);
+      },
+    });
   }
-
-  const eventId = Number(this.selectedItem.eventDetails[0].eventId);
-  const notes = (this.addCommentForm.notes || "").trim();
-
-  if (!notes) {
-    this.showWarn('Validation', 'Comment cannot be empty.');
-    return;
-  }
-
-  const remarks = this.addCommentForm.tag
-    ? `Tag: ${this.addCommentForm.tag} | Added via escalation popup`
-    : 'Added via escalation popup';
-
-  const payload = {
-    eventsId: String(eventId),
-    commentsInfo: notes,
-    createdBy: this.currentUser?.UserId || 0,
-    remarks,
-  };
-
-  console.log('Sending comment payload from parent:', payload);
-
-  this.eventsService.addComment(payload).subscribe({
-    next: (res) => {
-      console.log('Comment saved successfully', res);
-
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Comment added successfully.';
-
-      this.showSuccess('Add Comment', msg);
-
-      // close add comment popup
-      this.isAddCommentPopupVisible = false;
-
-      // re-open escalation popup
-      this.isTablePopupVisible = true;
-
-      // refresh data so comments grid updates
-      this.onRefreshMoreInfo(eventId);
-    },
-    error: (err) => {
-      console.error('Error saving comment', err);
-
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to save comment. Please try again.';
-
-      this.showError('Add Comment Failed', msg);
-    },
-  });
-}
-
 
   downloadAllImages(event: MouseEvent): void {
     // Don't close the overlay
@@ -1444,10 +1571,10 @@ showToast(
             .filter((v) => v != null && v !== "")
         );
 
-        if (!this.hasStartedAutoRefresh && this.selectedFilter === "PENDING") {
-          this.hasStartedAutoRefresh = true;
-          this.scheduleAutoRefresh(this.refreshInterval);
-        }
+        // if (!this.hasStartedAutoRefresh && this.selectedFilter === "PENDING") {
+        //   this.hasStartedAutoRefresh = true;
+        //   this.scheduleAutoRefresh(this.refreshInterval);
+        // }
       },
       error: (err) => {
         if (!silent) this.isLoading = false;
@@ -1484,6 +1611,7 @@ showToast(
 
     if (this.selectedFilter === "CLOSED") {
       this.loadClosedAndEscalatedDetails();
+      this.preloadClosedCounts(); // ✅ ADD
     }
   }
 
@@ -1551,7 +1679,9 @@ showToast(
 
           const empName = e?.userName ?? e?.user ?? "";
           const empLevel = e?.userLevels ?? "N/A";
-          const empProfileImage = e?.profileImage ?? null;
+
+          const empProfileImage =
+            e?.profileImage ?? e?.avatar ?? e?.employee?.profileImage ?? null;
 
           return {
             ...e,
@@ -1796,6 +1926,11 @@ showToast(
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
+    // ✅ Queue Names dropdown values
+    this.filterLists.queueNames = this.uniq(rows.map((r) => r.queueName));
+    // ✅ Queue Levels dropdown values
+    this.filterLists.queueLevels = this.uniq(rows.map((r) => r.queueLevel));
+
     // 🔁 Now build options from userLevels / employee.level
     this.filterLists.userLevels = this.uniq(
       rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
@@ -1812,6 +1947,15 @@ showToast(
     this.filterLists.userLevels = this.uniq(
       rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
     );
+  }
+
+  private autoSizeAllColumns(skipHeader = false): void {
+    if (!this.gridApi) return;
+
+    const cols = (this.gridApi.getColumns?.() ?? []) as Column[];
+    const colIds = cols.map((c: Column) => c.getColId());
+
+    this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
 
   /** -------------------- Column definitions -------------------- */
@@ -1881,21 +2025,31 @@ showToast(
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
       },
+      // {
+      //   headerName: "EMP.",
+      //   field: "employee",
+      //   headerClass: "custom-header",
+      //   cellClass: "custom-cell",
+      //   valueFormatter: (params) => params.value?.name || "",
+      //   cellRenderer: (params: any) =>
+      //     params.value
+      //       ? `<div style="display:flex; align-items:center; gap:8px;">
+      //       <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
+      //       <span>${params.value.level}</span>
+      //     </div>`
+      //       : "",
+      //   suppressHeaderMenuButton: true,
+      // },
       {
         headerName: "EMP.",
         field: "employee",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        valueFormatter: (params) => params.value?.name || "",
-        cellRenderer: (params: any) =>
-          params.value
-            ? `<div style="display:flex; align-items:center; gap:8px;">
-            <img src="${params.value.avatar}" style="width:20px; height:20px; border-radius:50%;" alt="Emp"/>
-            <span>${params.value.level}</span>
-          </div>`
-            : "",
+        cellRenderer: ProfileImageRendererComponent,
+        valueFormatter: (p) => p.value?.name || p.value?.level || "N/A",
         suppressHeaderMenuButton: true,
       },
+
       {
         headerName: "ALERT TYPE",
         field: "alertType",
@@ -2049,7 +2203,7 @@ showToast(
         field: "employee",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        valueFormatter: (params) => params.value?.name || "",
+        valueFormatter: (params) => params.value?.name || "N/A",
         cellRenderer: ProfileImageRendererComponent,
 
         suppressHeaderMenuButton: true,

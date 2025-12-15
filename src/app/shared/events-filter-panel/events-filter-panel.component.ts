@@ -44,6 +44,7 @@ export class EventsFilterPanelComponent {
 
   @Input() queueLevels: string[] = [];
   @Input() queues: string[] = [];
+
   @Input() consoleTypes: string[] = [];
 
   /** PENDING tab toggles */
@@ -80,7 +81,7 @@ export class EventsFilterPanelComponent {
     eventType: 'All',
     employee: 'All',
     queueLevel: 'All',
-    queueName: 'All',
+   queueName: 'All',
     consoleType: 'All',
   };
 
