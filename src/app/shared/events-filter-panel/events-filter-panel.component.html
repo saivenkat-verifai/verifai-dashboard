@@ -175,6 +175,25 @@
     </select>
   </div>
 
+<!-- Queue Name (PENDING) -->
+<div class="events-filter-group" *ngIf="queuesChecked">
+  <label class="events-filter-label">Select Queue Name</label>
+  <select class="events-filter-select" [(ngModel)]="model.queueName">
+    <option value="All">All</option>
+    <option *ngFor="let q of queues" [value]="q">{{ q }}</option>
+  </select>
+</div>
+
+<!-- Queue Level (PENDING) -->
+<div class="events-filter-group" *ngIf="queuesChecked">
+  <label class="events-filter-label">Select Queue Level</label>
+  <select class="events-filter-select" [(ngModel)]="model.queueLevel">
+    <option value="All">All</option>
+    <option *ngFor="let lvl of queueLevels" [value]="lvl">{{ lvl }}</option>
+  </select>
+</div>
+  
+
   <!-- Footer buttons -->
   <div class="events-filter-actions">
     <button

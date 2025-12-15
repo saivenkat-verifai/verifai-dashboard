@@ -16,8 +16,7 @@ import { ButtonModule } from "primeng/button";
 import { EventsService } from "src/app/pages/events/events.service";
 import { ProfileImageRendererComponent } from "src/app/pages/events/profile-image-renderer.component";
 
-import { NotificationService } from 'src/app/shared/notification.service';
-
+import { NotificationService } from "src/app/shared/notification.service";
 
 @Component({
   selector: "app-escalation-popup",
@@ -54,6 +53,44 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
 
   currentUser: any = null;
 
+  /** Re-read user from storage if currentUser is not loaded yet */
+  private getStoredUser(): any | null {
+    const raw =
+      localStorage.getItem("verifai_user") ||
+      sessionStorage.getItem("verifai_user");
+
+    if (!raw) return null;
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Get the logged-in user's "level" from the login response.
+   * Adjust this mapping if your backend uses a different field.
+   */
+  private getLoggedInUserLevelId(): number {
+    const u = this.currentUser ?? this.getStoredUser();
+
+    // ✅ If backend already sends something like userLevel/levelId, prefer it
+    const direct =
+      Number(u?.userLevel) ||
+      Number(u?.UserLevel) ||
+      Number(u?.levelId) ||
+      Number(u?.LevelId);
+
+    if (direct) return direct;
+
+    // ✅ Common fallback: first role in roleList uses roleId as the level
+    const roleId = Number(u?.roleList?.[0]?.roleId);
+    if (roleId) return roleId;
+
+    return 0;
+  }
+
   /** View toggle: false = ESCALATION DETAILS, true = ADD COMMENT **/
   isAddCommentView = false;
 
@@ -82,7 +119,10 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
 
   selectedEvent: any = null;
 
-  constructor(private eventsService: EventsService,  private notificationService: NotificationService) {}
+  constructor(
+    private eventsService: EventsService,
+    private notificationService: NotificationService
+  ) {}
 
   // ------------------------ INIT ------------------------
   ngOnInit() {
@@ -106,19 +146,17 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   }
 
   /* -------- Toast helpers (PrimeNG) -------- */
-private showSuccess(summary: string, detail?: string) {
-  this.notificationService.success(summary, detail);
-}
+  private showSuccess(summary: string, detail?: string) {
+    this.notificationService.success(summary, detail);
+  }
 
-private showError(summary: string, detail?: string) {
-  this.notificationService.error(summary, detail);
-}
+  private showError(summary: string, detail?: string) {
+    this.notificationService.error(summary, detail);
+  }
 
-private showWarn(summary: string, detail?: string) {
-  this.notificationService.warn(summary, detail);
-}
-
-
+  private showWarn(summary: string, detail?: string) {
+    this.notificationService.warn(summary, detail);
+  }
 
   // ------------------------ TZ Handling ------------------------
   onTzChange(tz: "MT" | "CT" | "IST") {
@@ -319,72 +357,80 @@ private showWarn(summary: string, detail?: string) {
     });
   }
 
-saveEscalation(data: any) {
-  if (!this.selectedEvent) {
-    console.error('No event selected');
-    this.showError('Update Escalation', 'No event selected.');
-    return;
+  saveEscalation(data: any) {
+    if (!this.selectedEvent) {
+      console.error("No event selected");
+      this.showError("Update Escalation", "No event selected.");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem?.eventDetails?.[0]?.eventId);
+    if (!eventId) {
+      console.error("Invalid eventId:", this.selectedItem?.eventDetails?.[0]);
+      this.showError("Update Escalation", "Invalid event ID for this record.");
+      return;
+    }
+
+    // ✅ NEW: userlevel comes from login response (stored user)
+    const loggedInUserLevelId = this.getLoggedInUserLevelId();
+    if (!loggedInUserLevelId) {
+      this.showError(
+        "Update Escalation",
+        "Unable to determine your user level."
+      );
+      return;
+    }
+
+    const payload = {
+      eventsId: String(eventId),
+
+      // ✅ IMPORTANT: set userlevel from login
+      userlevel: loggedInUserLevelId,
+
+      user: this.currentUser?.UserId || 0,
+      alarm: "N",
+      landingTime: data.receiveAt || "",
+      receivedTime: "",
+      reviewStartTime: data.reviewStart || "",
+      reviewEndTime: data.reviewEnd || "",
+      actionTag: this.mapActionTag(data.actionTag),
+      subActionTag: Number(data.subActionTag),
+      notes: data.notes || "",
+    };
+
+    console.log("Sending escalation update payload:", payload);
+
+    this.eventsService.putEventsMoreInfo(payload).subscribe({
+      next: (res) => {
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          "Escalation updated successfully.";
+
+        this.showSuccess("Update Escalation", msg);
+
+        // ✅ Update UI row so userLevel changes immediately in the table
+        data.userLevel = loggedInUserLevelId;
+        data.levelId = loggedInUserLevelId; // keep both in sync if your row uses levelId too
+
+        data.isEditing = false;
+        data.isDuplicate = false;
+
+        this.escalationGridApi.applyTransaction({ update: [data] });
+
+        this.refreshMoreInfo.emit(eventId);
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          "Failed to update escalation. Please try again.";
+
+        this.showError("Update Escalation Failed", msg);
+      },
+    });
   }
-
-  const eventId = Number(this.selectedItem.eventDetails[0]?.eventId);
-  if (!eventId) {
-    console.error('Invalid eventId:', this.selectedItem.eventDetails[0]);
-    this.showError('Update Escalation', 'Invalid event ID for this record.');
-    return;
-  }
-
-  const levelId =
-    typeof data.levelId === 'number'
-      ? data.levelId
-      : Number(data.levelId) || 0;
-
-  const payload = {
-    eventsId: String(eventId),
-    userlevel: levelId,
-    user: this.currentUser?.UserId || 0,
-    alarm: 'N',
-    landingTime: data.receiveAt || '',
-    receivedTime: '',
-    reviewStartTime: data.reviewStart || '',
-    reviewEndTime: data.reviewEnd || '',
-    actionTag: this.mapActionTag(data.actionTag),
-    subActionTag: Number(data.subActionTag),
-    notes: data.notes || '',
-  };
-
-  console.log('Sending escalation update payload:', payload);
-
-  this.eventsService.putEventsMoreInfo(payload).subscribe({
-    next: (res) => {
-      console.log('Escalation updated successfully', res);
-
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Escalation updated successfully.';
-
-      this.showSuccess('Update Escalation', msg);
-
-      data.isEditing = false;
-      data.isDuplicate = false;
-      this.escalationGridApi.applyTransaction({ update: [data] });
-
-      this.refreshMoreInfo.emit(eventId);
-    },
-    error: (err) => {
-      console.error('Error updating escalation', err);
-
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to update escalation. Please try again.';
-
-      this.showError('Update Escalation Failed', msg);
-    },
-  });
-}
-
 
   private mapActionTag(value: any): number {
     if (!value) return 3;
@@ -494,7 +540,7 @@ saveEscalation(data: any) {
 
   defaultColDef: ColDef = {
     sortable: true,
-    filter: true,
+    // filter: true,
     resizable: true,
   };
 
@@ -641,60 +687,59 @@ saveEscalation(data: any) {
     this.isAddCommentView = false;
   }
 
-onSubmitAddComment() {
-  if (!this.selectedEvent) {
-    console.error('No event selected');
-    this.showError('Add Comment', 'No event selected.');
-    return;
+  onSubmitAddComment() {
+    if (!this.selectedEvent) {
+      console.error("No event selected");
+      this.showError("Add Comment", "No event selected.");
+      return;
+    }
+
+    const eventId = Number(this.selectedItem?.eventDetails?.[0]?.eventId);
+    if (!eventId) {
+      console.error("Invalid eventId:", this.selectedItem?.eventDetails?.[0]);
+      this.showError("Add Comment", "Invalid event ID for this record.");
+      return;
+    }
+
+    const notes = (this.addCommentForm.notes || "").trim();
+    if (!notes) {
+      this.showWarn("Validation", "Comment cannot be empty.");
+      return;
+    }
+
+    const payload = {
+      eventsId: String(eventId),
+      commentsInfo: notes,
+      createdBy: this.currentUser?.UserId || 0,
+      remarks: "",
+    };
+
+    console.log("Sending comment payload:", payload);
+
+    this.eventsService.addComment(payload).subscribe({
+      next: (res) => {
+        console.log("Comment saved successfully", res);
+
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          "Comment added successfully.";
+
+        this.showSuccess("Add Comment", msg);
+        this.isAddCommentView = false;
+        this.refreshMoreInfo.emit(eventId);
+      },
+      error: (err) => {
+        console.error("Error saving comment", err);
+
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          "Failed to save comment. Please try again.";
+
+        this.showError("Add Comment Failed", msg);
+      },
+    });
   }
-
-  const eventId = Number(this.selectedItem?.eventDetails?.[0]?.eventId);
-  if (!eventId) {
-    console.error('Invalid eventId:', this.selectedItem?.eventDetails?.[0]);
-    this.showError('Add Comment', 'Invalid event ID for this record.');
-    return;
-  }
-
-  const notes = (this.addCommentForm.notes || '').trim();
-  if (!notes) {
-    this.showWarn('Validation', 'Comment cannot be empty.');
-    return;
-  }
-
-  const payload = {
-    eventsId: String(eventId),
-    commentsInfo: notes,
-    createdBy: this.currentUser?.UserId || 0,
-    remarks: '',
-  };
-
-  console.log('Sending comment payload:', payload);
-
-  this.eventsService.addComment(payload).subscribe({
-    next: (res) => {
-      console.log('Comment saved successfully', res);
-
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Comment added successfully.';
-
-      this.showSuccess('Add Comment', msg);
-      this.isAddCommentView = false;
-      this.refreshMoreInfo.emit(eventId);
-    },
-    error: (err) => {
-      console.error('Error saving comment', err);
-
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to save comment. Please try again.';
-
-      this.showError('Add Comment Failed', msg);
-    },
-  });
-}
-
 }

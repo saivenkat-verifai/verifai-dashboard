@@ -1,53 +1,55 @@
-import { Pipe, PipeTransform, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Pipe, PipeTransform, inject } from "@angular/core";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { firstValueFrom } from "rxjs";
 
 @Pipe({
-  name: 'image',
+  name: "image",
   standalone: true,
+  pure: false, // IMPORTANT: because we resolve async data
 })
 export class ImagePipe implements PipeTransform {
   private http = inject(HttpClient);
 
-  async transform(url: string): Promise<string | null> {
-    if (!url) return null;
+  // simple in-memory cache: url -> base64 string
+  private cache = new Map<string, Promise<string | null>>();
 
-    // 🔹 1. Get token from storage (supports both verifai_token + acTok)
-    const rawToken =
-      localStorage.getItem('verifai_token') ??
-      sessionStorage.getItem('verifai_token') ??
-      localStorage.getItem('acTok') ??
-      sessionStorage.getItem('acTok');
+  transform(url: string | null | undefined): Promise<string | null> {
+    if (!url) return Promise.resolve(null);
 
-    const token = rawToken || null;
+    if (this.cache.has(url)) {
+      return this.cache.get(url)!;
+    }
 
-    const data = JSON.parse(sessionStorage.getItem('verifai_user')!);
+    const p = this.load(url);
+    this.cache.set(url, p);
+    return p;
+  }
 
-
-    // 🔹 2. Build headers
-    const headers = new HttpHeaders({ Authorization: `Bearer ${data?.AccessToken}` })
-  
-
+  private async load(url: string): Promise<string | null> {
     try {
-      // 🔹 3. Fetch as Blob
-      const imageBlob = (await this.http
-        .get(url, {
-          headers,
-          responseType: 'blob',
-        })
-        .toPromise()) as Blob;
+      const rawUser =
+        sessionStorage.getItem("verifai_user") ||
+        localStorage.getItem("verifai_user");
 
-      // 🔹 4. Convert Blob → base64 data URL
-      const reader = new FileReader();
-      return new Promise<string>((resolve, reject) => {
+      const user = rawUser ? JSON.parse(rawUser) : null;
+      const accessToken = user?.AccessToken;
+
+      const headers = accessToken
+        ? new HttpHeaders({ Authorization: `Bearer ${accessToken}` })
+        : new HttpHeaders();
+
+      const blob = await firstValueFrom(
+        this.http.get(url, { headers, responseType: "blob" })
+      );
+
+      return await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
         reader.onloadend = () => resolve(reader.result as string);
-        if (imageBlob instanceof Blob) {
-          reader.readAsDataURL(imageBlob);
-        } else {
-          reject(new Error('Failed to fetch image as Blob'));
-        }
+        reader.onerror = () => reject(null);
+        reader.readAsDataURL(blob);
       });
     } catch (err) {
-      console.error('ImagePipe: failed to load image', url, err);
+      console.error("ImagePipe: failed to load image", url, err);
       return null;
     }
   }

@@ -17,6 +17,9 @@ import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { routes } from './app/app-routing.module';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AuthTokenInterceptor } from 'src/app/core/interceptors/auth-token.interceptor';
 
 // Register AG Grid modules before bootstrap
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -36,6 +39,12 @@ EventTarget.prototype.addEventListener = function (
 
 bootstrapApplication(AppComponent, {
   providers: [
+     provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthTokenInterceptor,
+      multi: true
+    },
     provideAnimations(),
     provideRouter(routes),
     importProvidersFrom(

@@ -154,7 +154,7 @@
 
           <div class="popup-body add-comment-body">
             <!-- Tag -->
-            <div class="form-group">
+            <!-- <div class="form-group">
               <label class="form-label">Tag</label>
               <select
                 class="select-input"
@@ -166,7 +166,7 @@
                   {{ t.label }}
                 </option>
               </select>
-            </div>
+            </div> -->
 
             <!-- Comment -->
             <div class="form-group">
@@ -229,14 +229,15 @@
         <app-events-filter-panel
           *ngIf="isFilterOpen"
           [showDateRange]="selectedFilter === 'CLOSED'"
+          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked"
           [cities]="cities"
           [sites]="sites"
           [cameras]="cameras"
+          [queues]="queueNames"
           [actionTags]="actionTags"
           [eventTypes]="eventTypes"
-         [employees]="userLevels"
+          [employees]="userLevels"
           [queueLevels]="queueLevels"
-          [queues]="queues"
           [consoleTypes]="consoleTypes"
           [consolesChecked]="consolesChecked"
           [queuesChecked]="queuesChecked"
@@ -265,59 +266,67 @@
                 </p>
               </div>
 
-            <div class="play-popup-actions">
-  <!-- Download all images -->
-  <button
-    type="button"
-    class="icon-btn"
-   (click)="downloadAllImages($event)"
-    title="Download all images"
-  >
-    <img
-      src="assets/Dounload.svg"
-      alt="download"
-      class="escalated-icon"
-    />
-  </button>
+              <div class="play-popup-actions">
+                <!-- Download all images -->
+                <button
+                  type="button"
+                  class="icon-btn"
+                  (click)="downloadAllImages($event)"
+                  title="Download all images"
+                >
+                  <img
+                    src="assets/Dounload.svg"
+                    alt="download"
+                    class="escalated-icon"
+                  />
+                </button>
 
-  <!-- Open all images in new tabs -->
-  <button
-    type="button"
-    class="icon-btn"
-    (click)="openAllImagesInNewTabs($event)"
-    title="Open all images in new tabs"
-  >
-    <img
-      src="assets/expand.png"
-      alt="open in new tab"
-      class="escalated-icon"
-    />
-  </button>
+                <!-- Open all images in new tabs -->
+                <button
+                  type="button"
+                  class="icon-btn"
+                  (click)="openAllImagesInNewTabs($event)"
+                  title="Open all images in new tabs"
+                >
+                  <img
+                    src="assets/expand.png"
+                    alt="open in new tab"
+                    class="escalated-icon"
+                  />
+                </button>
 
-  <!-- Close popup -->
-  <button
-    type="button"
-    class="icon-btn"
-    (click)="closePlayPopup()"
-    title="Close"
-  >
-    <img
-      src="assets/close-filled-black.svg"
-      alt="close"
-      class="escalated-icon"
-    />
-  </button>
-</div>
+                <!-- Close popup -->
+                <button
+                  type="button"
+                  class="icon-btn"
+                  (click)="closePlayPopup()"
+                  title="Close"
+                >
+                  <img
+                    src="assets/close-filled-black.svg"
+                    alt="close"
+                    class="escalated-icon"
+                  />
+                </button>
+              </div>
             </div>
 
             <div class="popup-body">
               <ng-container
                 *ngIf="selectedPlayItem?.videoFile?.length; else noImages"
               >
-                <img
+                <!-- <img
                   class="play-image"
                   [src]="getCurrentImageUrl()"
                   alt="Event image"
+                /> -->
+                <img
+                  class="play-image"
+                  [src]="
+                    (getCurrentImageUrl() | image | async) ||
+                    'assets/no-image.png'
+                  "
+                  alt="Event frame"
                 />
               </ng-container>
 
@@ -463,7 +472,7 @@
                 >
                   <div class="escalated-card-content">
                     <h4 class="labelmargin">{{ e.label }}</h4>
-                       <h4 class="labelmargin">{{ e.value }}</h4>
+                    <h4 class="labelmargin">{{ e.value }}</h4>
                   </div>
 
                   <div class="icons">
@@ -480,6 +489,8 @@
           </div>
         </ng-container>
       </div>
+
+      <!-- ===================== AG Grid Tables ===================== -->
 
       <!-- ===================== AG Grid Tables ===================== -->
 
@@ -507,6 +518,8 @@
               (gridReady)="onGridReady($event)"
               [icons]="gridIcons"
               (cellClicked)="onCellClicked($event)"
+              [statusBar]="statusBar"
+              (firstDataRendered)="onFirstDataRendered()"
             >
             </ag-grid-angular>
           </div>
@@ -537,11 +550,15 @@
             (gridReady)="onGridReady($event)"
             [icons]="gridIcons"
             (cellClicked)="onCellClicked($event)"
-          ></ag-grid-angular>
+            [statusBar]="statusBar"
+            (firstDataRendered)="onFirstDataRendered()"
+          >
+          </ag-grid-angular>
         </div>
       </div>
 
       <!-- ========= Hidden template for pagination toolbar (cloned into .ag-paging-panel) ========= -->
+
       <div
         #paginationControls
         class="pagination-controls"
@@ -556,7 +573,6 @@
           <div class="dot-timedOutWallCount" data-type="timed"></div>
           <label class="timedOut-wall-label" data-type="timed">Timed-Out</label>
         </div>
-
         <div class="refresh-group">
           <button class="refreshbutton" type="button">
             <img
@@ -566,7 +582,6 @@
             />
             Refresh
           </button>
-
           <select class="refresh-interval-select">
             <option value="1">1 min</option>
             <option value="5">5 min</option>
@@ -576,6 +591,7 @@
           </select>
         </div>
       </div>
+
       <!-- ========================================================================= -->
     </div>
   </div>
