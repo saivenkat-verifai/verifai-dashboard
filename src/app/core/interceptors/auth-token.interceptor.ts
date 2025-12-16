@@ -81,9 +81,8 @@ export class AuthTokenInterceptor implements HttpInterceptor {
         switchMap((refreshRes: any) => {
           console.log("✅ Refresh API SUCCESS:", refreshRes);
 
-          const newAccess = refreshRes?.AccessToken || refreshRes?.accessToken;
-          const newRefresh =
-            refreshRes?.RefreshToken || refreshRes?.refreshToken;
+          const newAccess = refreshRes?.access_token || refreshRes?.access_token;
+          const newRefresh = refreshRes?.refresh_token || refreshRes?.refresh_token;
 
           if (!newAccess) {
             console.error("❌ Refresh failed: No AccessToken returned");
@@ -94,7 +93,6 @@ export class AuthTokenInterceptor implements HttpInterceptor {
           console.log("🆕 New AccessToken received");
 
           this.auth.updateTokens(newAccess, newRefresh);
-
           this.isRefreshing = false;
           this.refreshSubject.next(newAccess);
 

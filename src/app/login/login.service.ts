@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import * as CryptoJS from 'crypto-js';
 import { Router } from '@angular/router';
@@ -127,20 +127,21 @@ export class AuthService {
    * I used refresh_token_1_0 as example.
    */
   refreshAccessToken(): Observable<any> {
-    const user = this.getStoredUser();
+    const user: any = this.getStoredUser();
     const refreshToken = this.getRefreshToken();
 
     if (!refreshToken) {
       return throwError(() => new Error('No RefreshToken found'));
     }
 
-    const body = {
-      userName: user?.UserName,
-      refreshToken,
-      callingSystemDetail: 'events-dashboard',
-    };
+    // const body = {
+    //   userName: user?.UserName,
+    //   refreshToken,
+    //   callingSystemDetail: 'events-dashboard',
+    // };
 
-    return this.http.post(`${this.baseUrl}/refresh_token_1_0`, body);
+    let params = new HttpParams().set('refresh_token', refreshToken).set('modifiedBy', user?.UserId);
+    return this.http.post(`${this.baseUrl}/getAccessforRefreshToken`, null, {params});
   }
 
   /** =========================
