@@ -13,6 +13,7 @@ import { MultiSelectModule } from "primeng/multiselect";
 
 import { NotificationService } from 'src/app/shared/notification.service';
 
+import { ProfileImageRendererComponent } from "src/app/pages/events/profile-image-renderer.component";
 
 // Register module
 ModuleRegistry.registerModules([QuickFilterModule]);
@@ -37,6 +38,7 @@ interface SecondEscalatedDetail {
     ButtonModule,
     GroupsPopupComponent,
     MultiSelectModule,
+    ProfileImageRendererComponent
   ],
 })
 export class GroupsComponent implements OnInit, OnDestroy {

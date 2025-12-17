@@ -276,31 +276,34 @@
               class="escalated-card-container"
               style="max-height: 400px; overflow-y: auto"
             >
-              <div class="escalated-card" *ngFor="let user of filteredUsers">
-                <div class="escalated-card-content">
-                  <input
-                    #checkbox
-                    type="checkbox"
-                    [checked]="selectedUserIds.includes(user.userId)"
-                    (change)="
-                      toggleUserSelection(user.userId, checkbox.checked)
-                    "
-                  />
-                  <div>
-                    <img
-                      class="imground"
-                      [src]="'assets/user1.png'"
-                      alt="{{ user.userName }}"
-                    />
-                  </div>
-                  <div class="nameemail">
-                    <h4 class="labelmargin">{{ user.userName }}</h4>
-                    <p class="labelmail">
-                      {{ user.email }} | {{ user.userContact }}
-                    </p>
-                  </div>
-                </div>
-              </div>
+             <div class="escalated-card" *ngFor="let user of filteredUsers">
+  <div class="escalated-card-content">
+    <input
+      #checkbox
+      type="checkbox"
+      [checked]="selectedUserIds.includes(user.userId)"
+      (change)="toggleUserSelection(user.userId, checkbox.checked)"
+    />
+
+    <!-- ✅ Use renderer with API profileImageUrl -->
+<app-profile-image-renderer
+  [data]="{
+    userName: user.userName || user.User_Name,
+    profileImageUrl: user.profileImageUrl,
+    profileImage: user.profileImage
+  }"
+  [showLabel]="false"
+></app-profile-image-renderer>
+
+    <div class="nameemail">
+      <h4 class="labelmargin">{{ user.userName }}</h4>
+      <p class="labelmail">
+        {{ user.email }} | {{ user.userContact }}
+      </p>
+    </div>
+  </div>
+</div>
+
             </div>
 
             <div class="form-actions">

@@ -451,28 +451,36 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
       headerClass: "custom-header",
       cellClass: "custom-cell",
     },
-    {
-      headerName: "USER",
-      field: "user",
-      headerClass: "custom-header",
-      cellStyle: {
-        textAlign: "center",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      },
-      cellClass: "custom-cell",
-      cellRenderer: (params: any) => {
-        const imgUrl = params.data.userName
-          ? `https://i.pravatar.cc/30?u=${params.data.userName}`
-          : "https://i.pravatar.cc/30?img=1";
+    // {
+    //   headerName: "USER",
+    //   field: "user",
+    //   headerClass: "custom-header",
+    //   cellStyle: {
+    //     textAlign: "center",
+    //     display: "flex",
+    //     justifyContent: "center",
+    //     alignItems: "center",
+    //   },
+    //   cellClass: "custom-cell",
+    //   cellRenderer: (params: any) => {
+    //     const imgUrl = params.data.userName
+    //       ? `https://i.pravatar.cc/30?u=${params.data.userName}`
+    //       : "https://i.pravatar.cc/30?img=1";
 
-        return `
-          <img src="${imgUrl}" alt="user"
-            style="width: 24px; height: 24px; border-radius: 50%; margin-top: 15px" />
-        `;
-      },
-    },
+    //     return `
+    //       <img src="${imgUrl}" alt="user"
+    //         style="width: 24px; height: 24px; border-radius: 50%; margin-top: 15px" />
+    //     `;
+    //   },
+    // },
+      {
+    headerName: "USER",
+    field: "user",
+    headerClass: "custom-header",
+    cellClass: "custom-cell",
+    cellRenderer: ProfileImageRendererComponent, // ✅ use your component
+    editable: false,
+  },
     {
       headerName: "DESCRIPTION",
       field: "description",
@@ -545,57 +553,80 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   };
 
   // ------------------------ ON CHANGES ------------------------
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes["selectedItem"] && this.selectedItem) {
-      console.log("API Data received in popup:", this.selectedItem);
+ngOnChanges(changes: SimpleChanges) {
+  if (!changes["selectedItem"] || !this.selectedItem) return;
 
-      // 🧩 Map userId -> profileImage from queueUsers
-      const userImageMap = new Map<number, string>();
-      (this.queueUsers || []).forEach((u: any) => {
-        if (u?.userId && u?.profileImage) {
-          userImageMap.set(Number(u.userId), u.profileImage);
-        }
-      });
+  console.log("API Data received in popup:", this.selectedItem);
 
-      this.escalationRowData = (
-        this.selectedItem.eventEscalationInfo || []
-      ).map((item: any) => ({
+  // ✅ Build map: userId -> profileImage from queueUsers
+  const userImageMap = new Map<number, string>();
+  (this.queueUsers || []).forEach((u: any) => {
+    const id = Number(u?.userId);
+    const img = u?.profileImage;
+    if (id && img) userImageMap.set(id, img);
+  });
+
+  // ✅ ESCALATION ROWS (uses ProfileImageRendererComponent already)
+  this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map(
+    (item: any) => {
+      const userId = Number(item?.user ?? item?.userId ?? 0);
+
+      return {
         ...item,
         user: {
-          profileImage: this.normalizeAvatarUrl(
-            userImageMap.get(Number(item.user)) || ""
-          ),
+          profileImage: this.normalizeAvatarUrl(userImageMap.get(userId) || ""),
           name: item.userName ?? String(item.user ?? ""),
           level: item.userLevel ?? "",
         },
         isEditing: false,
         isDuplicate: false,
-      }));
-
-      this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map(
-        (item: any) => ({
-          ...item,
-          user: item.user || { img: "http://i.pravatar.cc/30?img=1" },
-        })
-      );
-
-      this.commentRowData = (this.selectedItem.eventComments || []).map(
-        (c: any) => ({
-          user: {
-            profileImage: this.normalizeAvatarUrl(c.userImage || ""),
-            level: c.level || "",
-          },
-          name: c.name || "",
-          level: c.level || "",
-          submittedtime: this.formatDateTime(c.submittedTime || new Date()),
-          notes: c.notes || "",
-        })
-      );
-
-      this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
+      };
     }
-  }
+  );
 
+  // ✅ ALARM ROWS (NOW ALSO uses ProfileImageRendererComponent)
+  // IMPORTANT: alarmColumnDefs USER field must be `field: "user"` and `cellRenderer: ProfileImageRendererComponent`
+  this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map((item: any) => {
+    // Pick whatever your API has for alarm user id:
+    // try user -> userId -> createdBy -> reviewerId (add/remove as needed)
+    const userId = Number(
+      item?.user ?? item?.userId ?? item?.createdBy ?? item?.reviewedBy ?? 0
+    );
+
+    return {
+      ...item,
+      user: {
+        profileImage: this.normalizeAvatarUrl(userImageMap.get(userId) || ""),
+        name: item.userName ?? String(item.userName ?? item.user ?? ""),
+        level: item.userLevel ?? "",
+      },
+    };
+  });
+
+  // ✅ COMMENTS ROWS (uses ProfileImageRendererComponent already)
+  this.commentRowData = (this.selectedItem.eventComments || []).map((c: any) => {
+    const userId = Number(c?.userId ?? c?.createdBy ?? c?.user ?? 0);
+
+    return {
+      ...c,
+      user: {
+        // prefer comment’s own image, else fall back to queueUsers map
+        profileImage: this.normalizeAvatarUrl(
+          c.userImage || userImageMap.get(userId) || ""
+        ),
+        name: c.name || "",
+        level: c.level || "",
+      },
+      name: c.name || "",
+      level: c.level || "",
+      submittedtime: this.formatDateTime(c.submittedTime || new Date()),
+      notes: c.notes || "",
+    };
+  });
+
+  // ✅ Selected event details
+  this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
+}
   get formattedBasicInfo() {
     return this.basicInfoFields.map((field) => {
       let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
