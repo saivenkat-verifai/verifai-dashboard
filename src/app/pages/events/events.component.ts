@@ -470,7 +470,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (raw) {
       try {
         this.currentUser = JSON.parse(raw);
-        console.log("Current user in EventsComponent:", this.currentUser);
+        // console.log("Current user in EventsComponent:", this.currentUser);
       } catch (e) {
         console.error("Error parsing stored user data", e);
       }

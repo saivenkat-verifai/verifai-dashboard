@@ -29,8 +29,8 @@ export class AuthTokenInterceptor implements HttpInterceptor {
 
     // Only add if it exists (avoid "undefined")
     if (refreshToken) {
-      headers["RefreshToken"] = refreshToken; // ✅ or 'X-Refresh-Token'
-      // headers['X-Refresh-Token'] = refreshToken;   // if backend uses this name
+      // headers["RefreshToken"] = refreshToken;
+      // headers['X-Refresh-Token'] = refreshToken;
     }
 
     return req.clone({ setHeaders: headers });
@@ -39,7 +39,7 @@ export class AuthTokenInterceptor implements HttpInterceptor {
 
 
   intercept(req: HttpRequest<any>, next: HttpHandler) {
-     console.log("INTERCEPT:", req.url, "token?", !!this.auth.getAccessToken());
+    //  console.log("INTERCEPT:", req.url, "token?", !!this.auth.getAccessToken());
   if (this.isPublicUrl(req.url)) return next.handle(req);
 
 

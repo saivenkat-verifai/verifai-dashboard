@@ -169,8 +169,8 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
         this.endTime = '23:59:59';
       }
     } else {
+      this.startTime = this.formatTime24(this.startDate);
       this.endTime = this.formatTime24(this.endDate);
-
       // extra guard: never allow future end
       if (this.endDate > now) {
         this.endDate = now;
