@@ -20,14 +20,18 @@
         </div>
 
         <div class="p-field">
-          <label class="p-t-b-10 font-label" for="password">Password</label>
-          <p-password
-            id="password"
-            placeholder="Password Here"
-            [(ngModel)]="password"
-            name="password"
-            [feedback]="false"
-          ></p-password>
+      <div class="p-field">
+  <label class="p-t-b-10 font-label" for="password">Password</label>
+
+  <p-password
+    id="password"
+    placeholder="Password Here"
+    [(ngModel)]="password"
+    name="password"
+    [feedback]="false"
+    [toggleMask]="true"
+  ></p-password>
+</div>
         </div>
 
         <div class="p-field-forgetpassword p-t-20">

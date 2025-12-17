@@ -58,6 +58,9 @@ export class EventsFilterPanelComponent {
     }
   }
 
+  @Output() criteriaChange = new EventEmitter<EventsFilterCriteria>();
+
+
   @Output() close = new EventEmitter<void>();
   @Output() reset = new EventEmitter<void>();
   @Output() apply = new EventEmitter<EventsFilterCriteria>();
@@ -84,6 +87,10 @@ export class EventsFilterPanelComponent {
    queueName: 'All',
     consoleType: 'All',
   };
+
+  onCriteriaChanged(): void {
+  this.criteriaChange.emit({ ...this.model });
+}
 
   /** ------- Slider percentage helpers (0–120 mins) ------- */
 

@@ -121,6 +121,7 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   openFilter() {
     this.isFilterOpen = true;
+      this.recomputeFilterDropdowns(); // ✅ ensures cameras are already narrowed
   }
   onFilterClose() {
     this.isFilterOpen = false;
@@ -250,7 +251,126 @@ export class EventsComponent implements OnInit, OnDestroy {
     } else {
       this.closedDisplayRows = filtered;
     }
+
+     this.onFilterClose();           // if you're using the sidebar boolean
+  this.filterPanelVisible = false; // if you also use this toggle elsewhere
   }
+
+onFilterCriteriaChange(criteria: EventsFilterCriteria): void {
+  this.currentFilter = { ...criteria };
+
+  // ✅ rebuild dropdown lists based on current selections
+  this.recomputeFilterDropdowns();
+
+  // ✅ optional: if current camera is no longer valid after site change, reset it
+  if (this.currentFilter.camera !== 'All' && !this.filterLists.cameras.includes(this.currentFilter.camera)) {
+    this.currentFilter = { ...this.currentFilter, camera: 'All' };
+  }
+
+  // ✅ optional: same for queueName / queueLevel
+  if (this.currentFilter.queueName !== 'All' && !this.filterLists.queueNames.includes(this.currentFilter.queueName)) {
+    this.currentFilter = { ...this.currentFilter, queueName: 'All' };
+  }
+  if (this.currentFilter.queueLevel !== 'All' && !this.filterLists.queueLevels.includes(this.currentFilter.queueLevel)) {
+    this.currentFilter = { ...this.currentFilter, queueLevel: 'All' };
+  }
+}
+
+private recomputeFilterDropdowns(): void {
+  const rows = this.selectedFilter === "PENDING"
+    ? (this.pendingRowData ?? [])
+    : (this.rowData ?? []);
+
+  // build each options list by filtering rows with currentFilter,
+  // but ignoring the same field so options don't collapse incorrectly.
+  const siteRows = this.filterRowsForOptions(rows, "site");
+  this.filterLists.sites = this.uniq(siteRows.map(r => r.siteName));
+
+  const cameraRows = this.filterRowsForOptions(rows, "camera");
+  this.filterLists.cameras = this.uniq(cameraRows.map(r => r.cameraId));
+
+  const empRows = this.filterRowsForOptions(rows, "employee");
+  this.filterLists.userLevels = this.uniq(
+    empRows.map(r => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
+  );
+
+  const actionTagRows = this.filterRowsForOptions(rows, "eventType");
+  this.filterLists.eventTypes = this.uniq(
+    actionTagRows.map(r =>
+      this.selectedFilter === "PENDING"
+        ? r.actionTag
+        : (r.subActionTag ?? r.actionTag)
+    ).filter((v: any) => v != null && v !== "")
+  );
+
+  const alertRows = this.filterRowsForOptions(rows, "consoleType");
+  this.filterLists.consoleTypes = this.uniq(
+    alertRows.map(r => (r.eventType ?? r.eventTag)).filter((v: any) => v != null && v !== "")
+  );
+
+  if (this.selectedFilter === "PENDING") {
+    const qNameRows = this.filterRowsForOptions(rows, "queueName");
+    this.filterLists.queueNames = this.uniq(qNameRows.map(r => r.queueName));
+
+    const qLevelRows = this.filterRowsForOptions(rows, "queueLevel");
+    this.filterLists.queueLevels = this.uniq(qLevelRows.map(r => r.queueLevel));
+  }
+}
+
+
+private filterRowsForOptions(
+  rows: any[],
+  ignoreField:
+    | "site"
+    | "camera"
+    | "employee"
+    | "eventType"
+    | "consoleType"
+    | "queueName"
+    | "queueLevel"
+): any[] {
+  const c = this.currentFilter;
+
+  return rows.filter((row) => {
+    // Site
+    if (ignoreField !== "site" && c.site !== "All" && row.siteName !== c.site) return false;
+
+    // Camera
+    if (ignoreField !== "camera" && c.camera !== "All" && row.cameraId !== c.camera) return false;
+
+    // Employee (levels)
+    if (ignoreField !== "employee") {
+      const level = row.employee?.level ?? row.userLevels ?? row.userLevel ?? "N/A";
+      if (c.employee !== "All" && level !== c.employee) return false;
+    }
+
+    // Action Tag dropdown (you store it in criteria.eventType)
+    if (ignoreField !== "eventType" && c.eventType !== "All") {
+      const rowTag = this.selectedFilter === "PENDING"
+        ? row.actionTag
+        : (row.subActionTag ?? row.actionTag);
+
+      if (rowTag !== c.eventType) return false;
+    }
+
+    // Alert Type dropdown (consoleType)
+    if (ignoreField !== "consoleType" && c.consoleType !== "All") {
+      const rowAlert = row.eventType ?? row.eventTag;
+      if (rowAlert !== c.consoleType) return false;
+    }
+
+    // Pending-only queue filters
+    if (this.selectedFilter === "PENDING") {
+      if (ignoreField !== "queueName" && c.queueName !== "All" && row.queueName !== c.queueName) return false;
+      if (ignoreField !== "queueLevel" && c.queueLevel !== "All" && row.queueLevel !== c.queueLevel) return false;
+    }
+
+    return true;
+  });
+}
+
+
+
 
   private parseDurationToMinutes(value?: string): number {
     if (!value) return 0;
@@ -740,6 +860,7 @@ private preloadClosedCounts(): void {
   setFilter(filter: "CLOSED" | "PENDING"): void {
     this.selectedFilter = filter;
     this.searchTerm = "";
+     this.clearFiltersAndResults(); // ✅ clears filters when changing main tabs
 
     if (filter === "CLOSED") {
       this.stopAutoRefresh();
@@ -805,6 +926,7 @@ private preloadClosedCounts(): void {
     this.consolesChecked = true;
     this.queuesChecked = false;
     this.selectedpendingFilter = "CONSOLES";
+     this.clearFiltersAndResults(); // ✅ clear old queue filters
     this.loadPendingEvents();
   }
 
@@ -812,6 +934,7 @@ private preloadClosedCounts(): void {
     this.consolesChecked = false;
     this.queuesChecked = true;
     this.selectedpendingFilter = "QUEUES";
+      this.clearFiltersAndResults(); // ✅ clear old console filters
     this.loadPendingEvents();
   }
 
@@ -1891,6 +2014,47 @@ private preloadClosedCounts(): void {
       ],
     };
   }
+
+
+  private getDefaultFilter(): EventsFilterCriteria {
+  return {
+    startDate: null,
+    endDate: null,
+    startTime: "00:00",
+    endTime: "23:59",
+    minDuration: 0,
+    maxDuration: 120,
+    userLevels: "All",
+    city: "All",
+    site: "All",
+    camera: "All",
+    actionTag: "All",
+    eventType: "All",
+    employee: "All",
+    queueLevel: "All",
+    queueName: "All",
+    consoleType: "All",
+  };
+}
+
+private clearFiltersAndResults(): void {
+  // ✅ Important: new object reference so the child @Input setter runs
+  this.currentFilter = { ...this.getDefaultFilter() };
+
+  // ✅ Clear applied filtering
+  this.pendingDisplayRows = [...this.pendingRowData];
+  this.closedDisplayRows = [...this.rowData];
+
+  // Optional: clear search
+  this.searchTerm = "";
+
+  setTimeout(() => this.autoSizeAllColumns(), 0);
+}
+
+
+
+
+
 
   private buildConsoleEscalationCard(res: any): EscalatedDetail {
     const total =
