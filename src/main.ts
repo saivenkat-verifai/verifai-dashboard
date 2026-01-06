@@ -20,9 +20,18 @@ import { routes } from './app/app-routing.module';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthTokenInterceptor } from 'src/app/core/interceptors/auth-token.interceptor';
+import { ServerSideRowModelModule, ServerSideRowModelApiModule, CellSelectionModule, StatusBarModule, RichSelectModule } from 'ag-grid-enterprise';
+import { DatePipe } from '@angular/common';
 
 // Register AG Grid modules before bootstrap
-ModuleRegistry.registerModules([AllCommunityModule]);
+ModuleRegistry.registerModules([
+  AllCommunityModule,
+  ServerSideRowModelModule,
+  ServerSideRowModelApiModule,
+  CellSelectionModule,
+  StatusBarModule,
+  RichSelectModule
+]);
 
 // GLOBAL PATCH: passive touch events
 const origAddEventListener = EventTarget.prototype.addEventListener;
@@ -39,13 +48,13 @@ EventTarget.prototype.addEventListener = function (
 
 bootstrapApplication(AppComponent, {
   providers: [
-     provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi()),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthTokenInterceptor,
       multi: true
     },
-     provideRouter(routes, withHashLocation()), 
+    provideRouter(routes, withHashLocation()),
     provideAnimations(),
     provideRouter(routes),
     importProvidersFrom(
@@ -59,8 +68,9 @@ bootstrapApplication(AppComponent, {
       HttpClientModule,
       AgGridModule,
       HighchartsChartModule,
-      ToastModule,           // ✅ module stays here
+      ToastModule,
     ),
-    MessageService           // ✅ service is provided here
+    MessageService,
+    DatePipe
   ]
 });

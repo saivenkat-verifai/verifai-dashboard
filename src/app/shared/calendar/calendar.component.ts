@@ -18,6 +18,7 @@ import { RadioButtonModule } from 'primeng/radiobutton';
 import { CalendarModule } from 'primeng/calendar';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
+import { DashboardService } from 'src/app/pages/dashboard/dashboard.service';
 
 type DateRangePayload = {
   startDate: Date;
@@ -48,10 +49,15 @@ export class CalendarComponent implements OnInit {
   // ---------------------------------------------------------------------------
   @Input() showViewDropdown: boolean = true;
   @Input() variant: 'dashboard' | 'events' = 'events';
+  @Input() timezone: any;
 
   @Output() dateRangeSelected = new EventEmitter<DateRangePayload>();
 
   private readonly autoEmit: boolean = false;
+
+  constructor(
+    public dashboard_service: DashboardService
+  ) { }
 
   // UI mode
   dateRange: boolean = true;
@@ -62,12 +68,12 @@ export class CalendarComponent implements OnInit {
   activeInput: 'start' | 'end' = 'start';
   inlineDate: Date = new Date();
 
-// Generate full 24 hours in 30-min intervals
-popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
-  const hour = Math.floor(i / 2);
-  const minute = i % 2 === 0 ? '00' : '30';
-  return `${hour.toString().padStart(2, '0')}:${minute}`;
-});
+  // Generate full 24 hours in 30-min intervals
+  popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
+    const hour = Math.floor(i / 2);
+    const minute = i % 2 === 0 ? '00' : '30';
+    return `${hour.toString().padStart(2, '0')}:${minute}`;
+  });
 
   viewMode: 'day' | 'week' | 'month' | 'custom' = 'day';
   viewOptions = [
@@ -98,6 +104,16 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
+
+  ngOnChanges() {
+    // console.log(this.timezone?.timezoneValue)
+    this.setTodayStartEndValues();
+    if (this.timezone?.timezoneValue) {
+      if (!this.dashboard_service.isTimeSelected) {
+        this.endDate = new Date(this.dashboard_service.getTimeByTimezone(this.timezone?.timezoneValue))
+      }
+    }
+  }
   ngOnInit() {
     this.today.setHours(23, 59, 59, 999);
 
@@ -106,7 +122,7 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
     this.generateMonths(currentYear - 5, currentYear + 5);
 
     // default seed: today 00:00 → now
-    this.setTodayStartEndValues();
+
 
     // emit ONCE on load
     this.emitOnceOnInit();
@@ -154,14 +170,14 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
     const now = new Date();
 
     if (this.wholeDay) {
+      this.dashboard_service.isTimeSelected = true;
       this.startTime = '00:00:00';
-
       const end = new Date(this.endDate);
 
       if (this.isSameDay(end, now)) {
         // today → clamp to now
         this.endDate = now;
-        this.endTime = this.formatTime24(now);
+        // this.endTime = this.formatTime24(now);
       } else {
         // past day → full day
         end.setHours(23, 59, 59, 999);
@@ -181,6 +197,7 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
     const key = this.buildKey();
     if (key !== this.lastEmittedKey) {
       this.lastEmittedKey = key;
+
       this.dateRangeSelected.emit({
         startDate: this.startDate,
         startTime: this.startTime,
@@ -224,7 +241,7 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
       this.endTime = '23:59:59';
     } else {
       this.startDate = dayStart;
-      this.endDate = now;
+      // this.endDate = now
       this.startTime = '00:00:00';
       this.endTime = this.formatTime24(now);
     }
@@ -590,41 +607,43 @@ popularTimes: string[] = Array.from({ length: 48 }, (_, i) => {
     this.forceEmit();
   }
 
-goToday() {
-  const now = new Date();
-  this.viewMode = 'day';
-  this.currentMonth = new Date(now);
+  goToday() {
+    this.dashboard_service.isTimeSelected = true;
+    const now = new Date();
+    this.viewMode = 'day';
+    this.currentMonth = new Date(now);
 
-  // Start of today
-  const dayStart = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    0,
-    0,
-    0,
-    0
-  );
+    // Start of today
+    const dayStart = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0
+    );
 
-  // End of today (23:59:59)
-  const dayEnd = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23,
-    59,
-    59,
-    999
-  );
+    // End of today (23:59:59)
+    const dayEnd = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
 
-  this.startDate = dayStart;
-  this.endDate = dayEnd;
-  this.startTime = '00:00:00';
-  this.endTime = '23:59:59';
-  this.inlineDate = new Date(this.startDate);
+    this.startDate = dayStart;
+    // this.endDate = new Date(this.dashboard_service.getTimeByTimezone(this.timezone?.timezoneValue))
+    this.endDate = dayEnd;
+    this.startTime = '00:00:00';
+    this.endTime = '23:59:59';
+    this.inlineDate = new Date(this.startDate);
 
-  this.forceEmit();
-}
+    this.forceEmit();
+  }
 
 
   // ---------------------------------------------------------------------------
@@ -659,14 +678,14 @@ goToday() {
     }
   }
 
-    private isSameDay(a: Date, b: Date): boolean {
+  private isSameDay(a: Date, b: Date): boolean {
     return (
       a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
       a.getDate() === b.getDate()
     );
   }
-    // Used by template to grey out future times
+  // Used by template to grey out future times
   isTimeDisabled(time: string): boolean {
     const [hh, mm] = time.split(':').map((n) => parseInt(n, 10));
     const base =
@@ -697,6 +716,7 @@ goToday() {
   // Popular time pill click (24h)
   // Popular time pill click (24h) – block future times
   onPopularTimeClick(time: string) {
+    this.dashboard_service.isTimeSelected = true;
     const [hh, mm] = time.split(':').map((n) => parseInt(n, 10));
 
     const selectedBase =

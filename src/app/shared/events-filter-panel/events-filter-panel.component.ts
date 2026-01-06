@@ -84,13 +84,13 @@ export class EventsFilterPanelComponent {
     eventType: 'All',
     employee: 'All',
     queueLevel: 'All',
-   queueName: 'All',
+    queueName: 'All',
     consoleType: 'All',
   };
 
   onCriteriaChanged(): void {
-  this.criteriaChange.emit({ ...this.model });
-}
+    this.criteriaChange.emit({ ...this.model });
+  }
 
   /** ------- Slider percentage helpers (0–120 mins) ------- */
 
@@ -104,7 +104,9 @@ export class EventsFilterPanelComponent {
     return (max / 120) * 100;
   }
 
+  isDurationTouched = false;
   onMinDurationChange(event: Event): void {
+    this.isDurationTouched = true;
     const val = +(event.target as HTMLInputElement).value;
     if (this.model.maxDuration == null) {
       this.model.maxDuration = 120;
@@ -113,6 +115,7 @@ export class EventsFilterPanelComponent {
   }
 
   onMaxDurationChange(event: Event): void {
+    this.isDurationTouched = true;
     const val = +(event.target as HTMLInputElement).value;
     if (this.model.minDuration == null) {
       this.model.minDuration = 0;
@@ -133,6 +136,10 @@ export class EventsFilterPanelComponent {
   }
 
   onApply(): void {
+    if (!this.isDurationTouched) {
+      this.model.minDuration = null;
+      this.model.maxDuration = null;
+    }
     this.apply.emit(this.model);
   }
 

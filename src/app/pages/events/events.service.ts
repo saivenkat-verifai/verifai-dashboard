@@ -36,7 +36,7 @@ export class EventsService {
 
   private readonly pendingEventsCountsUrl = `${this.mqBaseUrl}/queueManagement/getPendingEventsCounts_1_0`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getSuspiciousEvents(
     actionTag: number,
@@ -115,4 +115,12 @@ export class EventsService {
       headers: { "Content-Type": "application/json" },
     });
   }
+
+  timezoneDropdown() {
+    let url = `${this.apiBaseUrl}/events_data/getTimezones_1_0`;
+
+    return this.http.get(url);
+
+  }
+
 }

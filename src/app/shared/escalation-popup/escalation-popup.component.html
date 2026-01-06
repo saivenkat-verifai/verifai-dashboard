@@ -18,7 +18,10 @@
             ></span>
 
             <ng-container
-              *ngIf="info.label.toLowerCase().includes('time'); else normalValue"
+              *ngIf="
+                info.label.toLowerCase().includes('time');
+                else normalValue
+              "
             >
               {{
                 selectedEvent[info.field]
@@ -134,16 +137,16 @@
   </ag-grid-angular>
 
   <!-- ======================= COMMENTS ======================= -->
- <!-- ======================= COMMENTS ======================= -->
-<div class="report-header">
-  <h2>COMMENTS</h2>
-  <div class="timezone">
-    <!-- instead of addComments(), call a small handler that notifies parent -->
-    <p-button class="today-btn" (onClick)="handleAddClick()">
-      + ADD
-    </p-button>
+  <!-- ======================= COMMENTS ======================= -->
+  <div class="report-header">
+    <h2>COMMENTS</h2>
+    <div class="timezone">
+      <!-- instead of addComments(), call a small handler that notifies parent -->
+      <p-button class="today-btn" (onClick)="handleAddClick()">
+        + ADD
+      </p-button>
+    </div>
   </div>
-</div>
 
   <div class="div">
     <p class="borderline"></p>
@@ -204,10 +207,7 @@
         name="commentTag"
       >
         <option [ngValue]="null">Select</option>
-        <option
-          *ngFor="let t of commentTags"
-          [ngValue]="t.value"
-        >
+        <option *ngFor="let t of commentTags" [ngValue]="t.value">
           {{ t.label }}
         </option>
       </select>

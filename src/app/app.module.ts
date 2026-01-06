@@ -31,9 +31,16 @@ import { ToastModule } from "primeng/toast";
 import { NotificationService } from "src/app/shared/notification.service";
 import { AuthTokenInterceptor } from "src/app/core/interceptors/auth-token.interceptor";
 import { HTTP_INTERCEPTORS } from "@angular/common/http";
+import { CellSelectionModule, ServerSideRowModelApiModule, ServerSideRowModelModule } from "ag-grid-enterprise";
 
 // ✅ Register all AG Grid community modules (outside @NgModule)
-ModuleRegistry.registerModules([AllCommunityModule]);
+// ModuleRegistry.registerModules([AllCommunityModule, CellSelectionModule]);
+ModuleRegistry.registerModules([
+  AllCommunityModule,
+  ServerSideRowModelModule,
+  ServerSideRowModelApiModule,
+  CellSelectionModule,
+]);
 
 @NgModule({
   declarations: [],
@@ -66,6 +73,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
       useClass: HashLocationStrategy
     },
   ],
-  bootstrap: [], // <--- must specify root component
+  bootstrap: [],
 })
-export class AppModule {}
+export class AppModule { }

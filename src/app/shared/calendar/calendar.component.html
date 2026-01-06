@@ -28,7 +28,7 @@
     <p-button
       *ngSwitchCase="'dashboard'"
       class="custom-today-btn"
-      (click)="op.toggle($event)"
+      (click)="op.toggle($event); dashboard_service.isTimeSelected = false"
     >
       <ng-template pTemplate="icon">
         <img class="calenderimage" src="assets/calender.svg" alt="calendar" />
@@ -51,10 +51,10 @@
 
     <span
       class="selected-range font-Neometric-Bold"
-      (click)="op.toggle($event)"
+      (click)="op.toggle($event); dashboard_service.isTimeSelected = false"
     >
-      {{ startDate | date: 'dd MMM, yyyy HH:mm:ss ' | uppercase }} -
-      {{ endDate | date: 'dd MMM, yyyy HH:mm:ss ' | uppercase }}
+      {{ startDate | date : "dd MMM, yyyy HH:mm:ss " | uppercase }} -
+      {{ endDate | date : "dd MMM, yyyy HH:mm:ss " | uppercase }}
     </span>
 
     <button
@@ -158,7 +158,7 @@
     <p-button
       *ngSwitchCase="'events'"
       class="custom-today-btn"
-      (click)="op.toggle($event)"
+      (click)="op.toggle($event); dashboard_service.isTimeSelected = false"
     >
       <ng-template pTemplate="icon">
         <img class="calenderimage" src="assets/calender.svg" alt="" />
@@ -198,7 +198,9 @@
             name="mode"
             value="whole"
             [(ngModel)]="mode"
-            (onClick)="toggleWholeDay()"
+            (onClick)="
+              toggleWholeDay(); dashboard_service.isTimeSelected = true
+            "
           ></p-radioButton>
           <label (click)="toggleWholeDay()">Whole Day</label>
         </div>
@@ -217,12 +219,12 @@
             <div class="left">
               <i class="pi pi-calendar"></i>
               <span>
-                {{ startDate | date: 'dd MMM, yyyy' }}
+                {{ startDate | date : "dd MMM, yyyy" }}
               </span>
             </div>
             <div class="right">
               <i class="pi pi-clock"></i>
-              <span>{{ startDate | date: 'HH:mm' }}</span>
+              <span>{{ startDate | date : "HH:mm" }}</span>
             </div>
           </div>
         </div>
@@ -238,12 +240,12 @@
             <div class="left">
               <i class="pi pi-calendar"></i>
               <span>
-                {{ endDate | date: 'dd MMM, yyyy' }}
+                {{ endDate | date : "dd MMM, yyyy" }}
               </span>
             </div>
             <div class="right">
               <i class="pi pi-clock"></i>
-              <span>{{ endDate | date: 'HH:mm' }}</span>
+              <span>{{ endDate | date : "HH:mm" }}</span>
             </div>
           </div>
         </div>
@@ -257,33 +259,32 @@
       <!-- BODY: CALENDAR + POPULAR TIMES -->
       <div class="range-body">
         <div class="calendar-col">
-         <p-calendar
-  [(ngModel)]="inlineDate"
-  [inline]="true"
-  [monthNavigator]="true"
-  [yearNavigator]="true"
-  [showIcon]="false"
-  [touchUI]="false"
-  [maxDate]="today"
-  (onSelect)="onInlineDateSelect($event)"
->
-</p-calendar>
+          <p-calendar
+            [(ngModel)]="inlineDate"
+            [inline]="true"
+            [monthNavigator]="true"
+            [yearNavigator]="true"
+            [showIcon]="false"
+            [touchUI]="false"
+            [maxDate]="today"
+            (onSelect)="onInlineDateSelect($event)"
+          >
+          </p-calendar>
         </div>
 
         <div class="time-col">
           <div class="time-title">Popular Times</div>
-<div class="time-list">
-  <button
-    *ngFor="let t of popularTimes"
-    type="button"
-    class="time-pill"
-    [class.disabled]="isTimeDisabled(t)"
-    (click)="!isTimeDisabled(t) && onPopularTimeClick(t)"
-  >
-    {{ t }}
-  </button>
-</div>
-
+          <div class="time-list">
+            <button
+              *ngFor="let t of popularTimes"
+              type="button"
+              class="time-pill"
+              [class.disabled]="isTimeDisabled(t)"
+              (click)="!isTimeDisabled(t) && onPopularTimeClick(t)"
+            >
+              {{ t }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

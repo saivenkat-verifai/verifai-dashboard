@@ -6,10 +6,12 @@ import {
   SimpleChanges,
   OnChanges,
   OnInit,
+  ChangeDetectionStrategy,
+  signal,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { AgGridModule } from "ag-grid-angular";
-import { ColDef, GridApi, Column } from "ag-grid-community";
+import { AgGridModule, ICellRendererAngularComp } from "ag-grid-angular";
+import { ColDef, GridApi, Column, IRichCellEditorParams, ICellRendererParams } from "ag-grid-community";
 import { DialogModule } from "primeng/dialog";
 import { FormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
@@ -122,10 +124,12 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   constructor(
     private eventsService: EventsService,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   // ------------------------ INIT ------------------------
   ngOnInit() {
+
+    this.loadActionTags();
     const raw =
       localStorage.getItem("verifai_user") ||
       sessionStorage.getItem("verifai_user");
@@ -184,7 +188,7 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
     if (this.escalationGridApi) {
       this.escalationGridApi.refreshCells({
         force: true,
-        columns: ["receiveAt", "reviewStart", "reviewEnd"],
+        columns: ["receiveAt", "reviewStart", "reviewEnd", "actionTag", "subActionTag"],
       });
     }
   }
@@ -198,6 +202,31 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   }
 
   // ------------------------ ESCALATION COLUMNS ------------------------
+  actionTagCategories: any[] = [];
+  filteredSubActionTags: any[] = [];
+  selectedCategoryId: number | null = null;
+
+  private loadActionTags() {
+    this.eventsService
+      .getActionTagCategories()
+      .subscribe((res: any) => {
+        this.actionTagCategories = res?.actionTagCategories || [];
+        this.refreshTimeColumns()
+      });
+  }
+
+  onActionTagChange(categoryId: number) {
+    const selectedCategory = this.actionTagCategories.find(
+      cat => cat.categoryId === +categoryId
+    );
+
+    this.filteredSubActionTags =
+      selectedCategory?.actionTagSubCategories || [];
+  }
+
+
+  currentActionTag: any;
+  currentSubActionTag: any;
   escalationColumnDefs: ColDef[] = [
     {
       headerName: "USER",
@@ -248,16 +277,46 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
     {
       headerName: "ACTION TAG",
       field: "actionTag",
+      editable: (data: any) => {
+        return data.node.lastChild ? true : false
+      },
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: false,
+      cellEditor: "agRichSelectCellEditor",
+      cellEditorParams: () => {
+        return {
+          values: this.actionTagCategories.map((item: any) => item.categoryName)
+        };
+      },
+      valueFormatter: (params: any) => {
+        const match = this.actionTagCategories.find((s) => s.categoryName === params.value);
+        this.currentActionTag = match;
+        return match ? match.categoryName : '';
+      }
     },
     {
       headerName: "TAG",
       field: "subActionTag",
+      editable: (data: any) => {
+        return data.node.lastChild ? true : false
+      },
       headerClass: "custom-header",
       cellClass: "custom-cell",
-      editable: (params) => params.data.isDuplicate && params.data.isEditing,
+      cellEditor: "agRichSelectCellEditor",
+      cellEditorParams: () => {
+        const [sub] = this.actionTagCategories.filter((item) => item.categoryId === this.currentActionTag?.categoryId);
+        return {
+          values: sub?.actionTagSubCategories.map((item: any) => item.subCategoryName)
+        };
+      },
+      valueFormatter: (params: any) => {
+        const [sub] = this.actionTagCategories.filter((item) => item.categoryId === this.currentActionTag?.categoryId);
+        const match = sub?.actionTagSubCategories.find(
+          (s: any) => s.subCategoryName === params.value
+        );
+        this.currentSubActionTag = match;
+        return match ? match.name : '';
+      }
     },
     {
       headerName: "NOTES",
@@ -344,6 +403,8 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
       ...original,
       isDuplicate: true,
       isEditing: true,
+      actionTag: null,
+      subActionTag: null
     };
 
     const res = params.api.applyTransaction({ add: [duplicate] });
@@ -358,6 +419,7 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   }
 
   saveEscalation(data: any) {
+    console.log(data)
     if (!this.selectedEvent) {
       console.error("No event selected");
       this.showError("Update Escalation", "No event selected.");
@@ -393,8 +455,10 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
       receivedTime: "",
       reviewStartTime: data.reviewStart || "",
       reviewEndTime: data.reviewEnd || "",
-      actionTag: this.mapActionTag(data.actionTag),
-      subActionTag: Number(data.subActionTag),
+      // actionTag: this.mapActionTag(data.actionTag),
+      // subActionTag: Number(data.subActionTag),
+      actionTag: this.currentActionTag?.categoryId,
+      subActionTag: this.currentSubActionTag?.subCategoryId,
       notes: data.notes || "",
     };
 
@@ -473,14 +537,14 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
     //     `;
     //   },
     // },
-      {
-    headerName: "USER",
-    field: "user",
-    headerClass: "custom-header",
-    cellClass: "custom-cell",
-    cellRenderer: ProfileImageRendererComponent, // ✅ use your component
-    editable: false,
-  },
+    {
+      headerName: "USER",
+      field: "user",
+      headerClass: "custom-header",
+      cellClass: "custom-cell",
+      cellRenderer: ProfileImageRendererComponent, // ✅ use your component
+      editable: false,
+    },
     {
       headerName: "DESCRIPTION",
       field: "description",
@@ -553,80 +617,80 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
   };
 
   // ------------------------ ON CHANGES ------------------------
-ngOnChanges(changes: SimpleChanges) {
-  if (!changes["selectedItem"] || !this.selectedItem) return;
+  ngOnChanges(changes: SimpleChanges) {
+    if (!changes["selectedItem"] || !this.selectedItem) return;
 
-  console.log("API Data received in popup:", this.selectedItem);
+    console.log("API Data received in popup:", this.selectedItem);
 
-  // ✅ Build map: userId -> profileImage from queueUsers
-  const userImageMap = new Map<number, string>();
-  (this.queueUsers || []).forEach((u: any) => {
-    const id = Number(u?.userId);
-    const img = u?.profileImage;
-    if (id && img) userImageMap.set(id, img);
-  });
+    // ✅ Build map: userId -> profileImage from queueUsers
+    const userImageMap = new Map<number, string>();
+    (this.queueUsers || []).forEach((u: any) => {
+      const id = Number(u?.userId);
+      const img = u?.profileImage;
+      if (id && img) userImageMap.set(id, img);
+    });
 
-  // ✅ ESCALATION ROWS (uses ProfileImageRendererComponent already)
-  this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map(
-    (item: any) => {
-      const userId = Number(item?.user ?? item?.userId ?? 0);
+    // ✅ ESCALATION ROWS (uses ProfileImageRendererComponent already)
+    this.escalationRowData = (this.selectedItem.eventEscalationInfo || []).map(
+      (item: any) => {
+        const userId = Number(item?.user ?? item?.userId ?? 0);
+
+        return {
+          ...item,
+          user: {
+            profileImage: this.normalizeAvatarUrl(userImageMap.get(userId) || ""),
+            name: item.userName ?? String(item.user ?? ""),
+            level: item.userLevel ?? "",
+          },
+          isEditing: false,
+          isDuplicate: false,
+        };
+      }
+    );
+
+    // ✅ ALARM ROWS (NOW ALSO uses ProfileImageRendererComponent)
+    // IMPORTANT: alarmColumnDefs USER field must be `field: "user"` and `cellRenderer: ProfileImageRendererComponent`
+    this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map((item: any) => {
+      // Pick whatever your API has for alarm user id:
+      // try user -> userId -> createdBy -> reviewerId (add/remove as needed)
+      const userId = Number(
+        item?.user ?? item?.userId ?? item?.createdBy ?? item?.reviewedBy ?? 0
+      );
 
       return {
         ...item,
         user: {
           profileImage: this.normalizeAvatarUrl(userImageMap.get(userId) || ""),
-          name: item.userName ?? String(item.user ?? ""),
+          name: item.userName ?? String(item.userName ?? item.user ?? ""),
           level: item.userLevel ?? "",
         },
-        isEditing: false,
-        isDuplicate: false,
       };
-    }
-  );
+    });
 
-  // ✅ ALARM ROWS (NOW ALSO uses ProfileImageRendererComponent)
-  // IMPORTANT: alarmColumnDefs USER field must be `field: "user"` and `cellRenderer: ProfileImageRendererComponent`
-  this.alarmRowData = (this.selectedItem.eventAlarmInfo || []).map((item: any) => {
-    // Pick whatever your API has for alarm user id:
-    // try user -> userId -> createdBy -> reviewerId (add/remove as needed)
-    const userId = Number(
-      item?.user ?? item?.userId ?? item?.createdBy ?? item?.reviewedBy ?? 0
-    );
+    // ✅ COMMENTS ROWS (uses ProfileImageRendererComponent already)
+    this.commentRowData = (this.selectedItem.eventComments || []).map((c: any) => {
+      const userId = Number(c?.userId ?? c?.createdBy ?? c?.user ?? 0);
 
-    return {
-      ...item,
-      user: {
-        profileImage: this.normalizeAvatarUrl(userImageMap.get(userId) || ""),
-        name: item.userName ?? String(item.userName ?? item.user ?? ""),
-        level: item.userLevel ?? "",
-      },
-    };
-  });
-
-  // ✅ COMMENTS ROWS (uses ProfileImageRendererComponent already)
-  this.commentRowData = (this.selectedItem.eventComments || []).map((c: any) => {
-    const userId = Number(c?.userId ?? c?.createdBy ?? c?.user ?? 0);
-
-    return {
-      ...c,
-      user: {
-        // prefer comment’s own image, else fall back to queueUsers map
-        profileImage: this.normalizeAvatarUrl(
-          c.userImage || userImageMap.get(userId) || ""
-        ),
+      return {
+        ...c,
+        user: {
+          // prefer comment’s own image, else fall back to queueUsers map
+          profileImage: this.normalizeAvatarUrl(
+            c.userImage || userImageMap.get(userId) || ""
+          ),
+          name: c.name || "",
+          level: c.level || "",
+        },
         name: c.name || "",
         level: c.level || "",
-      },
-      name: c.name || "",
-      level: c.level || "",
-      submittedtime: this.formatDateTime(c.submittedTime || new Date()),
-      notes: c.notes || "",
-    };
-  });
+        submittedtime: this.formatDateTime(c.submittedTime || new Date()),
+        notes: c.notes || "",
+      };
+    });
 
-  // ✅ Selected event details
-  this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
-}
+    // ✅ Selected event details
+    this.selectedEvent = (this.selectedItem.eventDetails || [])[0] || null;
+  }
   get formattedBasicInfo() {
     return this.basicInfoFields.map((field) => {
       let value = this.selectedEvent?.[field.field] ?? field.default ?? "--";
@@ -658,7 +722,7 @@ ngOnChanges(changes: SimpleChanges) {
   onGridReady(params: any) {
     this.escalationGridApi = params.api;
     params.api.sizeColumnsToFit();
-    params.columnApi.autoSizeAllColumns();
+    // params.columnApi.autoSizeAllColumns();
     this.commentGridApi = params.api; // kept for compatibility
   }
 
@@ -772,5 +836,35 @@ ngOnChanges(changes: SimpleChanges) {
         this.showError("Add Comment Failed", msg);
       },
     });
+  }
+}
+
+
+@Component({
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+        <div [style.overflow]="'hidden'" [style.textOverflow]="'ellipsis'">
+            <span [style.borderLeft]="'10px solid ' + value()" [style.paddingRight]="'5px'"></span>{{ value() }}
+        </div>
+    `,
+  styles: [
+    `
+            :host {
+                overflow: hidden;
+            }
+        `,
+  ],
+})
+export class ColourCellRenderer implements ICellRendererAngularComp {
+  value = signal<string>('');
+
+  agInit(params: ICellRendererParams): void {
+    console.log(params)
+    this.value.set(params.value);
+  }
+
+  refresh() {
+    return false;
   }
 }

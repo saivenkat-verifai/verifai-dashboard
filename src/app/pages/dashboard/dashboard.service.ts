@@ -1,8 +1,10 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, of, concat } from "rxjs";
 import { catchError } from "rxjs/operators";
 import { environment } from "src/environments/environment";  // 👈 IMPORTANT
+import * as moment from "moment-timezone";
+import { DatePipe } from "@angular/common";
 
 @Injectable({
   providedIn: "root",
@@ -10,21 +12,44 @@ import { environment } from "src/environments/environment";  // 👈 IMPORTANT
 export class DashboardService {
   // 👇 Build the full endpoint from the env MQ base URL
   private readonly baseUrl = `${environment.mqApiBaseUrl}/queueManagement/getEventDashboardHourlyCounts_1_0`;
+  // private readonly baseUrl = `http://192.168.0.139:8000/getEventDashboardHourlyCounts_1_0`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
+  isTimeSelected = false;
   getEventCountsByRange(
     startDate: Date,
     startTime: string,
     endDate: Date,
-    endTime: string
+    endTime: string,
+    timeZone: string,
+    tVal: string
   ): Observable<any> {
     const fromDateTime = this.formatDateTime(startDate, startTime);
-    const toDateTime = this.formatDateTime(endDate, endTime);
+    // const toDateTime = this.formatDateTime(endDate, endTime);
+
+    let toDateTime;
+    if (tVal) {
+      if (this.isTimeSelected) {
+        toDateTime = this.formatDateTime(endDate, endTime);
+      } else {
+        toDateTime = this.getTimeByTimezone(tVal);
+      }
+    } else {
+      toDateTime = this.formatDateTime(endDate, endTime);
+    }
+    console.log(toDateTime)
+
 
     const apiUrl = `${this.baseUrl}?fromDate=${encodeURIComponent(
       fromDateTime
-    )}&toDate=${encodeURIComponent(toDateTime)}`;
+    )}&toDate=${toDateTime}`;
+
+    let params = new HttpParams();
+
+    if (timeZone) {
+      params = params.set('timezone', timeZone)
+    }
 
     const defaultData = {
       total: {
@@ -137,7 +162,7 @@ export class DashboardService {
       },
     };
 
-    const apiRequest$ = this.http.get<any>(apiUrl).pipe(
+    const apiRequest$ = this.http.get<any>(apiUrl, { params }).pipe(
       catchError((error) => {
         console.error("API error, returning default data:", error);
         return of(defaultData);
@@ -162,6 +187,14 @@ export class DashboardService {
     const hh = ("0" + dateObj.getHours()).slice(-2);
     const mm = ("0" + dateObj.getMinutes()).slice(-2);
     const ss = ("0" + dateObj.getSeconds()).slice(-2);
+
     return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
   }
+
+  public getTimeByTimezone(timezone: string = 'Asia/Kolkata', time?: any) {
+    return moment.tz(timezone).format('YYYY-MM-DD HH:mm:ss')
+  }
+
+
+
 }

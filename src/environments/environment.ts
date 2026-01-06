@@ -10,7 +10,7 @@ export interface AppEnvironment {
   [key: string]: any;
 }
 
-export const environment: AppEnvironment = {
+export const environment = {
   name: 'dev',
   production: false,
   // apiBaseUrl: 'http://localhost:8001', // your local backend

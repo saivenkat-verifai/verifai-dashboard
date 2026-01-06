@@ -7,6 +7,8 @@ import { CalendarComponent } from 'src/app/shared/calendar/calendar.component';
 import { ColumnChartComponent } from "src/app/shared/column-chart/column-chart.component";
 import { LineChartComponent } from "src/app/shared/line-chart/line-chart.component";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
+import { FormsModule } from '@angular/forms';
+import { EventsService } from '../events/events.service';
 
 interface CardDot {
   iconcolor: string;
@@ -33,7 +35,8 @@ interface DashboardCard {
     CardModule,
     ColumnChartComponent,
     CalendarComponent,
-    LineChartComponent
+    LineChartComponent,
+    FormsModule
   ],
 })
 export class DashboardComponent implements OnInit {
@@ -45,11 +48,22 @@ export class DashboardComponent implements OnInit {
   escalatedGraph: any[] = [];
   compareGraph: any[] = [];
   hourlyBreakdownData: any[] = [];
+  timezones: any[] = [];
+  timeZone = '';
 
-  constructor(private dashboardService: DashboardService) {}
+  constructor(private dashboardService: DashboardService, private eventService: EventsService) { }
 
   ngOnInit() {
     const now = new Date();
+    this.timezoneDropdown();
+  }
+
+
+  timezoneDropdown() {
+    this.eventService.timezoneDropdown().subscribe((res: any) => {
+      this.timezones = res.timezones;
+      this.timezonechange();
+    })
   }
 
   // getCircleGradient(percent: number): string {
@@ -58,81 +72,90 @@ export class DashboardComponent implements OnInit {
   // }
 
   getCircleGradient(percent: number): string {
-  const deg = percent * 3.6;
-  return `conic-gradient(#e53935 ${deg}deg, #fce4ec 0deg)`;
-}
+    const deg = percent * 3.6;
+    return `conic-gradient(#e53935 ${deg}deg, #fce4ec 0deg)`;
+  }
 
-getSafePercent(percent: number): number {
-  // keep a minimal gap for near-complete rings
-  if (percent > 97) return 97; // cap visible fill at 97%
-  return percent;
-}
+  getSafePercent(percent: number): number {
+    // keep a minimal gap for near-complete rings
+    if (percent > 97) return 97; // cap visible fill at 97%
+    return percent;
+  }
 
-onDateRangeSelected(event: {
-  startDate: Date;
-  startTime: string;
-  endDate: Date;
-  endTime: string;
-}) {
-  this.isLoading = true;
-  this.dashboardService
-    .getEventCountsByRange(event.startDate, event.startTime, event.endDate, event.endTime)
-    .subscribe({
-      next: (data) => {
-        if (!data) return;
-        this.dashboardCards = this.mapCards(data);
-        this.escalatedDetails = this.mapDetails(data.escalated.details);
-        this.escalatedGraph = this.mapGraph(data.escalated.details);
-        this.compareGraph = this.mapCompareGraph(data.escalated.details);
-        this.hourlyBreakdownData = this.mapHourly(data.escalated.details);
-      },
-      error: (err) => console.error(err),
-      complete: () => (this.isLoading = false),
+  event: any;
+  selectedTimezone: any;
+  timezonechange() {
+    this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);
+    this.onDateRangeSelected(this.event)
+  }
+
+  onDateRangeSelected(event: {
+    startDate: Date;
+    startTime: string;
+    endDate: Date;
+    endTime: string;
+
+  }) {
+    this.event = event
+    this.isLoading = true;
+    this.dashboardService
+      .getEventCountsByRange(event.startDate, event.startTime, event.endDate, event.endTime, this.timeZone, this.selectedTimezone?.timezoneValue)
+      .subscribe({
+        next: (data) => {
+          if (!data) return;
+          this.dashboardCards = this.mapCards(data);
+          this.escalatedDetails = this.mapDetails(data.escalated.details);
+          this.escalatedGraph = this.mapGraph(data.escalated.details);
+          this.compareGraph = this.mapCompareGraph(data.escalated.details);
+          this.hourlyBreakdownData = this.mapHourly(data.escalated.details);
+        },
+        error: (err) => console.error(err),
+        complete: () => (this.isLoading = false),
+      });
+  }
+
+  private mapCards(data: any): DashboardCard[] {
+    const formatTitle = (k: string) =>
+      k.replace(/[_\-]/g, ' ')
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/^./, s => s.toUpperCase());
+
+    const items = Object.keys(data).map((rawKey) => {
+      const value = data[rawKey] ?? {};
+      const keyLc = rawKey.toLowerCase();
+
+      // consider various "total" shapes but exclude percentage fields
+      const isTotal =
+        keyLc.includes('total') && !keyLc.includes('percentage');
+
+      const percKey = Object.keys(value).find(k => k.toLowerCase().includes('percentage'));
+
+      const card: DashboardCard & { _isTotal: boolean } = {
+        title: formatTitle(rawKey),                // becomes "Total Events" → template uppercases to "TOTAL EVENTS"
+        value: value.total ?? 0,
+        percentage: !isTotal && percKey ? value[percKey] : undefined,
+        color: isTotal ? 'red' : 'white',
+        colordot: [
+          { iconcolor: '#53BF8B', count: value.eventWall ?? 0 },
+          { iconcolor: '#FFC400', count: value.manualWall ?? 0 },
+        ],
+        icons: [
+          { iconPath: 'assets/home.svg', count: value.sitesCount ?? 0 },
+          { iconPath: 'assets/cam.svg', count: value.cameraCount ?? 0 },
+        ],
+        _isTotal: isTotal,
+      };
+      return card;
     });
-}
 
-private mapCards(data: any): DashboardCard[] {
-  const formatTitle = (k: string) =>
-    k.replace(/[_\-]/g, ' ')
-     .replace(/([A-Z])/g, ' $1')
-     .replace(/\s+/g, ' ')
-     .trim()
-     .replace(/^./, s => s.toUpperCase());
+    // ensure the total card shows first
+    items.sort((a, b) => (a._isTotal === b._isTotal ? 0 : a._isTotal ? -1 : 1));
 
-  const items = Object.keys(data).map((rawKey) => {
-    const value = data[rawKey] ?? {};
-    const keyLc = rawKey.toLowerCase();
-
-    // consider various "total" shapes but exclude percentage fields
-    const isTotal =
-      keyLc.includes('total') && !keyLc.includes('percentage');
-
-    const percKey = Object.keys(value).find(k => k.toLowerCase().includes('percentage'));
-
-    const card: DashboardCard & { _isTotal: boolean } = {
-      title: formatTitle(rawKey),                // becomes "Total Events" → template uppercases to "TOTAL EVENTS"
-      value: value.total ?? 0,
-      percentage: !isTotal && percKey ? value[percKey] : undefined,
-      color: isTotal ? 'red' : 'white',
-      colordot: [
-        { iconcolor: '#53BF8B', count: value.eventWall ?? 0 },
-        { iconcolor: '#FFC400', count: value.manualWall ?? 0 },
-      ],
-      icons: [
-        { iconPath: 'assets/home.svg', count: value.sitesCount ?? 0 },
-        { iconPath: 'assets/cam.svg',  count: value.cameraCount ?? 0 },
-      ],
-      _isTotal: isTotal,
-    };
-    return card;
-  });
-
-  // ensure the total card shows first
-  items.sort((a, b) => (a._isTotal === b._isTotal ? 0 : a._isTotal ? -1 : 1));
-
-  // strip helper prop
-  return items.map(({ _isTotal, ...rest }) => rest);
-}
+    // strip helper prop
+    return items.map(({ _isTotal, ...rest }) => rest);
+  }
 
 
   private mapDetails(details: any) {

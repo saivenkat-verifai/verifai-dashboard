@@ -16,12 +16,28 @@
 
       <!-- Calendar Section -->
       <div class="calendar-section-wrapper">
-    <app-calendar
-  [showViewDropdown]="false"
-  variant="dashboard"
-  (dateRangeSelected)="onDateRangeSelected($event)"
->
-</app-calendar>
+        <app-calendar
+          [showViewDropdown]="false"
+          [timezone]="selectedTimezone"
+          variant="dashboard"
+          (dateRangeSelected)="onDateRangeSelected($event)"
+        >
+        </app-calendar>
+
+        <div class="select-wrapper">
+          <select
+            class="custom-select"
+            [(ngModel)]="timeZone"
+            (ngModelChange)="timezonechange()"
+          >
+            <option value="">All</option>
+            @for (item of timezones; track item.id) {
+            <option [value]="item.timezoneCode" [title]="item.timezoneValue">
+              {{ item.timezoneCode }}
+            </option>
+            }
+          </select>
+        </div>
       </div>
 
       <!-- Dashboard Cards -->
@@ -66,9 +82,7 @@
                       "
                     />
                   </svg>
-                 <div class="circle-text">
-  {{ card.percentage | number: '1.0-0' }}%
-</div>
+                  <div class="circle-text">{{ card.percentage }}%</div>
                 </div>
               </div>
             </div>

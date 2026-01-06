@@ -1,55 +1,52 @@
-
 @font-face {
-  font-family: 'Neometric Regular';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
-       format('woff');
+  font-family: "Neometric Regular";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Medium';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
-       format('woff');
+  font-family: "Neometric Medium";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff")
+    format("woff");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Bold';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
-       format('woff');
+  font-family: "Neometric Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Alt Bold';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
-       format('woff');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-
-@font-face {
-  font-family: 'Nasalization';
-  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff')
-       format('woff');
+  font-family: "Neometric Alt Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff")
+    format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-    font-family: 'NasalizationLight';
-    font-style: normal;
-    /* font-weight: 400; */
-    src: url('src/assets/fonts/Nasalization-Rg.otf') format('opentype'),
+  font-family: "Nasalization";
+  src: url("src/assets/fonts/neometric-2-webfont/NASALIZA.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NasalizationLight";
+  font-style: normal;
+  /* font-weight: 400; */
+  src: url("src/assets/fonts/Nasalization-Rg.otf") format("opentype");
 }
 
 /* Paint the actual card container */
@@ -84,22 +81,21 @@
 
 .label,
 h2 {
-  font-family: 'Neometric Alt Bold';
+  font-family: "Neometric Alt Bold";
   font-weight: 700;
 }
 
 .my-bold-text {
-  font-family: 'Neometric', sans-serif;
+  font-family: "Neometric", sans-serif;
   font-weight: 700;
 }
 
-.chart-title{
+.chart-title {
   display: grid;
-    flex-direction: row;
-    gap: 20px;
-    grid-template-columns: repeat(2, 6fr);
+  flex-direction: row;
+  gap: 20px;
+  grid-template-columns: repeat(2, 6fr);
 }
-  
 
 /* Loader Styles */
 .loader-overlay {
@@ -127,8 +123,12 @@ h2 {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .timeout-message p {
@@ -138,23 +138,22 @@ h2 {
 
 /* Dashboard Container */
 .dashboard-container {
-  background-color: #EEEEEE;
+  background-color: #eeeeee;
 }
 
 .section-header h2 {
-  font-family: 'Neometric Alt Bold';
+  font-family: "Neometric Alt Bold";
   opacity: 0.15;
   font-size: 15px;
   line-height: 20px;
 }
 
 .main-section-header h2 {
-  font-family: 'Neometric Alt Bold';
+  font-family: "Neometric Alt Bold";
   opacity: 0.15;
   font-size: 20px;
   line-height: 20px;
 }
-
 
 /* Dashboard Content */
 .dashboard-content {
@@ -165,13 +164,12 @@ h2 {
   overflow-y: scroll;
 }
 
-
 .dashboard-content-section {
   padding-bottom: 40px;
 }
 
-.escalated-content-section{
-    padding-bottom: 35px;
+.escalated-content-section {
+  padding-bottom: 35px;
 }
 
 .section-header {
@@ -191,7 +189,8 @@ h2 {
 .calendar-section-wrapper {
   display: flex;
   justify-content: flex-start;
-  width: 100%;
+  align-items: center;
+  gap: 20px;
 }
 
 /* Cards Row */
@@ -236,7 +235,7 @@ h2 {
 
 .card.red .label {
   color: rgba(255, 255, 255, 0.9);
-  font-family: 'Neometric Alt Bold';
+  font-family: "Neometric Alt Bold";
 }
 
 .card-top {
@@ -265,7 +264,7 @@ h2 {
   font-size: 20px;
   font-weight: 100;
   line-height: 1;
-  font-family: 'NasalizationLight', sans-serif;
+  font-family: "NasalizationLight", sans-serif;
   letter-spacing: normal;
   text-transform: uppercase;
   opacity: 1;
@@ -292,7 +291,11 @@ h2 {
   border-radius: 50%;
   background: conic-gradient(#e53935 var(--percent), #fce4ec 0deg);
   mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black 0);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 8px), black 0);
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 8px),
+    black 0
+  );
 }
 
 .circle-text {
@@ -301,8 +304,8 @@ h2 {
   left: 50%;
   transform: translate(-50%, -50%);
   font-weight: bold;
-  font-size: 20px;
-  font-family: 'NasalizationLight';
+  font-size: 14px;
+  font-family: "NasalizationLight";
   color: #e53935;
 }
 
@@ -310,11 +313,10 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  font-family: 'NasalizationLight';
-
+  font-family: "NasalizationLight";
 }
 
- .icon-counts{
+.icon-counts {
   opacity: 25%;
   color: #000000;
 }
@@ -376,19 +378,17 @@ h2 {
   align-items: center;
 }
 
-
-
 .escalated-card h4 {
-    margin: 0 0 5px;
-    font-size: 12px;
-    font-family: 'Neometric Medium';
-    color: #000000;
+  margin: 0 0 5px;
+  font-size: 12px;
+  font-family: "Neometric Medium";
+  color: #000000;
 }
 
 .escalated-card p {
   font-size: 14px;
   margin: 0;
-  font-family: 'NasalizationLight';
+  font-family: "NasalizationLight";
 }
 
 .progress-ring {
@@ -416,8 +416,8 @@ circle.progress {
 .card.red .icon-counts,
 .card.red .icons-group .icon-counts,
 .card.red .icons-group span {
-    color: #FFFFFF !important;
-    opacity: 82% !important;
+  color: #ffffff !important;
+  opacity: 82% !important;
 }
 
 .icons {
@@ -425,8 +425,8 @@ circle.progress {
   justify-content: space-between;
 
   align-items: flex-end;
-      font-size: 12px;
-    font-family: 'Neometric Regular';
+  font-size: 12px;
+  font-family: "Neometric Regular";
 }
 
 .opacity-25 {
@@ -475,7 +475,7 @@ circle.progress {
 }
 
 :host ::ng-deep .p-card .p-card-header {
- padding: 10px 10px 0px 10px;
+  padding: 10px 10px 0px 10px;
 }
 
 :host ::ng-deep .p-card .p-card-content {
@@ -540,4 +540,55 @@ circle.progress {
     font-size: 0.8rem;
     padding: 6px;
   }
+}
+
+.select-wrapper {
+  width: 150px;
+  position: relative;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 7px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid red;
+  border-radius: 6px;
+  background-color: #ffffff00;
+  color: red;
+  cursor: pointer;
+  font-weight: 500;
+
+  /* Remove default browser styles */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+  content: "▼";
+  font-size: 10px;
+  color: #666;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Hover & focus states */
+.custom-select:hover {
+  border-color: #e53935;
+}
+
+.custom-select:focus {
+  outline: none;
+  border-color: #e53935;
+  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.15);
+}
+
+/* Disabled option style */
+.custom-select option[value=""] {
+  color: #999;
 }

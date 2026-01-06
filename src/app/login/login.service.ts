@@ -30,7 +30,7 @@ export interface LoginResponse {
   [key: string]: any;
 }
 
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class AuthService {
   /** 🔹 Base URL from environment */
   private readonly baseUrl = `${environment.authBaseUrl}/userDetails`;
@@ -42,7 +42,7 @@ export class AuthService {
   /** 🔹 Encryption key (must match backend) */
   private readonly encryptionKey = 'verifai';
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   /** =========================
    * AES Encrypt Password -> Base64
@@ -141,7 +141,7 @@ export class AuthService {
     // };
 
     let params = new HttpParams().set('refresh_token', refreshToken).set('modifiedBy', user?.UserId);
-    return this.http.post(`${this.baseUrl}/getAccessforRefreshToken`, null, {params});
+    return this.http.post(`${this.baseUrl}/getAccessforRefreshToken`, null, { params });
   }
 
   /** =========================

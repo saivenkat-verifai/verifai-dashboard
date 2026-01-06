@@ -10,7 +10,7 @@ import { NotificationService } from 'src/app/shared/notification.service';
 
 @Component({
   selector: 'app-root',
-   standalone: true,
+  standalone: true,
   imports: [CommonModule, RouterModule, HeaderComponent, ToastModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
@@ -18,7 +18,7 @@ import { NotificationService } from 'src/app/shared/notification.service';
 export class AppComponent implements OnInit {
   showHeader = false;
 
-  constructor(private router: Router, private notificationService: NotificationService) {}
+  constructor(private router: Router, private notificationService: NotificationService) { }
 
   ngOnInit() {
     this.router.events
@@ -27,5 +27,24 @@ export class AppComponent implements OnInit {
         // Hide header only on login page
         this.showHeader = event.urlAfterRedirects !== '/login';
       });
+
+    const val = 'tataveer';
+    const obj: any = {};
+
+    for (let char of val) {
+      obj[char] ?? (obj[char]++)
+    }
+
+    console.log(obj);
+
+    // for (let i = 0; i < val.length; i++) {
+    //   if (obj[val[i]]) {
+    //     obj[val[i]]++
+    //   } else {
+    //     obj[val[i]] = 1
+    //   }
+    // }
+
+    // console.log(obj)
   }
 }
