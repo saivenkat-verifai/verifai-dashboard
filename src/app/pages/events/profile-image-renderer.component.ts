@@ -19,7 +19,7 @@ import { ImagePipe } from "src/app/shared/image.pipe";
             : 'assets/icons/dummy_300x300.png')
         "
         (error)="onError()"
-        style="width:24px;height:24px;border-radius:50%;object-fit:cover;"
+        style="width:40px;height:40px;border-radius:50%;object-fit:cover;"
       />
 
       <!-- ✅ ADD: only show label if enabled -->

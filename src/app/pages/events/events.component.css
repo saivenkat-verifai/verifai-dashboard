@@ -979,6 +979,7 @@ input:checked + .slider:before {
   width: 100%;
   font-size: 12px;
   font-family: "Neometric Alt Bold";
+  gap: 20px;
 }
 
 .calendar-section {
@@ -1504,4 +1505,52 @@ input:checked + .slider:before {
     align-items: flex-start;
     gap: 3px;
   }
+}
+
+.select-wrapper {
+  width: 150px;
+  position: relative;
+}
+
+.custom-select {
+  width: 60%;
+  padding: 7px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: #ffffff00;
+  /* color: red; */
+  cursor: pointer;
+  font-weight: 500;
+
+  /* Remove default browser styles */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+  content: "▼";
+  font-size: 10px;
+  color: #666;
+  position: absolute;
+  right: 70px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+/* Hover & focus states */
+
+.custom-select:focus {
+  outline: none;
+  border-color: black;
+  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.15);
+}
+
+/* Disabled option style */
+.custom-select option[value=""] {
+  color: #999;
 }
