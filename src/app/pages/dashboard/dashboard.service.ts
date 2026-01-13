@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable, of, concat } from "rxjs";
 import { catchError } from "rxjs/operators";
-import { environment } from "src/environments/environment";  // 👈 IMPORTANT
+import { environment } from "src/environments/environment"; // 👈 IMPORTANT
 import * as moment from "moment-timezone";
 import { DatePipe } from "@angular/common";
 
@@ -10,11 +10,9 @@ import { DatePipe } from "@angular/common";
   providedIn: "root",
 })
 export class DashboardService {
-  // 👇 Build the full endpoint from the env MQ base URL
   private readonly baseUrl = `${environment.mqApiBaseUrl}/queueManagement/getEventDashboardHourlyCounts_1_0`;
-  // private readonly baseUrl = `http://192.168.0.139:8000/getEventDashboardHourlyCounts_1_0`;
 
-  constructor(private http: HttpClient, private datePipe: DatePipe) { }
+  constructor(private http: HttpClient, private datePipe: DatePipe) {}
 
   isTimeSelected = false;
   getEventCountsByRange(
@@ -38,8 +36,7 @@ export class DashboardService {
     } else {
       toDateTime = this.formatDateTime(endDate, endTime);
     }
-    console.log(toDateTime)
-
+    console.log(toDateTime);
 
     const apiUrl = `${this.baseUrl}?fromDate=${encodeURIComponent(
       fromDateTime
@@ -48,7 +45,7 @@ export class DashboardService {
     let params = new HttpParams();
 
     if (timeZone) {
-      params = params.set('timezone', timeZone)
+      params = params.set("timezone", timeZone);
     }
 
     const defaultData = {
@@ -191,10 +188,7 @@ export class DashboardService {
     return `${y}-${m}-${d} ${hh}:${mm}:${ss}`;
   }
 
-  public getTimeByTimezone(timezone: string = 'Asia/Kolkata', time?: any) {
-    return moment.tz(timezone).format('YYYY-MM-DD HH:mm:ss')
+  public getTimeByTimezone(timezone: string = "Asia/Kolkata", time?: any) {
+    return moment.tz(timezone).format("YYYY-MM-DD HH:mm:ss");
   }
-
-
-
 }
