@@ -2132,6 +2132,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "SITE",
@@ -2139,6 +2140,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "DEVICE",
@@ -2147,6 +2149,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "CAMERA",
@@ -2155,6 +2158,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "EVENT TIME",
@@ -2164,6 +2168,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "DURATION",
@@ -2172,6 +2177,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "TZ",
@@ -2180,6 +2186,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "ACTION TAG",
@@ -2188,6 +2195,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       // {
       //   headerName: "EMP.",
@@ -2212,6 +2220,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellRenderer: ProfileImageRendererComponent,
         valueFormatter: (p) => p.value?.name || p.value?.level || "N/A",
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
 
       {
@@ -2230,12 +2239,14 @@ export class EventsComponent implements OnInit, OnDestroy {
             ? `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`
             : "",
         suppressHeaderMenuButton: true,
+        minWidth: 155
       },
       {
         headerName: "MORE INFO",
         field: "more",
         headerClass: "custom-header",
         cellClass: "custom-cell",
+        minWidth: 155,
         cellStyle: {
           textAlign: "center",
           display: "flex",
@@ -2261,6 +2272,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "SITE NAME",
@@ -2269,6 +2281,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "CAMERA ID",
@@ -2277,6 +2290,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "EVENT TAG",
@@ -2285,6 +2299,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "ACTION TAG",
@@ -2293,6 +2308,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "EVENT TIME",
@@ -2309,6 +2325,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "ACTION TIME",
@@ -2319,6 +2336,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "TZ",
@@ -2328,6 +2346,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "QUEUE NAME",
@@ -2336,6 +2355,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "QUEUE LEVEL",
@@ -2344,6 +2364,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "ALERT TYPE",
@@ -2355,6 +2376,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          maxWidth: 165
         },
         cellRenderer: (params: any) =>
           params.value
@@ -2371,6 +2393,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellRenderer: ProfileImageRendererComponent,
 
         suppressHeaderMenuButton: true,
+        maxWidth: 165
       },
       {
         headerName: "MORE INFO",
@@ -2381,6 +2404,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          maxWidth: 165
         },
         cellRenderer: (params: any) => {
           const playIcon = document.createElement("img");

@@ -161,7 +161,7 @@ h2 {
   flex-direction: column;
   padding: 10px;
   height: calc(100vh - 70px);
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .dashboard-content-section {
