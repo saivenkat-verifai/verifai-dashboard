@@ -36,7 +36,7 @@ export class DashboardService {
     } else {
       toDateTime = this.formatDateTime(endDate, endTime);
     }
-    console.log(toDateTime);
+   
 
     const apiUrl = `${this.baseUrl}?fromDate=${encodeURIComponent(
       fromDateTime

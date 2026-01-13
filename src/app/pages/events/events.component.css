@@ -70,6 +70,7 @@
 .dashboard-container {
     font-family: 'Neometric Regular';
     background-color: #f6f6f6;
+    height: calc(100vh - 75px);
 
 
 }
@@ -711,9 +712,10 @@ input:checked+.slider:before {
 }
 
 
-.ag-grid-wrapper {
+/* .ag-grid-wrapper {
     position: relative;
-}
+    width: 100%; 
+} */
 
 .custom-pagination {
     display: flex;
@@ -729,9 +731,7 @@ input:checked+.slider:before {
 }
 
 
-.ag-grid-wrapper {
-    position: relative;
-}
+
 
 .ag-custom-footer {
     display: flex;
@@ -1001,6 +1001,7 @@ input:checked+.slider:before {
     justify-content: flex-start;
     width: 100%;
     font-size: 12px;
+    gap: 20px;
     font-family: 'Neometric Alt Bold';
 }
 
@@ -1306,7 +1307,7 @@ input:checked+.slider:before {
 
 /* the row that holds all the cards */
 .escalated-content-section .first-section {
-  /* override generic .escalated-section styles */
+  
   height: auto;
   display: flex;
   flex-direction: row;
@@ -1314,7 +1315,7 @@ input:checked+.slider:before {
   justify-content: flex-start;
   gap: 16px;
 
-  overflow-x: auto;      /* 👈 horizontal scroll when many cards */
+  overflow-x: auto;      
   overflow-y: hidden;
   padding-bottom: 8px;
 }
@@ -1543,4 +1544,52 @@ input:checked+.slider:before {
         align-items: flex-start;
         gap: 3px;
     }
+}
+
+.select-wrapper {
+  width: 150px;
+  position: relative;
+}
+
+.custom-select {
+  width: 60%;
+  padding: 7px 14px;
+  font-size: 14px;
+  font-family: inherit;
+  border: 1px solid black;
+  border-radius: 6px;
+  background-color: #ffffff00;
+  /* color: red; */
+  cursor: pointer;
+  font-weight: 500;
+
+  /* Remove default browser styles */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.select-wrapper::after {
+  content: "▼";
+  font-size: 10px;
+  color: #666;
+  position: absolute;
+  right: 70px;
+  top: 20%;
+  /* transform: translateY(-50%); */
+  pointer-events: none;
+}
+
+/* Hover & focus states */
+
+
+.custom-select:focus {
+  outline: none;
+  border-color: black;
+  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.15);
+}
+
+/* Disabled option style */
+.custom-select option[value=""] {
+  color: #999;
 }

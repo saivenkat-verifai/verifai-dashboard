@@ -37,6 +37,21 @@
             variant="events"
             (dateRangeSelected)="onDateRangeSelected($event)"
           ></app-calendar>
+                  
+          <div class="select-wrapper">
+          <select
+            class="custom-select"
+            [(ngModel)]="timeZone"
+            (ngModelChange)="timezonechange()"
+          >
+            <option value="">All</option>
+            @for (item of timezones; track item.id) {
+            <option [value]="item.timezoneCode" [title]="item.timezoneValue">
+              {{ item.timezoneCode }}
+            </option>
+            }
+          </select>
+        </div>
 
           <!-- Show current datetime if PENDING -->
           <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
@@ -314,24 +329,26 @@
             </div>
 
             <div class="popup-body">
-              <ng-container
-                *ngIf="selectedPlayItem?.videoFile?.length; else noImages"
-              >
+              <ng-container *ngIf="selectedPlayItem?.videoFile?.length; else noImages">
                 <!-- <img
-                  class="play-image"
-                  [src]="getCurrentImageUrl()"
-                  alt="Event image"
-                /> -->
-                <img
-                  class="play-image"
-                  [src]="
-                    (getCurrentImageUrl() | image | async) ||
-                    'assets/no-image.png'
-                  "
-                  alt="Event frame"
-                />
+                              class="play-image"
+                              [src]="getCurrentImageUrl()"
+                              alt="Event image"
+                            /> -->
+            
+            
+            
+                <ng-container *ngIf="getCurrentImageUrl() | image | async as imgUrl; else loading">
+                  <img class="play-image" [src]="imgUrl" alt="Event frame" />
+                </ng-container>
+            
               </ng-container>
-
+            
+              <ng-template #loading>
+                <!-- loader / blank / skeleton -->
+                <div>Loading...</div>
+              </ng-template>
+            
               <ng-template #noImages>
                 <p>No images available</p>
               </ng-template>
@@ -497,11 +514,11 @@
       <!-- ===================== AG Grid Tables ===================== -->
 
       <!-- PENDING Table -->
-      <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'">
+      <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'" >
         <div class="escalated-content-section">
-          <div class="ag-grid-wrapper">
+          <div class="ag-grid-wrapper" >
             <ag-grid-angular
-              style="width: 100%"
+            style="height: 100%"
               theme="legacy"
               class="ag-theme-alpine"
               [rowData]="pendingDisplayRows"
@@ -532,12 +549,11 @@
       <div class="m-t-20" *ngIf="selectedFilter === 'CLOSED'">
         <div class="escalated-content-section">
           <ag-grid-angular
-            style="width: 100%"
             theme="legacy"
             class="ag-theme-alpine"
             [rowData]="closedDisplayRows"
             [columnDefs]="closedColumnDefs"
-            [defaultColDef]="{ resizable: true }"
+            [defaultColDef]="defaultColDef"
             [pagination]="true"
             [enableCellTextSelection]="true"
             [enableRangeSelection]="true"
@@ -568,9 +584,9 @@
       >
         <div class="legend-group">
           <div class="dot-eventwall"></div>
-          <label class="event-wall-label">Event Wall</label>
+          <label class="event-wall-label">Event Console</label>
           <div class="dot-manualwall"></div>
-          <label class="manual-wall-label">Manual Wall</label>
+          <label class="manual-wall-label">Manual Console</label>
           <!-- Timed-Out only for PENDING; we'll hide via TS for CLOSED -->
           <div class="dot-timedOutWallCount" data-type="timed"></div>
           <label class="timedOut-wall-label" data-type="timed">Timed-Out</label>
@@ -584,7 +600,7 @@
             />
             Refresh
           </button>
-          <select class="refresh-interval-select">
+          <select class="refresh-interval-select" >
             <option value="1">1 min</option>
             <option value="5">5 min</option>
             <option value="10">10 min</option>

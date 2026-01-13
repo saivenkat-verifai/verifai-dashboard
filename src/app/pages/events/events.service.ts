@@ -41,10 +41,11 @@ export class EventsService {
   getSuspiciousEvents(
     actionTag: number,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    timezone?:string
   ): Observable<any> {
     return this.http.get<any>(
-      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`
+      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}&timezone=${timezone}`
     );
   }
 
@@ -57,13 +58,13 @@ export class EventsService {
   }
 
   // ✅ From events_data
-  getConsolePendingMessages_1_0(): Observable<any> {
-    return this.http.get<any>(this.consolePendingMessagesDataUrl);
+  getConsolePendingMessages_1_0(timezone:any): Observable<any> {
+    return this.http.get<any>(`${this.consolePendingMessagesDataUrl}?timezone=${timezone}`);
   }
 
   // ✅ From MQ queueManagement
-  getEventsPendingMessages_1_0(): Observable<any> {
-    return this.http.get<any>(this.pendingMessagesUrl);
+  getEventsPendingMessages_1_0(timezone:any): Observable<any> {
+    return this.http.get<any>(`${this.pendingMessagesUrl}?timezone=${timezone}`);
   }
 
   getActionTagCategories(): Observable<any> {
@@ -73,11 +74,12 @@ export class EventsService {
   getEventReportCountsForActionTag(
     startDate?: string,
     endDate?: string,
-    actionTag?: number
+    actionTag?: number,
+    timezone?:string
   ): Observable<any> {
     const url =
       `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
-      `&toDate=${endDate}&actionTag=${actionTag}`;
+      `&toDate=${endDate}&actionTag=${actionTag}&timezone=${timezone}`;
     return this.http.get<any>(url);
   }
 

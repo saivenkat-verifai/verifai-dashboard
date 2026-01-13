@@ -97,6 +97,9 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   filterPanelVisible = false;
 
+
+  
+
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
   }
@@ -154,6 +157,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   pendingDisplayRows: any[] = []; // what PENDING grid sees
 
   onFilterReset() {
+
     this.pendingDisplayRows = [...this.pendingRowData];
     setTimeout(() => this.autoSizeAllColumns(), 0);
     this.closedDisplayRows = [...this.rowData];
@@ -402,7 +406,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   lastEndDateTime?: string;
 
   /** -------------------- Filters & toggles -------------------- */
-  selectedFilter: "CLOSED" | "PENDING" = "PENDING";
+  selectedFilter: "CLOSED" | "PENDING" = "CLOSED";
   selectedpendingFilter: "CONSOLES" | "QUEUES" = "CONSOLES";
 
   consolesChecked = true;
@@ -581,7 +585,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.loadPendingEvents();
     this.preloadPendingCounts();
     this.preloadClosedCounts();
-
+    
+    this.timezoneDropdown();
 
     // load logged-in user (for comments)
     const raw =
@@ -662,7 +667,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-    this.eventsService.getEventReportCountsForActionTag(start, end, actionTag).subscribe({
+    this.eventsService.getEventReportCountsForActionTag(start, end, actionTag,this.timeZone).subscribe({
       next: (res) => {
         const counts = res?.counts || {};
         const keys = Object.keys(counts);
@@ -943,6 +948,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   refreshData(): void {
     // ✅ Apply the selection only when Refresh is clicked
     this.refreshInterval = this.pendingRefreshInterval;
+  
 
     console.log(
       "[REFRESH CLICK] Applied interval(min):",
@@ -1040,11 +1046,15 @@ export class EventsComponent implements OnInit, OnDestroy {
         select.value = String(this.pendingRefreshInterval);
 
         select.addEventListener("change", (e) => {
+          console.log(e.target)
           const val = Number((e.target as HTMLSelectElement).value);
-          this.zone.run(() => this.onIntervalChange(val)); // <-- only sets pending now
-        });
-      }
+          this.zone.run(() => {this.onIntervalChange(val), this.refreshData()});
 
+        });
+       
+        this.refreshData();
+       
+      }
       // ✅ refresh button wiring (apply + call API + start timer)
       const btn = clone.querySelector(
         ".refreshbutton"
@@ -1052,8 +1062,10 @@ export class EventsComponent implements OnInit, OnDestroy {
       if (btn) {
         btn.addEventListener("click", () =>
           this.zone.run(() => this.refreshData())
+       
         );
       }
+
 
       paginationPanel.prepend(clone);
     }, 100);
@@ -1565,7 +1577,10 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   /** -------------------- PENDING fetch -------------------- */
   loadPendingEvents(opts: { silent?: boolean } = {}): void {
+
     const { silent = false } = opts;
+
+    this.pendingRowData=[]
 
     if (!this.consolesChecked && !this.queuesChecked) {
       this.pendingRowData = [];
@@ -1578,10 +1593,10 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const calls = [
       this.consolesChecked
-        ? this.eventsService.getConsolePendingMessages_1_0()
+        ? this.eventsService.getConsolePendingMessages_1_0(this.timeZone)
         : of(null),
       this.queuesChecked
-        ? this.eventsService.getEventsPendingMessages_1_0()
+        ? this.eventsService.getEventsPendingMessages_1_0(this.timeZone)
         : of(null),
     ];
 
@@ -1707,12 +1722,15 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- CLOSED fetch -------------------- */
+  event:any;
   onDateRangeSelected(event: {
     startDate: Date;
     startTime: string;
     endDate: Date;
     endTime: string;
   }): void {
+
+    this.event = event
     const newStart = this.combineDateAndTime(event.startDate, event.startTime);
     const newEnd = this.combineDateAndTime(event.endDate, event.endTime);
 
@@ -1733,14 +1751,16 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.selectedEndDate = newEnd;
 
     if (this.selectedFilter === "CLOSED") {
+      
+   
       this.loadClosedAndEscalatedDetails();
       this.preloadClosedCounts(); // ✅ ADD
     }
   }
 
   loadClosedAndEscalatedDetails(opts: { silent?: boolean } = {}): void {
-    const { silent = false } = opts;
 
+    const { silent = false } = opts;
     if (!this.selectedStartDate || !this.selectedEndDate) {
       if (!silent) {
         this.showToast(
@@ -1766,10 +1786,10 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const calls = [
       this.suspiciousChecked
-        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr)
+        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr,this.timeZone)
         : of(null),
       this.falseChecked
-        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr)
+        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr,this.timeZone)
         : of(null),
     ];
 
@@ -1780,10 +1800,17 @@ export class EventsComponent implements OnInit, OnDestroy {
         const allEventData: any[] = [];
         const countsList: any[] = [];
 
-        if (Array.isArray(suspRes?.eventData))
+        if (Array.isArray(suspRes?.eventData) && suspRes.eventData.length!=0){
+        
           allEventData.push(...suspRes.eventData);
-        if (Array.isArray(falseRes?.eventData))
+        }
+
+      
+        if (Array.isArray(falseRes?.eventData) && falseRes.eventData.length!=0){
+        
           allEventData.push(...falseRes.eventData);
+      }
+     
         if (suspRes?.counts) countsList.push(suspRes.counts);
         if (falseRes?.counts) countsList.push(falseRes.counts);
 
@@ -2120,6 +2147,29 @@ export class EventsComponent implements OnInit, OnDestroy {
     const colIds = cols.map((c: Column) => c.getColId());
 
     this.gridApi.autoSizeColumns(colIds, skipHeader);
+  }
+
+   selectedTimezone: any;
+     timezones: any[] = [];
+       timeZone = '';
+
+  timezonechange() {
+    this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);
+  
+    if(this.selectedFilter=="CLOSED"){
+
+      this.loadClosedAndEscalatedDetails();
+    }
+    if(this.selectedFilter=="PENDING"){
+      this.loadPendingEvents()
+    }
+  }
+
+    timezoneDropdown() {
+    this.eventsService.timezoneDropdown().subscribe((res: any) => {
+      this.timezones = res.timezones;
+      this.timezonechange();
+    })
   }
 
   /** -------------------- Column definitions -------------------- */
