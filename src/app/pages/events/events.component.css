@@ -65,10 +65,8 @@
 
 /* === DASHBOARD CONTAINER === */
 .dashboard-container {
-    font-family: 'Neometric Regular';
-    background-color: #f6f6f6;
-
-
+  font-family: "Neometric Regular";
+  background-color: #f6f6f6;
 }
 
 /* header black bar + layout is probably already there */
@@ -338,6 +336,18 @@
   background: rgba(0, 0, 0, 0.5);
 }
 
+.custom-grid .ag-header-cell,
+.custom-grid .ag-header-group-cell {
+  padding: 8px 12px;
+}
+
+/* Row cells */
+.custom-grid .ag-cell {
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+}
+
 .popup-content {
   position: absolute;
   top: 50%;
@@ -366,6 +376,7 @@
 /* === DASHBOARD CONTENT SECTION === */
 .dashboard-content-section {
   padding-bottom: 15px;
+  height: 100%;
 }
 
 .section-header {
@@ -693,7 +704,8 @@ input:checked + .slider:before {
 }
 
 .ag-grid-wrapper {
-    position: relative;
+  position: relative;
+  height: 100%;
 }
 
 .custom-pagination {
@@ -707,10 +719,6 @@ input:checked + .slider:before {
 .custom-pagination .label {
   margin-right: 10px;
   font-weight: bold;
-}
-
-.ag-grid-wrapper {
-    position: relative;
 }
 
 .ag-custom-footer {
@@ -966,11 +974,11 @@ input:checked + .slider:before {
 
 /* === CALENDAR SECTION === */
 .calendar-section-wrapper {
-    display: flex;
-    justify-content: flex-start;
-    width: 100%;
-    font-size: 12px;
-    font-family: 'Neometric Alt Bold';
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  font-size: 12px;
+  font-family: "Neometric Alt Bold";
 }
 
 .calendar-section {
@@ -1266,7 +1274,6 @@ input:checked + .slider:before {
 
 /* the row that holds all the cards */
 .escalated-content-section .first-section {
-  
   height: auto;
   display: flex;
   flex-direction: row;
@@ -1274,9 +1281,10 @@ input:checked + .slider:before {
   /* justify-content: flex-start; */
   gap: 16px;
 
-  overflow-x: auto;      /* 👈 horizontal scroll when many cards */
+  overflow-x: auto; /* 👈 horizontal scroll when many cards */
   overflow-y: hidden;
   padding-bottom: 8px;
+  height: 100%;
 }
 
 .escalated-content-section .first-section .escalated-card {

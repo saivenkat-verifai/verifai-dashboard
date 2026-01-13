@@ -37,21 +37,21 @@
             variant="events"
             (dateRangeSelected)="onDateRangeSelected($event)"
           ></app-calendar>
-                  
+
           <div class="select-wrapper">
-          <select
-            class="custom-select"
-            [(ngModel)]="timeZone"
-            (ngModelChange)="timezonechange()"
-          >
-            <option value="">All</option>
-            @for (item of timezones; track item.id) {
-            <option [value]="item.timezoneCode" [title]="item.timezoneValue">
-              {{ item.timezoneCode }}
-            </option>
-            }
-          </select>
-        </div>
+            <select
+              class="custom-select"
+              [(ngModel)]="timeZone"
+              (ngModelChange)="timezonechange()"
+            >
+              <option value="">All</option>
+              @for (item of timezones; track item.id) {
+              <option [value]="item.timezoneCode" [title]="item.timezoneValue">
+                {{ item.timezoneCode }}
+              </option>
+              }
+            </select>
+          </div>
 
           <!-- Show current datetime if PENDING -->
           <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
@@ -328,26 +328,30 @@
             </div>
 
             <div class="popup-body">
-              <ng-container *ngIf="selectedPlayItem?.videoFile?.length; else noImages">
+              <ng-container
+                *ngIf="selectedPlayItem?.videoFile?.length; else noImages"
+              >
                 <!-- <img
                               class="play-image"
                               [src]="getCurrentImageUrl()"
                               alt="Event image"
                             /> -->
-            
-            
-            
-                <ng-container *ngIf="getCurrentImageUrl() | image | async as imgUrl; else loading">
+
+                <ng-container
+                  *ngIf="
+                    getCurrentImageUrl() | image | async as imgUrl;
+                    else loading
+                  "
+                >
                   <img class="play-image" [src]="imgUrl" alt="Event frame" />
                 </ng-container>
-            
               </ng-container>
-            
+
               <ng-template #loading>
                 <!-- loader / blank / skeleton -->
                 <div>Loading...</div>
               </ng-template>
-            
+
               <ng-template #noImages>
                 <p>No images available</p>
               </ng-template>
@@ -513,31 +517,17 @@
       <!-- ===================== AG Grid Tables ===================== -->
 
       <!-- PENDING Table -->
-      <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'" >
+      <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'">
         <div class="escalated-content-section">
-          <div class="ag-grid-wrapper" >
+          <div class="ag-grid-wrapper" style="height: calc(100vh - 280px)">
             <ag-grid-angular
-            style="height: 100%"
-              theme="legacy"
-              class="ag-theme-alpine"
+              style="height: 100%"
+              class="custom-grid"
               [rowData]="pendingDisplayRows"
               [columnDefs]="pendingColumnDefs"
-              [defaultColDef]="defaultColDef"
-              [pagination]="true"
-              [paginationPageSize]="15"
-              [rowHeight]="30"
-              [headerHeight]="30"
-              domLayout="autoHeight"
-              [enableCellTextSelection]="true"
-              [enableRangeSelection]="true"
-              [copyHeadersToClipboard]="true"
-              [quickFilterMatcher]="pendingQuickFilterMatcher"
-              [paginationPageSizeSelector]="[15, 20, 50, 100]"
-              (gridReady)="onGridReady($event)"
+              [gridOptions]="gridoptions"
               [icons]="gridIcons"
               (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar"
-              (firstDataRendered)="onFirstDataRendered()"
             >
             </ag-grid-angular>
           </div>
@@ -552,7 +542,6 @@
             class="ag-theme-alpine"
             [rowData]="closedDisplayRows"
             [columnDefs]="closedColumnDefs"
-            [defaultColDef]="defaultColDef"
             [pagination]="true"
             [enableCellTextSelection]="true"
             [enableRangeSelection]="true"
@@ -599,7 +588,7 @@
             />
             Refresh
           </button>
-          <select class="refresh-interval-select" >
+          <select class="refresh-interval-select">
             <option value="1">1 min</option>
             <option value="5">5 min</option>
             <option value="10">10 min</option>

@@ -13,6 +13,7 @@ import {
   ModuleRegistry,
   AllCommunityModule,
   QuickFilterModule,
+  GridOptions,
 } from "ag-grid-community";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
@@ -98,7 +99,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   filterPanelVisible = false;
 
 
-  
+
 
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
@@ -458,7 +459,9 @@ export class EventsComponent implements OnInit, OnDestroy {
   /** -------------------- Column definitions -------------------- */
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
-  defaultColDef: ColDef = { resizable: true };
+
+  gridoptions!: GridOptions
+  // defaultColDef: ColDef = { resizable: true };
 
   /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
@@ -580,12 +583,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.selectedDate = new Date();
     this.selectedStartDate = this.selectedDate;
     this.selectedEndDate = this.selectedDate;
-
     this.setupColumnDefs();
     this.loadPendingEvents();
     this.preloadPendingCounts();
     this.preloadClosedCounts();
-    
+
     this.timezoneDropdown();
 
     // load logged-in user (for comments)
@@ -667,7 +669,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-    this.eventsService.getEventReportCountsForActionTag(start, end, actionTag,this.timeZone).subscribe({
+    this.eventsService.getEventReportCountsForActionTag(start, end, actionTag, this.timeZone).subscribe({
       next: (res) => {
         const counts = res?.counts || {};
         const keys = Object.keys(counts);
@@ -948,7 +950,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   refreshData(): void {
     // ✅ Apply the selection only when Refresh is clicked
     this.refreshInterval = this.pendingRefreshInterval;
-  
+
 
     console.log(
       "[REFRESH CLICK] Applied interval(min):",
@@ -1048,12 +1050,12 @@ export class EventsComponent implements OnInit, OnDestroy {
         select.addEventListener("change", (e) => {
           console.log(e.target)
           const val = Number((e.target as HTMLSelectElement).value);
-          this.zone.run(() => {this.onIntervalChange(val), this.refreshData()});
+          this.zone.run(() => { this.onIntervalChange(val), this.refreshData() });
 
         });
-       
+
         this.refreshData();
-       
+
       }
       // ✅ refresh button wiring (apply + call API + start timer)
       const btn = clone.querySelector(
@@ -1062,7 +1064,7 @@ export class EventsComponent implements OnInit, OnDestroy {
       if (btn) {
         btn.addEventListener("click", () =>
           this.zone.run(() => this.refreshData())
-       
+
         );
       }
 
@@ -1580,7 +1582,7 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const { silent = false } = opts;
 
-    this.pendingRowData=[]
+    this.pendingRowData = []
 
     if (!this.consolesChecked && !this.queuesChecked) {
       this.pendingRowData = [];
@@ -1722,7 +1724,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   /** -------------------- CLOSED fetch -------------------- */
-  event:any;
+  event: any;
   onDateRangeSelected(event: {
     startDate: Date;
     startTime: string;
@@ -1751,8 +1753,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.selectedEndDate = newEnd;
 
     if (this.selectedFilter === "CLOSED") {
-      
-   
+
+
       this.loadClosedAndEscalatedDetails();
       this.preloadClosedCounts(); // ✅ ADD
     }
@@ -1786,10 +1788,10 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const calls = [
       this.suspiciousChecked
-        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr,this.timeZone)
+        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr, this.timeZone)
         : of(null),
       this.falseChecked
-        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr,this.timeZone)
+        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr, this.timeZone)
         : of(null),
     ];
 
@@ -1800,17 +1802,17 @@ export class EventsComponent implements OnInit, OnDestroy {
         const allEventData: any[] = [];
         const countsList: any[] = [];
 
-        if (Array.isArray(suspRes?.eventData) && suspRes.eventData.length!=0){
-        
+        if (Array.isArray(suspRes?.eventData) && suspRes.eventData.length != 0) {
+
           allEventData.push(...suspRes.eventData);
         }
 
-      
-        if (Array.isArray(falseRes?.eventData) && falseRes.eventData.length!=0){
-        
+
+        if (Array.isArray(falseRes?.eventData) && falseRes.eventData.length != 0) {
+
           allEventData.push(...falseRes.eventData);
-      }
-     
+        }
+
         if (suspRes?.counts) countsList.push(suspRes.counts);
         if (falseRes?.counts) countsList.push(falseRes.counts);
 
@@ -2141,31 +2143,31 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   private autoSizeAllColumns(skipHeader = false): void {
-    if (!this.gridApi) return;
+    // if (!this.gridApi) return;
 
-    const cols = (this.gridApi.getColumns?.() ?? []) as Column[];
-    const colIds = cols.map((c: Column) => c.getColId());
+    // const cols = (this.gridApi.getColumns?.() ?? []) as Column[];
+    // const colIds = cols.map((c: Column) => c.getColId());
 
-    this.gridApi.autoSizeColumns(colIds, skipHeader);
+    // this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
 
-   selectedTimezone: any;
-     timezones: any[] = [];
-       timeZone = '';
+  selectedTimezone: any;
+  timezones: any[] = [];
+  timeZone = '';
 
   timezonechange() {
     this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);
-  
-    if(this.selectedFilter=="CLOSED"){
+
+    if (this.selectedFilter == "CLOSED") {
 
       this.loadClosedAndEscalatedDetails();
     }
-    if(this.selectedFilter=="PENDING"){
+    if (this.selectedFilter == "PENDING") {
       this.loadPendingEvents()
     }
   }
 
-    timezoneDropdown() {
+  timezoneDropdown() {
     this.eventsService.timezoneDropdown().subscribe((res: any) => {
       this.timezones = res.timezones;
       this.timezonechange();
@@ -2182,7 +2184,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "SITE",
@@ -2190,7 +2192,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "DEVICE",
@@ -2199,7 +2201,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "CAMERA",
@@ -2208,7 +2210,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "EVENT TIME",
@@ -2218,7 +2220,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "DURATION",
@@ -2227,7 +2229,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "TZ",
@@ -2236,7 +2238,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "ACTION TAG",
@@ -2245,7 +2247,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       // {
       //   headerName: "EMP.",
@@ -2270,7 +2272,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellRenderer: ProfileImageRendererComponent,
         valueFormatter: (p) => p.value?.name || p.value?.level || "N/A",
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
 
       {
@@ -2289,14 +2291,13 @@ export class EventsComponent implements OnInit, OnDestroy {
             ? `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`
             : "",
         suppressHeaderMenuButton: true,
-        minWidth: 155
+
       },
       {
         headerName: "MORE INFO",
         field: "more",
         headerClass: "custom-header",
         cellClass: "custom-cell",
-        minWidth: 155,
         cellStyle: {
           textAlign: "center",
           display: "flex",
@@ -2322,7 +2323,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "SITE NAME",
@@ -2331,7 +2331,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "CAMERA ID",
@@ -2340,7 +2339,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "EVENT TAG",
@@ -2349,7 +2347,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "ACTION TAG",
@@ -2358,7 +2355,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "EVENT TIME",
@@ -2375,7 +2371,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "ACTION TIME",
@@ -2386,7 +2381,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "TZ",
@@ -2396,7 +2390,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "QUEUE NAME",
@@ -2405,7 +2398,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "QUEUE LEVEL",
@@ -2414,7 +2406,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "ALERT TYPE",
@@ -2426,7 +2417,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          maxWidth: 165
+
         },
         cellRenderer: (params: any) =>
           params.value
@@ -2443,7 +2434,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellRenderer: ProfileImageRendererComponent,
 
         suppressHeaderMenuButton: true,
-        maxWidth: 165
       },
       {
         headerName: "MORE INFO",
@@ -2454,7 +2444,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          maxWidth: 165
+
         },
         cellRenderer: (params: any) => {
           const playIcon = document.createElement("img");
