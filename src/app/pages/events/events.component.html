@@ -38,7 +38,7 @@
             (dateRangeSelected)="onDateRangeSelected($event)"
           ></app-calendar>
 
-          <div class="select-wrapper">
+          <!-- <div class="select-wrapper">
             <select
               class="custom-select"
               [(ngModel)]="timeZone"
@@ -51,6 +51,18 @@
               </option>
               }
             </select>
+          </div> -->
+          <div *ngIf="selectedFilter === 'CLOSED'">
+
+            <button style="background-color: transparent;border: none;" (click)="downloadExcel()" pTooltip="generate Excel Report">
+                 <ng-container *ngIf="!spinexcel; else openLoading">
+                    <img src="assets/icons/logo.png" alt="download" width="24px" />
+                  </ng-container>
+            </button>
+         
+
+           
+
           </div>
 
           <!-- Show current datetime if PENDING -->
@@ -266,12 +278,7 @@
         ></app-events-filter-panel>
 
         <!-- ===================== Centered Play Popup ===================== -->
-        <p-overlayPanel
-          #playOverlay
-          [dismissable]="true"
-          appendTo="body"
-          styleClass="play-tooltip-left"
-        >
+        <p-overlayPanel #playOverlay [dismissable]="true" appendTo="body" styleClass="play-tooltip-left">
           <div class="play-popup-content">
             <div class="play-popup-header">
               <div class="play-popup-header-content">
@@ -281,77 +288,54 @@
                   {{ selectedPlayItem?.cameraId }}
                 </p>
               </div>
-
+        
               <div class="play-popup-actions">
                 <!-- Download all images -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="downloadAllImages($event)"
-                  title="Download all images"
-                >
-                  <img
-                    src="assets/Dounload.svg"
-                    alt="download"
-                    class="escalated-icon"
-                  />
+                <button type="button" class="icon-btn" (click)="downloadAllImages($event)" [disabled]="isDownloadingImages"
+                  title="Download all images">
+                  <ng-container *ngIf="!isDownloadingImages; else openLoading">
+                    <img src="assets/Dounload.svg" alt="download" class="escalated-icon" />
+                  </ng-container>
+        
+              
                 </button>
-
+        
                 <!-- Open all images in new tabs -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="openAllImagesInNewTabs($event)"
-                  title="Open all images in new tabs"
-                >
-                  <img
-                    src="assets/expand.png"
-                    alt="open in new tab"
-                    class="escalated-icon"
-                  />
+                <button type="button" class="icon-btn" (click)="openAllImagesInNewTabs($event)" [disabled]="isOpeningImages"
+                  title="Open all images">
+                  <ng-container *ngIf="!isOpeningImages; else openLoading">
+                    <img src="assets/expand.png" alt="open in new tab" class="escalated-icon" />
+                  </ng-container>
+        
+                  <ng-template #openLoading>
+                     <div class="spinner" style="width: 25px;height: 25px;"></div>
+                      </ng-template>
                 </button>
-
+        
                 <!-- Close popup -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="closePlayPopup()"
-                  title="Close"
-                >
-                  <img
-                    src="assets/close-filled-black.svg"
-                    alt="close"
-                    class="escalated-icon"
-                  />
+                <button type="button" class="icon-btn" (click)="closePlayPopup()" title="Close">
+                  <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
                 </button>
               </div>
             </div>
-
+        
             <div class="popup-body">
-              <ng-container
-                *ngIf="selectedPlayItem?.videoFile?.length; else noImages"
-              >
-                <!-- <img
-                              class="play-image"
-                              [src]="getCurrentImageUrl()"
-                              alt="Event image"
-                            /> -->
-
-                <ng-container
-                  *ngIf="
-                    getCurrentImageUrl() | image | async as imgUrl;
-                    else loading
-                  "
-                >
-                  <img class="play-image" [src]="imgUrl" alt="Event frame" />
+              <ng-container *ngIf="selectedPlayItem?.videoFile?.length; else noImages">
+        
+        
+                <ng-container *ngIf="
+                                    getCurrentImageUrl() | image | async as imgUrl;
+                                    else loading
+                                  ">
+                  <img class="play-image" [src]="imgUrl" alt="Event frame" loading="lazy" />
                 </ng-container>
               </ng-container>
-
+        
               <ng-template #loading>
                 <!-- loader / blank / skeleton -->
                 <div>Loading...</div>
               </ng-template>
-
+        
               <ng-template #noImages>
                 <p>No images available</p>
               </ng-template>
@@ -519,15 +503,28 @@
       <!-- PENDING Table -->
       <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'">
         <div class="escalated-content-section">
-          <div class="ag-grid-wrapper" style="height: calc(100vh - 280px)">
+          <div class="ag-grid-wrapper" [ngStyle]="showMore ? {'height': 'calc(100vh - 370px)'} : {'height': 'calc(100vh - 270px)'}">
             <ag-grid-angular
               style="height: 100%"
-              class="custom-grid"
-              [rowData]="pendingDisplayRows"
+              
+             [rowData]="pendingDisplayRows"
               [columnDefs]="pendingColumnDefs"
-              [gridOptions]="gridoptions"
+             [defaultColDef]="defaultColDef"
+              [pagination]="true"
+              [paginationPageSize]="15"
+              [rowHeight]="40"
+              [headerHeight]="30"
+              
+              [enableCellTextSelection]="true"
+              [enableRangeSelection]="true"
+              [copyHeadersToClipboard]="true"
+              [quickFilterMatcher]="pendingQuickFilterMatcher"
+              [paginationPageSizeSelector]="[15, 20, 50, 100]"
+              (gridReady)="onGridReady($event)"
               [icons]="gridIcons"
               (cellClicked)="onCellClicked($event)"
+              [statusBar]="statusBar"
+              (firstDataRendered)="onFirstDataRendered()"
             >
             </ag-grid-angular>
           </div>
@@ -536,22 +533,25 @@
 
       <!-- CLOSED Table -->
       <div class="m-t-20" *ngIf="selectedFilter === 'CLOSED'">
-        <div class="escalated-content-section">
+        <div class="escalated-content-section" >
+          <div class="ag-grid-wrapper"  [ngStyle]="showMore ? {'height': 'calc(100vh - 370px)'} : {'height': 'calc(100vh - 270px)'}">
           <ag-grid-angular
+           style="height: 100%"
             theme="legacy"
             class="ag-theme-alpine"
             [rowData]="closedDisplayRows"
             [columnDefs]="closedColumnDefs"
+             [defaultColDef]="defaultColDef"
             [pagination]="true"
             [enableCellTextSelection]="true"
             [enableRangeSelection]="true"
             [copyHeadersToClipboard]="true"
             [paginationPageSize]="15"
-            [rowHeight]="30"
-            [headerHeight]="30"
+            [rowHeight]="40"
+          
             [paginationPageSizeSelector]="[15, 20, 50, 100]"
             [localeText]="localeText"
-            domLayout="autoHeight"
+           
             [quickFilterMatcher]="closedQuickFilterMatcher"
             (gridReady)="onGridReady($event)"
             [icons]="gridIcons"
@@ -560,6 +560,7 @@
             (firstDataRendered)="onFirstDataRendered()"
           >
           </ag-grid-angular>
+          </div>
         </div>
       </div>
 

@@ -88,7 +88,7 @@ interface SecondEscalatedDetail {
     ImagePipe,
   ],
 })
-export class EventsComponent implements OnInit, OnDestroy {
+export class EventsComponent  {
   @ViewChild("filterOverlay") filterOverlay!: OverlayPanel;
   @ViewChild("paginationControlsClosed")
   paginationControlsClosed!: ElementRef<HTMLDivElement>;
@@ -97,9 +97,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   @ViewChild("playOverlay") playOverlay!: OverlayPanel;
 
   filterPanelVisible = false;
-
-
-
 
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
@@ -137,7 +134,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     startTime: "00:00",
     endTime: "23:59",
     minDuration: 0,
-    maxDuration: 120,
+    maxDuration: 1440,
     userLevels: "All",
     city: "All",
     site: "All",
@@ -158,7 +155,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   pendingDisplayRows: any[] = []; // what PENDING grid sees
 
   onFilterReset() {
-
     this.pendingDisplayRows = [...this.pendingRowData];
     setTimeout(() => this.autoSizeAllColumns(), 0);
     this.closedDisplayRows = [...this.rowData];
@@ -170,6 +166,8 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   onFilterApply(criteria: EventsFilterCriteria) {
     this.currentFilter = criteria;
+
+  
 
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
@@ -257,71 +255,90 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.closedDisplayRows = filtered;
     }
 
-    this.onFilterClose();           // if you're using the sidebar boolean
+    this.onFilterClose(); // if you're using the sidebar boolean
     this.filterPanelVisible = false; // if you also use this toggle elsewhere
   }
 
   onFilterCriteriaChange(criteria: EventsFilterCriteria): void {
     this.currentFilter = { ...criteria };
-
+  console.log(criteria)
     // ✅ rebuild dropdown lists based on current selections
     this.recomputeFilterDropdowns();
 
     // ✅ optional: if current camera is no longer valid after site change, reset it
-    if (this.currentFilter.camera !== 'All' && !this.filterLists.cameras.includes(this.currentFilter.camera)) {
-      this.currentFilter = { ...this.currentFilter, camera: 'All' };
+    if (
+      this.currentFilter.camera !== "All" &&
+      !this.filterLists.cameras.includes(this.currentFilter.camera)
+    ) {
+      this.currentFilter = { ...this.currentFilter, camera: "All" };
     }
 
     // ✅ optional: same for queueName / queueLevel
-    if (this.currentFilter.queueName !== 'All' && !this.filterLists.queueNames.includes(this.currentFilter.queueName)) {
-      this.currentFilter = { ...this.currentFilter, queueName: 'All' };
+    if (
+      this.currentFilter.queueName !== "All" &&
+      !this.filterLists.queueNames.includes(this.currentFilter.queueName)
+    ) {
+      this.currentFilter = { ...this.currentFilter, queueName: "All" };
     }
-    if (this.currentFilter.queueLevel !== 'All' && !this.filterLists.queueLevels.includes(this.currentFilter.queueLevel)) {
-      this.currentFilter = { ...this.currentFilter, queueLevel: 'All' };
+    if (
+      this.currentFilter.queueLevel !== "All" &&
+      !this.filterLists.queueLevels.includes(this.currentFilter.queueLevel)
+    ) {
+      this.currentFilter = { ...this.currentFilter, queueLevel: "All" };
     }
   }
 
   private recomputeFilterDropdowns(): void {
-    const rows = this.selectedFilter === "PENDING"
-      ? (this.pendingRowData ?? [])
-      : (this.rowData ?? []);
+    const rows =
+      this.selectedFilter === "PENDING"
+        ? this.pendingRowData ?? []
+        : this.rowData ?? [];
 
     // build each options list by filtering rows with currentFilter,
     // but ignoring the same field so options don't collapse incorrectly.
     const siteRows = this.filterRowsForOptions(rows, "site");
-    this.filterLists.sites = this.uniq(siteRows.map(r => r.siteName));
+    this.filterLists.sites = this.uniq(siteRows.map((r) => r.siteName));
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
-    this.filterLists.cameras = this.uniq(cameraRows.map(r => r.cameraId));
+    this.filterLists.cameras = this.uniq(cameraRows.map((r) => r.cameraId));
 
     const empRows = this.filterRowsForOptions(rows, "employee");
     this.filterLists.userLevels = this.uniq(
-      empRows.map(r => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
+      empRows.map(
+        (r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A"
+      )
     );
 
     const actionTagRows = this.filterRowsForOptions(rows, "eventType");
     this.filterLists.eventTypes = this.uniq(
-      actionTagRows.map(r =>
-        this.selectedFilter === "PENDING"
-          ? r.actionTag
-          : (r.subActionTag ?? r.actionTag)
-      ).filter((v: any) => v != null && v !== "")
+      actionTagRows
+        .map((r) =>
+          this.selectedFilter === "PENDING"
+            ? r.actionTag
+            : r.subActionTag ?? r.actionTag
+        )
+        .filter((v: any) => v != null && v !== "")
     );
 
     const alertRows = this.filterRowsForOptions(rows, "consoleType");
     this.filterLists.consoleTypes = this.uniq(
-      alertRows.map(r => (r.eventType ?? r.eventTag)).filter((v: any) => v != null && v !== "")
+      alertRows
+        .map((r) => r.eventType ?? r.eventTag)
+        .filter((v: any) => v != null && v !== "")
     );
 
     if (this.selectedFilter === "PENDING") {
       const qNameRows = this.filterRowsForOptions(rows, "queueName");
-      this.filterLists.queueNames = this.uniq(qNameRows.map(r => r.queueName));
+      this.filterLists.queueNames = this.uniq(
+        qNameRows.map((r) => r.queueName)
+      );
 
       const qLevelRows = this.filterRowsForOptions(rows, "queueLevel");
-      this.filterLists.queueLevels = this.uniq(qLevelRows.map(r => r.queueLevel));
+      this.filterLists.queueLevels = this.uniq(
+        qLevelRows.map((r) => r.queueLevel)
+      );
     }
   }
-
 
   private filterRowsForOptions(
     rows: any[],
@@ -338,22 +355,30 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     return rows.filter((row) => {
       // Site
-      if (ignoreField !== "site" && c.site !== "All" && row.siteName !== c.site) return false;
+      if (ignoreField !== "site" && c.site !== "All" && row.siteName !== c.site)
+        return false;
 
       // Camera
-      if (ignoreField !== "camera" && c.camera !== "All" && row.cameraId !== c.camera) return false;
+      if (
+        ignoreField !== "camera" &&
+        c.camera !== "All" &&
+        row.cameraId !== c.camera
+      )
+        return false;
 
       // Employee (levels)
       if (ignoreField !== "employee") {
-        const level = row.employee?.level ?? row.userLevels ?? row.userLevel ?? "N/A";
+        const level =
+          row.employee?.level ?? row.userLevels ?? row.userLevel ?? "N/A";
         if (c.employee !== "All" && level !== c.employee) return false;
       }
 
       // Action Tag dropdown (you store it in criteria.eventType)
       if (ignoreField !== "eventType" && c.eventType !== "All") {
-        const rowTag = this.selectedFilter === "PENDING"
-          ? row.actionTag
-          : (row.subActionTag ?? row.actionTag);
+        const rowTag =
+          this.selectedFilter === "PENDING"
+            ? row.actionTag
+            : row.subActionTag ?? row.actionTag;
 
         if (rowTag !== c.eventType) return false;
       }
@@ -366,16 +391,23 @@ export class EventsComponent implements OnInit, OnDestroy {
 
       // Pending-only queue filters
       if (this.selectedFilter === "PENDING") {
-        if (ignoreField !== "queueName" && c.queueName !== "All" && row.queueName !== c.queueName) return false;
-        if (ignoreField !== "queueLevel" && c.queueLevel !== "All" && row.queueLevel !== c.queueLevel) return false;
+        if (
+          ignoreField !== "queueName" &&
+          c.queueName !== "All" &&
+          row.queueName !== c.queueName
+        )
+          return false;
+        if (
+          ignoreField !== "queueLevel" &&
+          c.queueLevel !== "All" &&
+          row.queueLevel !== c.queueLevel
+        )
+          return false;
       }
 
       return true;
     });
   }
-
-
-
 
   private parseDurationToMinutes(value?: string): number {
     if (!value) return 0;
@@ -460,8 +492,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
 
-  gridoptions!: GridOptions
-  // defaultColDef: ColDef = { resizable: true };
+  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true };
 
   /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
@@ -556,7 +587,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private notification: NotificationService,
     private zone: NgZone
-  ) { }
+  ) {}
 
   private getAuthHeaders(): HttpHeaders {
     let rawToken = localStorage.getItem("acTok");
@@ -584,11 +615,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.selectedStartDate = this.selectedDate;
     this.selectedEndDate = this.selectedDate;
     this.setupColumnDefs();
-    this.loadPendingEvents();
+    // this.loadPendingEvents();
     this.preloadPendingCounts();
     this.preloadClosedCounts();
 
-    this.timezoneDropdown();
+    // this.timezoneDropdown();
 
     // load logged-in user (for comments)
     const raw =
@@ -640,7 +671,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         const details: EscalatedDetail[] = [];
 
         if (queuesRes) details.push(this.buildQueuesEscalationCard(queuesRes));
-        if (consolesRes) details.push(this.buildConsoleEscalationCard(consolesRes));
+        if (consolesRes)
+          details.push(this.buildConsoleEscalationCard(consolesRes));
 
         this.escalatedDetailsPending = details;
       },
@@ -665,48 +697,75 @@ export class EventsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const actionTag = this.suspiciousChecked ? 2 : 1;
+    // const actionTag = this.suspiciousChecked ? 2 : 1;
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-    this.eventsService.getEventReportCountsForActionTag(start, end, actionTag, this.timeZone).subscribe({
-      next: (res) => {
-        const counts = res?.counts || {};
-        const keys = Object.keys(counts);
+    if(this.suspiciousChecked){
 
-        if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
-          this.escalatedDetailsClosed = [];
-          return;
-        }
+      this.actionTagCountsclosed(start,end,2)
+    }
 
-        const details: EscalatedDetail[] = [];
+      if(this.falseChecked){
 
-        Object.entries(counts).forEach(([label, data]: any) => {
-          if (!label || label === "null") return;
-
-          details.push({
-            label,
-            value: data.totalCount || 0,
-            color: ESCALATED_COLORS[0],
-            icons: [
-              { iconPath: "assets/home.svg", count: data.sites || 0 },
-              { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-            ],
-            colordot: [
-              { iconcolor: "#53BF8B", label: "Event Wall", count: data.Event_Wall || 0 },
-              { iconcolor: "#FFC400", label: "Manual Wall", count: data.Manual_Wall || 0 },
-            ],
-          });
-        });
-
-        this.escalatedDetailsClosed = details;
-      },
-      error: (err) => {
-        console.error("preloadClosedCounts failed:", err);
-        this.escalatedDetailsClosed = [];
-      },
-    });
+      this.actionTagCountsclosed(start,end,1)
+    }
+  
   }
+
+  actionTagCountsclosed(start:any,end:any,actionTag:any){
+
+      this.eventsService
+      .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
+      .subscribe({
+        next: (res) => {
+          const counts = res?.counts || {};
+          const keys = Object.keys(counts);
+
+          if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
+            this.escalatedDetailsClosed = [];
+            return;
+          }
+
+          const details: EscalatedDetail[] = [];
+
+          Object.entries(counts).forEach(([label, data]: any) => {
+            if (!label || label === "null") return;
+
+            details.push({
+              label,
+              value: data.totalCount || 0,
+              color: ESCALATED_COLORS[0],
+              icons: [
+                { iconPath: "assets/home.svg", count: data.sites || 0 },
+                { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+              ],
+              colordot: [
+                {
+                  iconcolor: "#53BF8B",
+                  label: "Event Wall",
+                  count: data.Event_Wall || 0,
+                },
+                {
+                  iconcolor: "#FFC400",
+                  label: "Manual Wall",
+                  count: data.Manual_Wall || 0,
+                },
+              ],
+            });
+          });
+
+     
+          this.escalatedDetailsClosed = details;
+        },
+        error: (err) => {
+          console.error("preloadClosedCounts failed:", err);
+          this.escalatedDetailsClosed = [];
+        },
+      });
+  }
+
+
 
 
   private readonly DOT_IMAGES_BASE =
@@ -876,12 +935,15 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.falseChecked = false;
       // wait for dateRangeSelected
     } else {
-      this.loadPendingEvents();
+      // this.loadPendingEvents();
+      // this.eventsService.getConsoleEventsCounts_1_0()
+      this.loadEscalatedDetails()
     }
   }
 
   /** CLOSED: when either Suspicious/False checkbox changes */
   onClosedTogglesChanged(): void {
+   
     if (!this.suspiciousChecked && !this.falseChecked) {
       this.rowData = [];
       this.closedDisplayRows = [];
@@ -889,6 +951,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       return;
     }
     this.loadClosedAndEscalatedDetails();
+    this.preloadClosedCounts();
+    this.loadEscalatedDetails();
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
@@ -902,17 +966,19 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
 
     this.loadPendingEvents();
+    this.preloadPendingCounts();
+    this.loadEscalatedDetails();
 
-    if (this.showMore) {
-      this.loadEscalatedDetails();
-    }
+    // if (this.showMore) {
+    //   this.loadEscalatedDetails();
+    // }
   }
 
   toggleMore(): void {
     this.showMore = !this.showMore;
-    if (this.showMore) {
-      this.loadEscalatedDetails();
-    }
+    // if (this.showMore) {
+    //   this.loadEscalatedDetails();
+    // }
   }
 
   onSuspiciousToggle(): void {
@@ -951,7 +1017,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     // ✅ Apply the selection only when Refresh is clicked
     this.refreshInterval = this.pendingRefreshInterval;
 
-
     console.log(
       "[REFRESH CLICK] Applied interval(min):",
       this.refreshInterval,
@@ -959,11 +1024,14 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.selectedFilter
     );
 
+    
     // ✅ Call API only on refresh click
     if (this.selectedFilter === "PENDING") {
       this.loadPendingEvents({ silent: false });
+      this.preloadPendingCounts()
     } else {
       this.loadClosedAndEscalatedDetails({ silent: false });
+      this.preloadClosedCounts()
     }
 
     // ✅ Start/restart timer after manual refresh
@@ -980,7 +1048,7 @@ export class EventsComponent implements OnInit, OnDestroy {
   /** -------------------- ✅ Timer scheduler -------------------- */
   private scheduleAutoRefresh(minutes: number): void {
     this.stopAutoRefresh();
-
+   
     if (!minutes || minutes <= 0) return;
 
     this.refreshSub = interval(minutes * 60_000).subscribe(() => {
@@ -988,8 +1056,11 @@ export class EventsComponent implements OnInit, OnDestroy {
 
       if (this.selectedFilter === "PENDING") {
         this.loadPendingEvents({ silent: true });
+           this.preloadPendingCounts()
       } else {
         this.loadClosedAndEscalatedDetails({ silent: true });
+         this.preloadClosedCounts();
+        //  this.loadEscalatedDetails();
       }
     });
   }
@@ -1048,14 +1119,14 @@ export class EventsComponent implements OnInit, OnDestroy {
         select.value = String(this.pendingRefreshInterval);
 
         select.addEventListener("change", (e) => {
-          console.log(e.target)
+          console.log(e.target);
           const val = Number((e.target as HTMLSelectElement).value);
-          this.zone.run(() => { this.onIntervalChange(val), this.refreshData() });
-
+          this.zone.run(() => {
+            this.onIntervalChange(val), this.refreshData();
+          });
         });
 
         this.refreshData();
-
       }
       // ✅ refresh button wiring (apply + call API + start timer)
       const btn = clone.querySelector(
@@ -1064,10 +1135,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       if (btn) {
         btn.addEventListener("click", () =>
           this.zone.run(() => this.refreshData())
-
         );
       }
-
 
       paginationPanel.prepend(clone);
     }, 100);
@@ -1226,59 +1295,126 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
-  downloadAllImages(event: MouseEvent): void {
-    // Don't close the overlay
-    event.stopPropagation();
+  isDownloadingImages = false;
 
-    const files: string[] | undefined = this.selectedPlayItem?.videoFile;
-    if (!files || !files.length) {
-      this.showToast("warn", "No images", "There are no images to download.");
+downloadAllImages(event: MouseEvent): void {
+  event.stopPropagation();
+
+  const files = this.selectedPlayItem?.videoFile;
+  if (!files?.length) {
+    this.showToast('warn', 'No images', 'There are no images to download.');
+    return;
+  }
+
+  this.isDownloadingImages = true;
+
+  let completed = 0;
+  const total = files.length;
+
+  files.forEach((url:any) => {
+    if (!url) {
+      completed++;
       return;
     }
 
-    files.forEach((rawUrl: string, index: number) => {
-      if (!rawUrl) return;
+    this.downloadImageWithToken(url, true, () => {
+      completed++;
 
-      // Normalize (handles file names vs full URLs)
-      const url = this.buildImageUrl(rawUrl) ?? rawUrl;
-
-      // Create a temporary <a> and click it
-      const link = document.createElement("a");
-      link.href = url;
-
-      // Try to construct a reasonable filename
-      const urlPath = url.split("?")[0]; // strip query string if any
-      const ext = (urlPath.split(".").pop() || "jpg").toLowerCase();
-
-      const baseName =
-        this.selectedPlayItem?.eventId != null
-          ? `event_${this.selectedPlayItem.eventId}`
-          : "event_image";
-
-      link.download = `${baseName}_${index + 1}.${ext}`;
-      link.target = "_blank"; // optional
-
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // ✅ Stop loader when all images processed
+      if (completed === total) {
+        this.isDownloadingImages = false;
+      }
     });
+  });
+}
+
+
+
+downloadImageWithToken(
+  url: string,
+  isDownload: boolean,
+  done?: () => void
+): void {
+  const rawUser =
+    sessionStorage.getItem('verifai_user') ||
+    localStorage.getItem('verifai_user');
+
+  const user = rawUser ? JSON.parse(rawUser) : null;
+  const token = user?.AccessToken;
+
+  if (!token) {
+    done?.();
+    return;
   }
 
-  openAllImagesInNewTabs(event: MouseEvent): void {
-    // Prevent bubbling to overlay
-    event.stopPropagation();
+  const headers = new HttpHeaders({
+    Authorization: `Bearer ${token}`
+  });
 
-    const files: string[] | undefined = this.selectedPlayItem?.videoFile;
-    if (!files || !files.length) {
-      this.showToast("warn", "No images", "There are no images to open.");
+  this.http.get(url, { headers, responseType: 'blob' }).subscribe({
+    next: blob => {
+      if (blob.type === 'application/json') {
+        done?.();
+        return;
+      }
+
+      const objectUrl = URL.createObjectURL(blob);
+
+      if (isDownload) {
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = '';
+        document.body.appendChild(a);
+        a.click();
+        // document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+      } else {
+        window.open(objectUrl, '_blank');
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+      }
+
+      done?.();
+    },
+    error: () => {
+      done?.();
+    }
+  });
+}
+
+
+ 
+isOpeningImages = false;
+
+openAllImagesInNewTabs(event: MouseEvent): void {
+  event.stopPropagation();
+
+  const files = this.selectedPlayItem?.videoFile;
+  if (!files?.length) {
+    this.showToast('warn', 'No images', 'There are no images to open.');
+    return;
+  }
+
+  this.isOpeningImages = true;
+
+  let completed = 0;
+  const total = files.length;
+
+  files.forEach((url: string) => {
+    if (!url) {
+      completed++;
       return;
     }
 
-    files.forEach((url: string) => {
-      if (!url) return;
-      window.open(url, "_blank");
+    this.downloadImageWithToken(url, false, () => {
+      completed++;
+
+      // ✅ Stop loader when all images are opened
+      if (completed === total) {
+        this.isOpeningImages = false;
+      }
     });
-  }
+  });
+}
 
   /** -------------------- Play popup / image loop -------------------- */
   openPlayPopup(item: any): void {
@@ -1579,10 +1715,9 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   /** -------------------- PENDING fetch -------------------- */
   loadPendingEvents(opts: { silent?: boolean } = {}): void {
-
     const { silent = false } = opts;
 
-    this.pendingRowData = []
+    this.pendingRowData = [];
 
     if (!this.consolesChecked && !this.queuesChecked) {
       this.pendingRowData = [];
@@ -1595,10 +1730,10 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const calls = [
       this.consolesChecked
-        ? this.eventsService.getConsolePendingMessages_1_0(this.timeZone)
+        ? this.eventsService.getConsolePendingMessages_1_0()
         : of(null),
       this.queuesChecked
-        ? this.eventsService.getEventsPendingMessages_1_0(this.timeZone)
+        ? this.eventsService.getEventsPendingMessages_1_0()
         : of(null),
     ];
 
@@ -1656,10 +1791,10 @@ export class EventsComponent implements OnInit, OnDestroy {
               row.employee ??
               (empName
                 ? {
-                  name: empName,
-                  level: empLevel,
-                  profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
-                }
+                    name: empName,
+                    level: empLevel,
+                    profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
+                  }
                 : undefined),
           };
         });
@@ -1731,10 +1866,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     endDate: Date;
     endTime: string;
   }): void {
-
-    this.event = event
+    this.event = event;
     const newStart = this.combineDateAndTime(event.startDate, event.startTime);
     const newEnd = this.combineDateAndTime(event.endDate, event.endTime);
+
+    console.log(newStart,newEnd)
 
     const startStr = this.formatDateTimeFull(newStart);
     const endStr = this.formatDateTimeFull(newEnd);
@@ -1753,15 +1889,12 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.selectedEndDate = newEnd;
 
     if (this.selectedFilter === "CLOSED") {
-
-
       this.loadClosedAndEscalatedDetails();
       this.preloadClosedCounts(); // ✅ ADD
     }
   }
 
   loadClosedAndEscalatedDetails(opts: { silent?: boolean } = {}): void {
-
     const { silent = false } = opts;
     if (!this.selectedStartDate || !this.selectedEndDate) {
       if (!silent) {
@@ -1788,10 +1921,20 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     const calls = [
       this.suspiciousChecked
-        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr, this.timeZone)
+        ? this.eventsService.getSuspiciousEvents(
+            2,
+            startDateStr,
+            endDateStr,
+            
+          )
         : of(null),
       this.falseChecked
-        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr, this.timeZone)
+        ? this.eventsService.getSuspiciousEvents(
+            1,
+            startDateStr,
+            endDateStr,
+           
+          )
         : of(null),
     ];
 
@@ -1802,14 +1945,17 @@ export class EventsComponent implements OnInit, OnDestroy {
         const allEventData: any[] = [];
         const countsList: any[] = [];
 
-        if (Array.isArray(suspRes?.eventData) && suspRes.eventData.length != 0) {
-
+        if (
+          Array.isArray(suspRes?.eventData) &&
+          suspRes.eventData.length != 0
+        ) {
           allEventData.push(...suspRes.eventData);
         }
 
-
-        if (Array.isArray(falseRes?.eventData) && falseRes.eventData.length != 0) {
-
+        if (
+          Array.isArray(falseRes?.eventData) &&
+          falseRes.eventData.length != 0
+        ) {
           allEventData.push(...falseRes.eventData);
         }
 
@@ -2044,7 +2190,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     };
   }
 
-
   private getDefaultFilter(): EventsFilterCriteria {
     return {
       startDate: null,
@@ -2052,7 +2197,7 @@ export class EventsComponent implements OnInit, OnDestroy {
       startTime: "00:00",
       endTime: "23:59",
       minDuration: 0,
-      maxDuration: 120,
+      maxDuration: 1440,
       userLevels: "All",
       city: "All",
       site: "All",
@@ -2079,11 +2224,6 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     setTimeout(() => this.autoSizeAllColumns(), 0);
   }
-
-
-
-
-
 
   private buildConsoleEscalationCard(res: any): EscalatedDetail {
     const total =
@@ -2144,47 +2284,53 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   private autoSizeAllColumns(skipHeader = false): void {
     // if (!this.gridApi) return;
-
     // const cols = (this.gridApi.getColumns?.() ?? []) as Column[];
     // const colIds = cols.map((c: Column) => c.getColId());
-
     // this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
 
   selectedTimezone: any;
   timezones: any[] = [];
-  timeZone = '';
+  timeZone = "";
 
   timezonechange() {
-    this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);
+    // this.selectedTimezone = this.timezones.find(
+    //   (el) => el.timezoneCode === this.timeZone
+    // );
 
-    if (this.selectedFilter == "CLOSED") {
-
-      this.loadClosedAndEscalatedDetails();
-    }
-    if (this.selectedFilter == "PENDING") {
-      this.loadPendingEvents()
-    }
+    // if (this.selectedFilter == "CLOSED") {
+    //   this.loadClosedAndEscalatedDetails();
+    // }
+    // if (this.selectedFilter == "PENDING") {
+    //   this.loadPendingEvents();
+    // }
   }
 
   timezoneDropdown() {
     this.eventsService.timezoneDropdown().subscribe((res: any) => {
       this.timezones = res.timezones;
       this.timezonechange();
-    })
+    });
   }
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
     this.closedColumnDefs = [
       {
-        headerName: "ID",
+        headerName: "EVENT ID",
+        field: "eventId",
+        headerClass: "custom-header",
+        cellClass: "custom-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+      },
+        {
+        headerName: "SITE ID",
         field: "siteId",
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "SITE",
@@ -2192,7 +2338,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "DEVICE",
@@ -2201,7 +2346,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "CAMERA",
@@ -2210,7 +2354,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "EVENT TIME",
@@ -2220,7 +2363,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellStyle: { opacity: "0.5" },
         valueFormatter: (p) => this.formatDateTime(p.value),
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "DURATION",
@@ -2229,7 +2371,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "TZ",
@@ -2238,7 +2379,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "ACTION TAG",
@@ -2247,7 +2387,28 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-
+      },
+          {
+        headerName: "ALERT",
+        field: "alertTag",
+        headerClass: "custom-header",
+        cellClass: "custome-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+        valueGetter: (params) => {
+    return params.data?.alertTag ? params.data.alertTag : '-';
+  }
+      },
+          {
+        headerName: "SUB ALERT",
+        field: "subAlertTag",
+        headerClass: "custom-header",
+        cellClass: "custome-cell",
+        cellStyle: { opacity: "0.5" },
+        suppressHeaderMenuButton: true,
+        valueGetter: (params) => {
+    return params.data?.subAlertTag ? params.data.subAlertTag : '-';
+  }
       },
       // {
       //   headerName: "EMP.",
@@ -2272,7 +2433,6 @@ export class EventsComponent implements OnInit, OnDestroy {
         cellRenderer: ProfileImageRendererComponent,
         valueFormatter: (p) => p.value?.name || p.value?.level || "N/A",
         suppressHeaderMenuButton: true,
-
       },
 
       {
@@ -2281,17 +2441,16 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          // textAlign: "center",
+          // display: "flex",
+          // justifyContent: "center",
+          // alignItems: "center",
         },
         cellRenderer: (params: any) =>
           params.value
             ? `<span style="display:inline-block; width:14px; margin-top:10px; height:14px; background:${params.value}; border-radius:50%;"></span>`
             : "",
         suppressHeaderMenuButton: true,
-
       },
       {
         headerName: "MORE INFO",
@@ -2299,10 +2458,10 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          // textAlign: "center",
+          // display: "flex",
+          // justifyContent: "center",
+          // alignItems: "center",
         },
         cellRenderer: () =>
           `<span class="play-icon" style="margin-right:8px;">
@@ -2413,11 +2572,10 @@ export class EventsComponent implements OnInit, OnDestroy {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-
+          // textAlign: "center",
+          // display: "flex",
+          // justifyContent: "center",
+          // alignItems: "center",
         },
         cellRenderer: (params: any) =>
           params.value
@@ -2440,11 +2598,10 @@ export class EventsComponent implements OnInit, OnDestroy {
         field: "more",
         cellClass: "custom-cell",
         cellStyle: {
-          textAlign: "center",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-
+          // textAlign: "center",
+          // display: "flex",
+          // justifyContent: "center",
+          // alignItems: "center",
         },
         cellRenderer: (params: any) => {
           const playIcon = document.createElement("img");
@@ -2468,4 +2625,79 @@ export class EventsComponent implements OnInit, OnDestroy {
       },
     ];
   }
+
+spinexcel:boolean=false;
+
+downloadExcel() {
+  const payload = {
+    fromDate: this.lastStartDateTime,
+    toDate: this.lastEndDateTime,
+    actionTag: this.suspiciousChecked && this.falseChecked
+      ? ''
+      : this.suspiciousChecked
+        ? '2'
+        : this.falseChecked
+          ? '1'
+          : ''
+  };
+
+  if (!this.lastStartDateTime || !this.lastEndDateTime) {
+    this.showToast(
+      'warn',
+      'Pick a date range',
+      'Select dates in the calendar to download events report.'
+    );
+    return;
+  }
+
+  this.spinexcel = true;
+
+  this.eventsService.downloadExcelreport(payload).subscribe(
+    (res: ArrayBuffer) => {
+
+      // 🔹 Convert ArrayBuffer → string
+      const text = new TextDecoder().decode(res);
+
+      // 🔹 Check if backend sent JSON instead of Excel
+      try {
+        const json = JSON.parse(text);
+
+        if (json.status === 'failed') {
+          this.showToast(
+            'error',
+            'No Data Available',
+            json.message || 'No records found'
+          );
+          this.spinexcel = false;
+          return;
+        }
+      } catch {
+        // ✅ Not JSON → it's Excel, continue
+      }
+
+      // 🔹 Download Excel
+      const blob = new Blob([res], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'events-report.xlsx';
+      link.click();
+
+      window.URL.revokeObjectURL(url);
+      this.spinexcel = false;
+    },
+    () => {
+      this.showToast(
+        'error',
+        'Download Failed',
+        'Something went wrong while downloading the report'
+      );
+      this.spinexcel = false;
+    }
+  );
+}
+
 }

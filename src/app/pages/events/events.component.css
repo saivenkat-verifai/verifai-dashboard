@@ -679,7 +679,7 @@ input:checked + .slider:before {
   /* your theme red */
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  margin-bottom: 10px;
+
 }
 
 .loader-overlay p {
@@ -980,6 +980,7 @@ input:checked + .slider:before {
   font-size: 12px;
   font-family: "Neometric Alt Bold";
   gap: 20px;
+  align-items: center;
 }
 
 .calendar-section {
@@ -1377,8 +1378,11 @@ input:checked + .slider:before {
 
 .escalated-section-body {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 16px;
+  /* grid-template-columns: repeat(auto, 1fr);
+   */
+   /* grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); */
+   grid-template-columns: repeat(auto-fill, 300px);
+  gap: 8px;
 }
 
 .first-section {

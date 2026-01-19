@@ -75,7 +75,7 @@ export class EventsFilterPanelComponent {
     endDate: null,
     endTime: '23:59',
     minDuration: 0,
-    maxDuration: 120,
+    maxDuration: 1440,
     userLevels: 'All',
     city: 'All',
     site: 'All',
@@ -92,16 +92,16 @@ export class EventsFilterPanelComponent {
     this.criteriaChange.emit({ ...this.model });
   }
 
-  /** ------- Slider percentage helpers (0–120 mins) ------- */
+  /** ------- Slider percentage helpers (0–1440 mins) ------- */
 
   get minPercent(): number {
     const min = this.model.minDuration ?? 0;
-    return (min / 120) * 100;
+    return (min / 1440) * 100;
   }
 
   get maxPercent(): number {
-    const max = this.model.maxDuration ?? 120;
-    return (max / 120) * 100;
+    const max = this.model.maxDuration ?? 1440;
+    return (max / 1440) * 100;
   }
 
   isDurationTouched = false;
@@ -109,7 +109,7 @@ export class EventsFilterPanelComponent {
     this.isDurationTouched = true;
     const val = +(event.target as HTMLInputElement).value;
     if (this.model.maxDuration == null) {
-      this.model.maxDuration = 120;
+      this.model.maxDuration = 1440;
     }
     this.model.minDuration = Math.min(val, this.model.maxDuration);
   }
@@ -124,8 +124,10 @@ export class EventsFilterPanelComponent {
   }
 
   formatDuration(value: number | null): string {
+ 
     const m = Math.round(value ?? 0);
     const mm = m.toString().padStart(2, '0');
+
     return `${mm}:00`;
   }
 
@@ -150,7 +152,7 @@ export class EventsFilterPanelComponent {
       endDate: null,
       endTime: '23:59',
       minDuration: 0,
-      maxDuration: 120,
+      maxDuration: 1440,
       userLevels: 'All',
       city: 'All',
       site: 'All',

@@ -139,9 +139,9 @@ private showError(summary: string, detail?: string) {
   };
 
   columnDefs: ColDef[] = [
-    { headerName: "ID", field: "id", sortable: true ,flex: 1, minWidth: 80,  cellStyle: { opacity: "0.5" }},
-    { headerName: "NAME", field: "name", flex: 2, minWidth: 120, sortable: true },
-    { headerName: "CATEGORY", field: "category", flex: 2, minWidth: 120, sortable: true, cellStyle: { opacity: "0.5" }},
+    { headerName: "ID", field: "id", sortable: true , cellStyle: { opacity: "0.5" }},
+    { headerName: "NAME", field: "name",  sortable: true },
+    { headerName: "CATEGORY", field: "category", sortable: true, cellStyle: { opacity: "0.5" }},
 
     {
       headerName: "LEVEL",
@@ -176,7 +176,7 @@ private showError(summary: string, detail?: string) {
     },
     {
      headerName: 'MORE INFO',
-      flex: 1, minWidth: 60,
+     
       field: "more",
       cellRenderer: () => `
         <span class="info-icon">
@@ -310,7 +310,8 @@ createQueue() {
     }
   }
 
-  defaultColDef: ColDef = { resizable: true, filter: true };
+  defaultColDef: ColDef = { resizable: true, filter: true, flex: 1, minWidth: 80 };
+  
 onQueueStatusChanged(queueId: number) {
   this.loadGroups(queueId);          // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
   // if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too

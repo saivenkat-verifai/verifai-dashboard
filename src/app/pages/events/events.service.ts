@@ -1,5 +1,5 @@
 import { Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 
@@ -42,10 +42,10 @@ export class EventsService {
     actionTag: number,
     startDate?: string,
     endDate?: string,
-    timezone?:string
+  
   ): Observable<any> {
     return this.http.get<any>(
-      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}&timezone=${timezone}`
+      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`
     );
   }
 
@@ -58,13 +58,13 @@ export class EventsService {
   }
 
   // ✅ From events_data
-  getConsolePendingMessages_1_0(timezone:any): Observable<any> {
-    return this.http.get<any>(`${this.consolePendingMessagesDataUrl}?timezone=${timezone}`);
+  getConsolePendingMessages_1_0(): Observable<any> {
+    return this.http.get<any>(`${this.consolePendingMessagesDataUrl}`);
   }
 
   // ✅ From MQ queueManagement
-  getEventsPendingMessages_1_0(timezone:any): Observable<any> {
-    return this.http.get<any>(`${this.pendingMessagesUrl}?timezone=${timezone}`);
+  getEventsPendingMessages_1_0(): Observable<any> {
+    return this.http.get<any>(`${this.pendingMessagesUrl}`);
   }
 
   getActionTagCategories(): Observable<any> {
@@ -123,6 +123,19 @@ export class EventsService {
 
     return this.http.get(url);
 
+  }
+
+  downloadExcelreport(payload:any){
+   
+
+    let url=`${this.apiBaseUrl}/events_data/downloadEventsReport_1_0`;
+    let params = new HttpParams();
+
+    params=params.set('fromDate',payload?.fromDate);
+     params=params.set('toDate',payload?.toDate);
+     params=params.set('actionTag',payload?.actionTag);
+
+     return this.http.get<ArrayBuffer>(url,{params, responseType: 'arraybuffer' as 'json',});
   }
 
 }

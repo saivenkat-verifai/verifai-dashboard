@@ -83,6 +83,7 @@ export class DashboardComponent implements OnInit {
   }
 
   event: any;
+
   selectedTimezone: any;
   timezonechange() {
     this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);

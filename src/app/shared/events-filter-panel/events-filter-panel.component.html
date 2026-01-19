@@ -11,7 +11,7 @@
     <label class="events-filter-label">Start Date</label>
     <div class="events-filter-row">
       <div class="events-filter-input-with-icon">
-        <img src="assets/calendar-icon.svg" alt="calendar" class="events-filter-input-icon" />
+        <img src="assets/icons/calendar_month_24dp_EA3323_FILL0_wght400_GRAD0_opsz24.svg" alt="calendar" class="events-filter-input-icon" />
         <input type="date" class="events-filter-input" [(ngModel)]="model.startDate"   (ngModelChange)="onCriteriaChanged()" />
       </div>
       <div class="events-filter-time-wrapper">
@@ -28,7 +28,7 @@
     <label class="events-filter-label">End Date</label>
     <div class="events-filter-row">
       <div class="events-filter-input-with-icon">
-        <img src="assets/calendar-icon.svg" alt="calendar" class="events-filter-input-icon" />
+        <img src="assets/icons/calendar_month_24dp_EA3323_FILL0_wght400_GRAD0_opsz24.svg" alt="calendar" class="events-filter-input-icon" />
         <input type="date" class="events-filter-input" [(ngModel)]="model.endDate"  (ngModelChange)="onCriteriaChanged()"  />
       </div>
       <div class="events-filter-time-wrapper">
@@ -44,7 +44,7 @@
   <div class="events-filter-group" *ngIf="showDateRange">
     <label class="events-filter-label">Duration</label>
     <div class="events-filter-duration-row">
-      <span class="events-filter-duration-min">00:00</span>
+      <span class="events-filter-duration-min">00</span>
 
       <div class="duration-slider">
         <div class="duration-slider-track"></div>
@@ -53,18 +53,18 @@
           [ngStyle]="{ left: minPercent + '%', width: (maxPercent - minPercent) + '%' }">
         </div>
 
-        <input type="range" min="0" max="120"
+        <input type="range" min="0" max="1440"
           class="duration-slider-input duration-slider-input-min"
           [(ngModel)]="model.minDuration"
           (input)="onMinDurationChange($event)" />
 
-        <input type="range" min="0" max="120"
+        <input type="range" min="0" max="1440"
           class="duration-slider-input duration-slider-input-max"
           [(ngModel)]="model.maxDuration"
           (input)="onMaxDurationChange($event)" />
       </div>
 
-      <span class="events-filter-duration-max">120:00</span>
+      <span class="events-filter-duration-max">1440</span>
     </div>
 
     <div class="duration-display-box">
