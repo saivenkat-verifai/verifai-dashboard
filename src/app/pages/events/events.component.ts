@@ -2680,10 +2680,19 @@ downloadExcel() {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
+      let tagSuffix = '';
+
+if (this.suspiciousChecked && this.falseChecked) {
+  tagSuffix = 'Suspicious_False';
+} else if (this.suspiciousChecked) {
+  tagSuffix = 'Suspicious';
+} else if (this.falseChecked) {
+  tagSuffix = 'False';
+}
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'events-report.xlsx';
+      link.download = `Events-Report_${this.lastStartDateTime}_To_${this.lastStartDateTime}_${tagSuffix}.xlsx`;
       link.click();
 
       window.URL.revokeObjectURL(url);
