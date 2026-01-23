@@ -26,7 +26,15 @@ import { EventsService } from "./events.service";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 import { OverlayPanel } from "primeng/overlaypanel";
 import { OverlayPanelModule } from "primeng/overlaypanel";
-import { Subscription, interval, forkJoin, of } from "rxjs";
+import {
+  Subscription,
+  interval,
+  forkJoin,
+  of,
+  catchError,
+  map,
+  Observable,
+} from "rxjs";
 import {
   EventsFilterPanelComponent,
   EventsFilterCriteria,
@@ -88,7 +96,7 @@ interface SecondEscalatedDetail {
     ImagePipe,
   ],
 })
-export class EventsComponent  {
+export class EventsComponent {
   @ViewChild("filterOverlay") filterOverlay!: OverlayPanel;
   @ViewChild("paginationControlsClosed")
   paginationControlsClosed!: ElementRef<HTMLDivElement>;
@@ -167,8 +175,6 @@ export class EventsComponent  {
   onFilterApply(criteria: EventsFilterCriteria) {
     this.currentFilter = criteria;
 
-  
-
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
 
@@ -212,7 +218,7 @@ export class EventsComponent  {
         const rowActionTag =
           this.selectedFilter === "PENDING"
             ? row.actionTag
-            : row.subActionTag ?? row.actionTag;
+            : (row.subActionTag ?? row.actionTag);
 
         if (rowActionTag !== selectedActionTag) {
           return false;
@@ -241,7 +247,7 @@ export class EventsComponent  {
         !this.withinDuration(
           criteria.minDuration,
           criteria.maxDuration,
-          durationMin
+          durationMin,
         )
       )
         return false;
@@ -261,7 +267,7 @@ export class EventsComponent  {
 
   onFilterCriteriaChange(criteria: EventsFilterCriteria): void {
     this.currentFilter = { ...criteria };
-  console.log(criteria)
+    console.log(criteria);
     // ✅ rebuild dropdown lists based on current selections
     this.recomputeFilterDropdowns();
 
@@ -291,8 +297,8 @@ export class EventsComponent  {
   private recomputeFilterDropdowns(): void {
     const rows =
       this.selectedFilter === "PENDING"
-        ? this.pendingRowData ?? []
-        : this.rowData ?? [];
+        ? (this.pendingRowData ?? [])
+        : (this.rowData ?? []);
 
     // build each options list by filtering rows with currentFilter,
     // but ignoring the same field so options don't collapse incorrectly.
@@ -305,8 +311,8 @@ export class EventsComponent  {
     const empRows = this.filterRowsForOptions(rows, "employee");
     this.filterLists.userLevels = this.uniq(
       empRows.map(
-        (r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A"
-      )
+        (r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A",
+      ),
     );
 
     const actionTagRows = this.filterRowsForOptions(rows, "eventType");
@@ -315,27 +321,27 @@ export class EventsComponent  {
         .map((r) =>
           this.selectedFilter === "PENDING"
             ? r.actionTag
-            : r.subActionTag ?? r.actionTag
+            : (r.subActionTag ?? r.actionTag),
         )
-        .filter((v: any) => v != null && v !== "")
+        .filter((v: any) => v != null && v !== ""),
     );
 
     const alertRows = this.filterRowsForOptions(rows, "consoleType");
     this.filterLists.consoleTypes = this.uniq(
       alertRows
         .map((r) => r.eventType ?? r.eventTag)
-        .filter((v: any) => v != null && v !== "")
+        .filter((v: any) => v != null && v !== ""),
     );
 
     if (this.selectedFilter === "PENDING") {
       const qNameRows = this.filterRowsForOptions(rows, "queueName");
       this.filterLists.queueNames = this.uniq(
-        qNameRows.map((r) => r.queueName)
+        qNameRows.map((r) => r.queueName),
       );
 
       const qLevelRows = this.filterRowsForOptions(rows, "queueLevel");
       this.filterLists.queueLevels = this.uniq(
-        qLevelRows.map((r) => r.queueLevel)
+        qLevelRows.map((r) => r.queueLevel),
       );
     }
   }
@@ -349,7 +355,7 @@ export class EventsComponent  {
       | "eventType"
       | "consoleType"
       | "queueName"
-      | "queueLevel"
+      | "queueLevel",
   ): any[] {
     const c = this.currentFilter;
 
@@ -378,7 +384,7 @@ export class EventsComponent  {
         const rowTag =
           this.selectedFilter === "PENDING"
             ? row.actionTag
-            : row.subActionTag ?? row.actionTag;
+            : (row.subActionTag ?? row.actionTag);
 
         if (rowTag !== c.eventType) return false;
       }
@@ -586,7 +592,7 @@ export class EventsComponent  {
     private eventsService: EventsService,
     private http: HttpClient,
     private notification: NotificationService,
-    private zone: NgZone
+    private zone: NgZone,
   ) {}
 
   private getAuthHeaders(): HttpHeaders {
@@ -600,7 +606,7 @@ export class EventsComponent  {
     } catch (e) {
       console.error(
         "EventsComponent: failed to parse token from localStorage",
-        e
+        e,
       );
     }
 
@@ -688,12 +694,12 @@ export class EventsComponent  {
     if (this.selectedFilter !== "CLOSED") return;
 
     if (!this.selectedStartDate || !this.selectedEndDate) {
-      this.escalatedDetailsClosed = [];
+      this.escalatedDetailsFalse = [];
       return;
     }
 
     if (!this.suspiciousChecked && !this.falseChecked) {
-      this.escalatedDetailsClosed = [];
+      this.escalatedDetailsFalse = [];
       return;
     }
 
@@ -701,70 +707,128 @@ export class EventsComponent  {
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-    if(this.suspiciousChecked){
+    // this.escalatedDetailsFalse = [];
 
-      this.actionTagCountsclosed(start,end,2)
-    }
-
-      if(this.falseChecked){
-
-      this.actionTagCountsclosed(start,end,1)
-    }
-  
+    if (this.falseChecked) {
+    this.actionTagCountsclosed(start, end, 1);
   }
 
-  actionTagCountsclosed(start:any,end:any,actionTag:any){
+  if (this.suspiciousChecked) {
+    this.actionTagCountsclosed(start, end, 2);
+  } 
 
-      this.eventsService
-      .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
-      .subscribe({
-        next: (res) => {
-          const counts = res?.counts || {};
-          const keys = Object.keys(counts);
+  }
 
-          if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
-            this.escalatedDetailsClosed = [];
-            return;
-          }
+  actionTagCountsclosed(start: any, end: any, actionTag: any) {
+    // this.eventsService
+    // .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
+    // .subscribe({
+    //   next: (res) => {
+    //     const counts = res?.counts || {};
+    //     const keys = Object.keys(counts);
 
-          const details: EscalatedDetail[] = [];
+    //     if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
+    //       this.escalatedDetailsFalse = [];
+    //       return;
+    //     }
 
-          Object.entries(counts).forEach(([label, data]: any) => {
-            if (!label || label === "null") return;
+    //     const details: EscalatedDetail[] = [];
 
-            details.push({
-              label,
-              value: data.totalCount || 0,
-              color: ESCALATED_COLORS[0],
-              icons: [
-                { iconPath: "assets/home.svg", count: data.sites || 0 },
-                { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-              ],
-              colordot: [
-                {
-                  iconcolor: "#53BF8B",
-                  label: "Event Wall",
-                  count: data.Event_Wall || 0,
-                },
-                {
-                  iconcolor: "#FFC400",
-                  label: "Manual Wall",
-                  count: data.Manual_Wall || 0,
-                },
-              ],
-            });
+    //     Object.entries(counts).forEach(([label, data]: any) => {
+    //       if (!label || label === "null") return;
+
+    //       details.push({
+    //         label,
+    //         value: data.totalCount || 0,
+    //         color: ESCALATED_COLORS[0],
+    //         icons: [
+    //           { iconPath: "assets/home.svg", count: data.sites || 0 },
+    //           { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+    //         ],
+    //         colordot: [
+    //           {
+    //             iconcolor: "#53BF8B",
+    //             label: "Event Wall",
+    //             count: data.Event_Wall || 0,
+    //           },
+    //           {
+    //             iconcolor: "#FFC400",
+    //             label: "Manual Wall",
+    //             count: data.Manual_Wall || 0,
+    //           },
+    //         ],
+    //       });
+    //     });
+
+    //   console.log(details)
+
+    //     this.escalatedDetailsFalse = details;
+    //   },
+    //   error: (err) => {
+    //     console.error("preloadClosedCounts failed:", err);
+    //     this.escalatedDetailsFalse = [];
+    //   },
+    // });
+
+     this.eventsService
+    .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
+    .subscribe({
+      next: (res) => {
+        const counts = res?.counts || [];
+        const result: EscalatedDetail[] = [];
+
+        Object.entries(counts).forEach(([label, data]: any) => {
+          if (!label || label === "null") return;
+
+          result.push({
+            label,
+            value: data.totalCount || 0,
+            color: ESCALATED_COLORS[0],
+            icons: [
+              { iconPath: "assets/home.svg", count: data.sites || 0 },
+              { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+            ],
+            colordot: [
+              {
+                iconcolor: "#53BF8B",
+                label: "Event Wall",
+                count: data.Event_Wall || 0,
+              },
+              {
+                iconcolor: "#FFC400",
+                label: "Manual Wall",
+                count: data.Manual_Wall || 0,
+              },
+              {
+                iconcolor: "#353636ff",
+                label: "Manual Event",
+                count: data.Manual_Event || 0,
+              },
+            ],
           });
+        });
 
+        // 🔥 Assign based on actionTag
+        if (actionTag === 1) {
+          this.escalatedDetailsFalse = result;
+        } else if (actionTag === 2) {
+          this.escalatedDetailsSuspicious = result;
+        }
      
-          this.escalatedDetailsClosed = details;
-        },
-        error: (err) => {
-          console.error("preloadClosedCounts failed:", err);
-          this.escalatedDetailsClosed = [];
-        },
-      });
+      },
+      error: () => {
+        if (actionTag === 1) this.escalatedDetailsFalse = [];
+        if (actionTag === 2) this.escalatedDetailsSuspicious = [];
+      },
+    });
   }
 
+  get escalatedDetailsCombined(): EscalatedDetail[] {
+  return [
+    ...(this.falseChecked ? this.escalatedDetailsFalse : []),
+    ...(this.suspiciousChecked ? this.escalatedDetailsSuspicious : [])
+  ];
+}
 
 
 
@@ -917,7 +981,7 @@ export class EventsComponent  {
   showToast(
     severity: "success" | "error" | "warn" | "info",
     summary: string,
-    detail: string
+    detail: string,
   ) {
     this.notification[severity](summary, detail);
   }
@@ -937,13 +1001,12 @@ export class EventsComponent  {
     } else {
       // this.loadPendingEvents();
       // this.eventsService.getConsoleEventsCounts_1_0()
-      this.loadEscalatedDetails()
+      this.loadEscalatedDetails();
     }
   }
 
   /** CLOSED: when either Suspicious/False checkbox changes */
   onClosedTogglesChanged(): void {
-   
     if (!this.suspiciousChecked && !this.falseChecked) {
       this.rowData = [];
       this.closedDisplayRows = [];
@@ -953,6 +1016,8 @@ export class EventsComponent  {
     this.loadClosedAndEscalatedDetails();
     this.preloadClosedCounts();
     this.loadEscalatedDetails();
+
+      
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
@@ -1021,17 +1086,16 @@ export class EventsComponent  {
       "[REFRESH CLICK] Applied interval(min):",
       this.refreshInterval,
       "selectedFilter:",
-      this.selectedFilter
+      this.selectedFilter,
     );
 
-    
     // ✅ Call API only on refresh click
     if (this.selectedFilter === "PENDING") {
       this.loadPendingEvents({ silent: false });
-      this.preloadPendingCounts()
+      this.preloadPendingCounts();
     } else {
       this.loadClosedAndEscalatedDetails({ silent: false });
-      this.preloadClosedCounts()
+      this.preloadClosedCounts();
     }
 
     // ✅ Start/restart timer after manual refresh
@@ -1041,14 +1105,14 @@ export class EventsComponent  {
     // Optional toast
     this.notification.info(
       "Refresh Applied",
-      `Now refreshing every ${this.refreshInterval} minute(s).`
+      `Now refreshing every ${this.refreshInterval} minute(s).`,
     );
   }
 
   /** -------------------- ✅ Timer scheduler -------------------- */
   private scheduleAutoRefresh(minutes: number): void {
     this.stopAutoRefresh();
-   
+
     if (!minutes || minutes <= 0) return;
 
     this.refreshSub = interval(minutes * 60_000).subscribe(() => {
@@ -1056,10 +1120,10 @@ export class EventsComponent  {
 
       if (this.selectedFilter === "PENDING") {
         this.loadPendingEvents({ silent: true });
-           this.preloadPendingCounts()
+        this.preloadPendingCounts();
       } else {
         this.loadClosedAndEscalatedDetails({ silent: true });
-         this.preloadClosedCounts();
+        this.preloadClosedCounts();
         //  this.loadEscalatedDetails();
       }
     });
@@ -1079,7 +1143,7 @@ export class EventsComponent  {
 
     console.log(
       "[INTERVAL SELECTED - NOT APPLIED YET] pendingRefreshInterval:",
-      this.pendingRefreshInterval
+      this.pendingRefreshInterval,
     );
 
     // Optional toast (purely informational)
@@ -1092,13 +1156,13 @@ export class EventsComponent  {
 
     setTimeout(() => {
       const paginationPanel = document.querySelector(
-        ".ag-paging-panel"
+        ".ag-paging-panel",
       ) as HTMLElement | null;
       if (!paginationPanel) return;
 
       // ✅ remove any existing injected toolbar first
       const existing = paginationPanel.querySelector(
-        ".custom-pagination-toolbar"
+        ".custom-pagination-toolbar",
       );
       if (existing) existing.remove();
 
@@ -1112,7 +1176,7 @@ export class EventsComponent  {
 
       // ✅ dropdown wiring (ONLY set pending value)
       const select = clone.querySelector(
-        ".refresh-interval-select"
+        ".refresh-interval-select",
       ) as HTMLSelectElement | null;
       if (select) {
         // ✅ show current pending selection in UI
@@ -1122,7 +1186,7 @@ export class EventsComponent  {
           console.log(e.target);
           const val = Number((e.target as HTMLSelectElement).value);
           this.zone.run(() => {
-            this.onIntervalChange(val), this.refreshData();
+            (this.onIntervalChange(val), this.refreshData());
           });
         });
 
@@ -1130,11 +1194,11 @@ export class EventsComponent  {
       }
       // ✅ refresh button wiring (apply + call API + start timer)
       const btn = clone.querySelector(
-        ".refreshbutton"
+        ".refreshbutton",
       ) as HTMLButtonElement | null;
       if (btn) {
         btn.addEventListener("click", () =>
-          this.zone.run(() => this.refreshData())
+          this.zone.run(() => this.refreshData()),
         );
       }
 
@@ -1297,124 +1361,120 @@ export class EventsComponent  {
 
   isDownloadingImages = false;
 
-downloadAllImages(event: MouseEvent): void {
-  event.stopPropagation();
+  downloadAllImages(event: MouseEvent): void {
+    event.stopPropagation();
 
-  const files = this.selectedPlayItem?.videoFile;
-  if (!files?.length) {
-    this.showToast('warn', 'No images', 'There are no images to download.');
-    return;
-  }
-
-  this.isDownloadingImages = true;
-
-  let completed = 0;
-  const total = files.length;
-
-  files.forEach((url:any) => {
-    if (!url) {
-      completed++;
+    const files = this.selectedPlayItem?.videoFile;
+    if (!files?.length) {
+      this.showToast("warn", "No images", "There are no images to download.");
       return;
     }
 
-    this.downloadImageWithToken(url, true, () => {
-      completed++;
+    this.isDownloadingImages = true;
 
-      // ✅ Stop loader when all images processed
-      if (completed === total) {
-        this.isDownloadingImages = false;
-      }
-    });
-  });
-}
+    let completed = 0;
+    const total = files.length;
 
-
-
-downloadImageWithToken(
-  url: string,
-  isDownload: boolean,
-  done?: () => void
-): void {
-  const rawUser =
-    sessionStorage.getItem('verifai_user') ||
-    localStorage.getItem('verifai_user');
-
-  const user = rawUser ? JSON.parse(rawUser) : null;
-  const token = user?.AccessToken;
-
-  if (!token) {
-    done?.();
-    return;
-  }
-
-  const headers = new HttpHeaders({
-    Authorization: `Bearer ${token}`
-  });
-
-  this.http.get(url, { headers, responseType: 'blob' }).subscribe({
-    next: blob => {
-      if (blob.type === 'application/json') {
-        done?.();
+    files.forEach((url: any) => {
+      if (!url) {
+        completed++;
         return;
       }
 
-      const objectUrl = URL.createObjectURL(blob);
+      this.downloadImageWithToken(url, true, () => {
+        completed++;
 
-      if (isDownload) {
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        a.download = '';
-        document.body.appendChild(a);
-        a.click();
-        // document.body.removeChild(a);
-        URL.revokeObjectURL(objectUrl);
-      } else {
-        window.open(objectUrl, '_blank');
-        setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
-      }
-
-      done?.();
-    },
-    error: () => {
-      done?.();
-    }
-  });
-}
-
-
- 
-isOpeningImages = false;
-
-openAllImagesInNewTabs(event: MouseEvent): void {
-  event.stopPropagation();
-
-  const files = this.selectedPlayItem?.videoFile;
-  if (!files?.length) {
-    this.showToast('warn', 'No images', 'There are no images to open.');
-    return;
+        // ✅ Stop loader when all images processed
+        if (completed === total) {
+          this.isDownloadingImages = false;
+        }
+      });
+    });
   }
 
-  this.isOpeningImages = true;
+  downloadImageWithToken(
+    url: string,
+    isDownload: boolean,
+    done?: () => void,
+  ): void {
+    const rawUser =
+      sessionStorage.getItem("verifai_user") ||
+      localStorage.getItem("verifai_user");
 
-  let completed = 0;
-  const total = files.length;
+    const user = rawUser ? JSON.parse(rawUser) : null;
+    const token = user?.AccessToken;
 
-  files.forEach((url: string) => {
-    if (!url) {
-      completed++;
+    if (!token) {
+      done?.();
       return;
     }
 
-    this.downloadImageWithToken(url, false, () => {
-      completed++;
-
-      // ✅ Stop loader when all images are opened
-      if (completed === total) {
-        this.isOpeningImages = false;
-      }
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
     });
-  });
-}
+
+    this.http.get(url, { headers, responseType: "blob" }).subscribe({
+      next: (blob) => {
+        if (blob.type === "application/json") {
+          done?.();
+          return;
+        }
+
+        const objectUrl = URL.createObjectURL(blob);
+
+        if (isDownload) {
+          const a = document.createElement("a");
+          a.href = objectUrl;
+          a.download = "";
+          document.body.appendChild(a);
+          a.click();
+          // document.body.removeChild(a);
+          URL.revokeObjectURL(objectUrl);
+        } else {
+          window.open(objectUrl, "_blank");
+          setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+        }
+
+        done?.();
+      },
+      error: () => {
+        done?.();
+      },
+    });
+  }
+
+  isOpeningImages = false;
+
+  openAllImagesInNewTabs(event: MouseEvent): void {
+    event.stopPropagation();
+
+    const files = this.selectedPlayItem?.videoFile;
+    if (!files?.length) {
+      this.showToast("warn", "No images", "There are no images to open.");
+      return;
+    }
+
+    this.isOpeningImages = true;
+
+    let completed = 0;
+    const total = files.length;
+
+    files.forEach((url: string) => {
+      if (!url) {
+        completed++;
+        return;
+      }
+
+      this.downloadImageWithToken(url, false, () => {
+        completed++;
+
+        // ✅ Stop loader when all images are opened
+        if (completed === total) {
+          this.isOpeningImages = false;
+        }
+      });
+    });
+  }
 
   /** -------------------- Play popup / image loop -------------------- */
   openPlayPopup(item: any): void {
@@ -1435,25 +1495,100 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     }
   }
 
+  validImages: any[] = [];
+  isMediaLoading = false;
+
   openPlayTooltip(event: MouseEvent, params: any): void {
+    this.validImages = [];
+
     const item = params.data;
-    const media = this.resolveMediaUrls(item);
+    const media: string[] = this.resolveMediaUrls(item);
+    console.log(item);
 
-    console.log("DEBUG media for tooltip:", media, "from item:", item);
+    console.log("DEBUG media:", media);
 
+    if (!media || !media.length) {
+      console.warn("No media found to play for item (tooltip):", item);
+      return;
+    }
+
+    // normalize selected item
     this.selectedPlayItem = {
       ...item,
       videoFile: media,
     };
 
-    this.currentSlideIndex = 0;
+    // 🔥 IMPORTANT: return observables from map
+    const requests: Observable<string | null>[] =
+      this.selectedPlayItem?.videoFile.map((url: any) =>
+        this.downloaddisplayimage(url, this.getMediaType(url)),
+      );
 
-    if (media.length > 0) {
-      this.startImageLoop();
-      this.playOverlay.show(event);
-    } else {
-      console.warn("No media found to play for item (tooltip):", item);
+    this.playOverlay.show(event);
+
+    this.isMediaLoading = true;
+    // 🔥 Execute all requests together
+    forkJoin(requests).subscribe((results) => {
+      // keep only valid images
+      this.validImages = results.filter(Boolean) as string[];
+      this.currentSlideIndex = 0;
+
+      if (this.validImages.length) {
+        this.startImageLoop();
+        this.isMediaLoading = false;
+      } else {
+        this.isMediaLoading = false;
+        console.warn("All images were invalid");
+        //       this.notification.warn(
+        //   'No images available',
+        // );
+      }
+    });
+  }
+
+  getMediaType(url: any) {
+    try {
+      const parsedUrl = new URL(url);
+      const assetName = parsedUrl.searchParams.get("assetName");
+      const nameToCheck = assetName || parsedUrl.pathname;
+
+      if (/\.(mp4|webm|ogg)$/i.test(nameToCheck)) return "video";
+      if (/\.(png|jpg|jpeg|gif|webp)$/i.test(nameToCheck)) return "image";
+
+      return "image";
+    } catch {
+      return "image";
     }
+  }
+
+  downloaddisplayimage(url: any, type: any) {
+    const rawUser =
+      sessionStorage.getItem("verifai_user") ||
+      localStorage.getItem("verifai_user");
+
+    const user = rawUser ? JSON.parse(rawUser) : null;
+    const token = user?.AccessToken;
+
+    if (!token) {
+      return of(null);
+    }
+
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    return this.http.get(url, { headers, responseType: "blob" }).pipe(
+      map((blob) => {
+        if (!blob || blob.size === 0 || blob.type === "application/json") {
+          return null;
+        }
+        return {
+          url: URL.createObjectURL(blob),
+          type,
+        };
+      }),
+      catchError(() => of(null)),
+    );
   }
 
   closePlayPopup(): void {
@@ -1463,30 +1598,30 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     this.playOverlay.hide();
   }
 
-  private startImageLoop(): void {
+  startImageLoop(): void {
     this.stopImageLoop();
 
     const files = this.selectedPlayItem?.videoFile;
     if (!files || !files.length) return;
 
-    this.slideIntervalSub = interval(500).subscribe(() => {
+    this.slideIntervalSub = interval(2000).subscribe(() => {
       const imgs = this.selectedPlayItem?.videoFile;
       if (!imgs || !imgs.length) return;
       this.currentSlideIndex = (this.currentSlideIndex + 1) % imgs.length;
     });
   }
 
-  private stopImageLoop(): void {
+  stopImageLoop(): void {
     if (this.slideIntervalSub) {
       this.slideIntervalSub.unsubscribe();
       this.slideIntervalSub = undefined;
     }
   }
 
-  getCurrentImageUrl(): string | null {
-    const files = this.selectedPlayItem?.videoFile;
-    if (!files || !files.length) return null;
-    return files[this.currentSlideIndex] ?? files[0];
+  getCurrentImageUrl() {
+    console.log(this.validImages.length);
+    if (!this.validImages.length) return null;
+    return this.validImages[this.currentSlideIndex] ?? this.validImages[0];
   }
 
   /** -------------------- Calendar popup -------------------- */
@@ -1535,9 +1670,9 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     if (isNaN(date.getTime())) return value;
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate()
+      date.getDate(),
     )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-      date.getSeconds()
+      date.getSeconds(),
     )}`;
   }
 
@@ -1551,16 +1686,16 @@ openAllImagesInNewTabs(event: MouseEvent): void {
   formatDate(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate()
+      date.getDate(),
     )}`;
   }
 
   private formatDateTimeFull(date: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-      date.getDate()
+      date.getDate(),
     )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-      date.getSeconds()
+      date.getSeconds(),
     )}`;
   }
 
@@ -1578,7 +1713,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
   private withinRange(
     valueISO?: string | Date,
     start?: Date,
-    end?: Date
+    end?: Date,
   ): boolean {
     if (!valueISO) return true;
     const v =
@@ -1593,7 +1728,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
   private withinDuration(
     min?: number | null,
     max?: number | null,
-    durationMin?: number
+    durationMin?: number,
   ): boolean {
     if (min != null && durationMin != null && durationMin < min) return false;
     if (max != null && durationMin != null && durationMin > max) return false;
@@ -1691,7 +1826,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
   private transformQueuesMessages(res: any): any[] {
     const collectFrom = (
       queuesWrapper: any,
-      tag: "Event_Wall" | "Manual_Wall" | "Timed_Out"
+      tag: "Event_Wall" | "Manual_Wall" | "Timed_Out",
     ) =>
       (queuesWrapper?.queues ?? []).filter(Boolean).flatMap((q: any) =>
         (Array.isArray(q?.messages) ? q.messages : []).map((msg: any) => ({
@@ -1703,7 +1838,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
           actionTag: msg.actionTag ?? null,
           timezone: msg.timezone,
           alertType: this.ALERT_COLORS[tag],
-        }))
+        })),
       );
 
     return [
@@ -1836,14 +1971,14 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         this.filterLists.eventTypes = this.uniq(
           this.pendingRowData
             .map((r) => r.actionTag)
-            .filter((v) => v != null && v !== "")
+            .filter((v) => v != null && v !== ""),
         );
 
         // 🔹 PENDING: Alert Type options (Event_Wall / Manual_Wall / Timed_Out)
         this.filterLists.consoleTypes = this.uniq(
           this.pendingRowData
             .map((r) => r.eventType ?? r.eventTag)
-            .filter((v) => v != null && v !== "")
+            .filter((v) => v != null && v !== ""),
         );
 
         // if (!this.hasStartedAutoRefresh && this.selectedFilter === "PENDING") {
@@ -1869,8 +2004,6 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     this.event = event;
     const newStart = this.combineDateAndTime(event.startDate, event.startTime);
     const newEnd = this.combineDateAndTime(event.endDate, event.endTime);
-
-    console.log(newStart,newEnd)
 
     const startStr = this.formatDateTimeFull(newStart);
     const endStr = this.formatDateTimeFull(newEnd);
@@ -1901,7 +2034,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         this.showToast(
           "warn",
           "Pick a date range",
-          "Select dates in the calendar to load CLOSED events."
+          "Select dates in the calendar to load CLOSED events.",
         );
       }
       return;
@@ -1921,20 +2054,10 @@ openAllImagesInNewTabs(event: MouseEvent): void {
 
     const calls = [
       this.suspiciousChecked
-        ? this.eventsService.getSuspiciousEvents(
-            2,
-            startDateStr,
-            endDateStr,
-            
-          )
+        ? this.eventsService.getSuspiciousEvents(2, startDateStr, endDateStr)
         : of(null),
       this.falseChecked
-        ? this.eventsService.getSuspiciousEvents(
-            1,
-            startDateStr,
-            endDateStr,
-           
-          )
+        ? this.eventsService.getSuspiciousEvents(1, startDateStr, endDateStr)
         : of(null),
     ];
 
@@ -2008,7 +2131,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
           arr.reduce((a, b) => a + (Number.isFinite(b) ? b : 0), 0);
 
         const totalEventsCount = sum(
-          countsList.map((c) => Number(c?.totalEventsCount) || 0)
+          countsList.map((c) => Number(c?.totalEventsCount) || 0),
         );
 
         const uniqueSites = new Set<string | number>();
@@ -2019,10 +2142,13 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         });
 
         const eventWall = sum(
-          countsList.map((c) => Number(c?.Event_Wall) || 0)
+          countsList.map((c) => Number(c?.Event_Wall) || 0),
         );
         const manualWall = sum(
-          countsList.map((c) => Number(c?.Manual_Wall) || 0)
+          countsList.map((c) => Number(c?.Manual_Wall) || 0),
+        );
+        const manualEvent = sum(
+          countsList.map((c) => Number(c?.Manual_Event) || 0),
         );
 
         this.secondEscalatedDetails = [
@@ -2039,6 +2165,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
           },
           { iconcolor: "#53BF8B", value: eventWall, color: "#ED3237" },
           { iconcolor: "#FFC400", value: manualWall, color: "#ED3237" },
+          { iconcolor: "#353636ff", value: manualEvent, color: "#ED3237" },
         ];
 
         this.refreshDropdownListsFromClosed();
@@ -2046,14 +2173,14 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         this.filterLists.eventTypes = this.uniq(
           this.rowData
             .map((r) => r.subActionTag)
-            .filter((v) => v != null && v !== "")
+            .filter((v) => v != null && v !== ""),
         );
 
         // 🔹 CLOSED: Alert Type options from eventType / eventTag in CLOSED data
         this.filterLists.consoleTypes = this.uniq(
           this.rowData
             .map((r) => r.eventType ?? r.eventTag)
-            .filter((v) => v != null && v !== "")
+            .filter((v) => v != null && v !== ""),
         );
       },
       error: (err) => {
@@ -2067,7 +2194,8 @@ openAllImagesInNewTabs(event: MouseEvent): void {
   }
 
   /** -------------------- Escalated "More" cards -------------------- */
-  escalatedDetailsClosed: EscalatedDetail[] = [];
+  escalatedDetailsFalse: EscalatedDetail[] = [];
+  escalatedDetailsSuspicious: EscalatedDetail[] = [];
   escalatedDetailsPending: EscalatedDetail[] = [];
 
   loadEscalatedDetails(): void {
@@ -2078,89 +2206,142 @@ openAllImagesInNewTabs(event: MouseEvent): void {
       const start = this.formatDateTimeFull(this.selectedStartDate!);
       const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-      this.eventsService
-        .getEventReportCountsForActionTag(start, end, actionTag)
-        .subscribe({
-          next: (res) => {
-            const counts = res?.counts || {};
-            const keys = Object.keys(counts);
+      // this.eventsService
+      //   .getEventReportCountsForActionTag(start, end, actionTag)
+      //   .subscribe({
+      //     next: (res) => {
+      //       const counts = res?.counts || {};
+      //       const keys = Object.keys(counts);
 
-            if (keys.length === 1 && (keys[0] === "null" || keys[0] === null)) {
-              this.escalatedDetailsClosed = [];
-              return;
-            }
+      //       if (keys.length === 1 && (keys[0] === "null" || keys[0] === null)) {
+      //         this.escalatedDetailsFalse = [];
+      //         return;
+      //       }
 
-            const details: EscalatedDetail[] = [];
+      //       const details: EscalatedDetail[] = [];
 
-            Object.entries(counts).forEach(([label, data]: any) => {
-              if (label === "null") return;
+      //       Object.entries(counts).forEach(([label, data]: any) => {
+      //         if (label === "null") return;
 
-              details.push({
-                label,
-                value: data.totalCount || 0,
-                color: ESCALATED_COLORS[0],
-                icons: [
-                  { iconPath: "assets/home.svg", count: data.sites || 0 },
-                  { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-                ],
-                colordot: [
-                  {
-                    iconcolor: "#53BF8B",
-                    label: "Event Wall",
-                    count: data.Event_Wall || 0,
-                  },
-                  {
-                    iconcolor: "#FFC400",
-                    label: "Manual Wall",
-                    count: data.Manual_Wall || 0,
-                  },
-                ],
-              });
-            });
+      //         details.push({
+      //           label,
+      //           value: data.totalCount || 0,
+      //           color: ESCALATED_COLORS[0],
+      //           icons: [
+      //             { iconPath: "assets/home.svg", count: data.sites || 0 },
+      //             { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+      //           ],
+      //           colordot: [
+      //             {
+      //               iconcolor: "#53BF8B",
+      //               label: "Event Wall",
+      //               count: data.Event_Wall || 0,
+      //             },
+      //             {
+      //               iconcolor: "#FFC400",
+      //               label: "Manual Wall",
+      //               count: data.Manual_Wall || 0,
+      //             },
+      //           ],
+      //         });
+      //       });
 
-            this.escalatedDetailsClosed = details;
-          },
+      //       this.escalatedDetailsFalse=details ;
+      //     },
 
-          error: () => {
-            this.escalatedDetailsClosed = [];
-          },
+      //     error: () => {
+      //       this.escalatedDetailsFalse = [];
+      //     },
+      //   });
+    this.eventsService
+    .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
+    .subscribe({
+      next: (res) => {
+        const counts = res?.counts || [];
+        const result: EscalatedDetail[] = [];
+
+        Object.entries(counts).forEach(([label, data]: any) => {
+          if (!label || label === "null") return;
+
+          result.push({
+            label,
+            value: data.totalCount || 0,
+            color: ESCALATED_COLORS[0],
+            icons: [
+              { iconPath: "assets/home.svg", count: data.sites || 0 },
+              { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+            ],
+            colordot: [
+              {
+                iconcolor: "#53BF8B",
+                label: "Event Wall",
+                count: data.Event_Wall || 0,
+              },
+              {
+                iconcolor: "#FFC400",
+                label: "Manual Wall",
+                count: data.Manual_Wall || 0,
+              },
+              {
+                iconcolor: "#353636ff",
+                label: "Manual Event",
+                count: data.Manual_Event || 0,
+              },
+            ],
+          });
         });
 
-      return;
+        // 🔥 Assign based on actionTag
+        if (actionTag === 1) {
+          this.escalatedDetailsFalse = result;
+        } else if (actionTag === 2) {
+          this.escalatedDetailsSuspicious = result;
+        }
+      },
+      error: () => {
+        if (actionTag === 1) this.escalatedDetailsFalse = [];
+        if (actionTag === 2) this.escalatedDetailsSuspicious = [];
+      },
+    });
+
+ 
     }
 
     // PENDING
-    if (!this.consolesChecked && !this.queuesChecked) {
-      this.escalatedDetailsPending = [];
-      return;
-    }
+    if(this.selectedFilter=='PENDING'){
 
-    const consoles$ = this.consolesChecked
-      ? this.eventsService.getConsoleEventsCounts_1_0()
-      : of(null);
-    const queues$ = this.queuesChecked
-      ? this.eventsService.getPendingEventsCounts_1_0()
-      : of(null);
-
-    forkJoin([consoles$, queues$]).subscribe({
-      next: ([consolesRes, queuesRes]) => {
-        const details: EscalatedDetail[] = [];
-
-        if (queuesRes) {
-          details.push(this.buildQueuesEscalationCard(queuesRes));
-        }
-
-        if (consolesRes) {
-          details.push(this.buildConsoleEscalationCard(consolesRes));
-        }
-
-        this.escalatedDetailsPending = details;
-      },
-      error: (err) => {
-        console.error("Error loading escalated details for PENDING:", err);
+      if (!this.consolesChecked && !this.queuesChecked) {
         this.escalatedDetailsPending = [];
-      },
-    });
+        return;
+      }
+  
+      const consoles$ = this.consolesChecked
+        ? this.eventsService.getConsoleEventsCounts_1_0()
+        : of(null);
+      const queues$ = this.queuesChecked
+        ? this.eventsService.getPendingEventsCounts_1_0()
+        : of(null);
+  
+      forkJoin([consoles$, queues$]).subscribe({
+        next: ([consolesRes, queuesRes]) => {
+          const details: EscalatedDetail[] = [];
+  
+          if (queuesRes) {
+            details.push(this.buildQueuesEscalationCard(queuesRes));
+          }
+  
+          if (consolesRes) {
+            details.push(this.buildConsoleEscalationCard(consolesRes));
+          }
+  
+          this.escalatedDetailsPending = details;
+        },
+        error: (err) => {
+          console.error("Error loading escalated details for PENDING:", err);
+          this.escalatedDetailsPending = [];
+        },
+      });
+    }
   }
 
   private buildQueuesEscalationCard(res: any): EscalatedDetail {
@@ -2266,7 +2447,9 @@ openAllImagesInNewTabs(event: MouseEvent): void {
 
     // 🔁 Now build options from userLevels / employee.level
     this.filterLists.userLevels = this.uniq(
-      rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
+      rows.map(
+        (r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A",
+      ),
     );
   }
 
@@ -2278,7 +2461,9 @@ openAllImagesInNewTabs(event: MouseEvent): void {
 
     // 🔁 Use levels instead of names
     this.filterLists.userLevels = this.uniq(
-      rows.map((r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A")
+      rows.map(
+        (r) => r.employee?.level ?? r.userLevels ?? r.userLevel ?? "N/A",
+      ),
     );
   }
 
@@ -2297,7 +2482,6 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     // this.selectedTimezone = this.timezones.find(
     //   (el) => el.timezoneCode === this.timeZone
     // );
-
     // if (this.selectedFilter == "CLOSED") {
     //   this.loadClosedAndEscalatedDetails();
     // }
@@ -2324,7 +2508,7 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
       },
-        {
+      {
         headerName: "SITE ID",
         field: "siteId",
         headerClass: "custom-header",
@@ -2387,8 +2571,23 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
+         valueGetter: (params) => {
+          return params.data?.subActionTag ? params.data.subActionTag : "-";
+        },
+       cellClassRules: {
+    // 🔴 Red when actionTag = Suspicious and checkbox checked
+    'alert-red': (params) =>
+      this.suspiciousChecked && this.falseChecked &&
+      params.data?.actionTagId === 2,
+
+    // 🟢 Green when actionTag = False and checkbox checked
+    'alert-green': (params) =>
+      this.falseChecked && this.suspiciousChecked &&
+      params.data?.actionTagId === 1 
+   
+  }
       },
-          {
+      {
         headerName: "ALERT",
         field: "alertTag",
         headerClass: "custom-header",
@@ -2396,10 +2595,10 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
         valueGetter: (params) => {
-    return params.data?.alertTag ? params.data.alertTag : '-';
-  }
+          return params.data?.alertTag ? params.data.alertTag : "-";
+        },
       },
-          {
+      {
         headerName: "SUB ALERT",
         field: "subAlertTag",
         headerClass: "custom-header",
@@ -2407,8 +2606,8 @@ openAllImagesInNewTabs(event: MouseEvent): void {
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
         valueGetter: (params) => {
-    return params.data?.subAlertTag ? params.data.subAlertTag : '-';
-  }
+          return params.data?.subAlertTag ? params.data.subAlertTag : "-";
+        },
       },
       // {
       //   headerName: "EMP.",
@@ -2626,87 +2825,86 @@ openAllImagesInNewTabs(event: MouseEvent): void {
     ];
   }
 
-spinexcel:boolean=false;
+  spinexcel: boolean = false;
 
-downloadExcel() {
-  const payload = {
-    fromDate: this.lastStartDateTime,
-    toDate: this.lastEndDateTime,
-    actionTag: this.suspiciousChecked && this.falseChecked
-      ? ''
-      : this.suspiciousChecked
-        ? '2'
-        : this.falseChecked
-          ? '1'
-          : ''
-  };
+  downloadExcel() {
+    const payload = {
+      fromDate: this.lastStartDateTime,
+      toDate: this.lastEndDateTime,
+      actionTag:
+        this.suspiciousChecked && this.falseChecked
+          ? ""
+          : this.suspiciousChecked
+            ? "2"
+            : this.falseChecked
+              ? "1"
+              : "",
+    };
 
-  if (!this.lastStartDateTime || !this.lastEndDateTime) {
-    this.showToast(
-      'warn',
-      'Pick a date range',
-      'Select dates in the calendar to download events report.'
-    );
-    return;
-  }
-
-  this.spinexcel = true;
-
-  this.eventsService.downloadExcelreport(payload).subscribe(
-    (res: ArrayBuffer) => {
-
-      // 🔹 Convert ArrayBuffer → string
-      const text = new TextDecoder().decode(res);
-
-      // 🔹 Check if backend sent JSON instead of Excel
-      try {
-        const json = JSON.parse(text);
-
-        if (json.status === 'failed') {
-          this.showToast(
-            'error',
-            'No Data Available',
-            json.message || 'No records found'
-          );
-          this.spinexcel = false;
-          return;
-        }
-      } catch {
-        // ✅ Not JSON → it's Excel, continue
-      }
-
-      // 🔹 Download Excel
-      const blob = new Blob([res], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-
-      let tagSuffix = '';
-
-if (this.suspiciousChecked && this.falseChecked) {
-  tagSuffix = 'Suspicious_False';
-} else if (this.suspiciousChecked) {
-  tagSuffix = 'Suspicious';
-} else if (this.falseChecked) {
-  tagSuffix = 'False';
-}
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Events-Report_${this.lastStartDateTime}_To_${this.lastStartDateTime}_${tagSuffix}.xlsx`;
-      link.click();
-
-      window.URL.revokeObjectURL(url);
-      this.spinexcel = false;
-    },
-    () => {
+    if (!this.lastStartDateTime || !this.lastEndDateTime) {
       this.showToast(
-        'error',
-        'Download Failed',
-        'Something went wrong while downloading the report'
+        "warn",
+        "Pick a date range",
+        "Select dates in the calendar to download events report.",
       );
-      this.spinexcel = false;
+      return;
     }
-  );
-}
 
+    this.spinexcel = true;
+
+    this.eventsService.downloadExcelreport(payload).subscribe(
+      (res: ArrayBuffer) => {
+        // 🔹 Convert ArrayBuffer → string
+        const text = new TextDecoder().decode(res);
+
+        // 🔹 Check if backend sent JSON instead of Excel
+        try {
+          const json = JSON.parse(text);
+
+          if (json.status === "failed") {
+            this.showToast(
+              "error",
+              "No Data Available",
+              json.message || "No records found",
+            );
+            this.spinexcel = false;
+            return;
+          }
+        } catch {
+          // ✅ Not JSON → it's Excel, continue
+        }
+
+        // 🔹 Download Excel
+        const blob = new Blob([res], {
+          type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        });
+
+        let tagSuffix = "";
+
+        if (this.suspiciousChecked && this.falseChecked) {
+          tagSuffix = "Suspicious_False";
+        } else if (this.suspiciousChecked) {
+          tagSuffix = "Suspicious";
+        } else if (this.falseChecked) {
+          tagSuffix = "False";
+        }
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `Events-Report_${this.lastStartDateTime}_To_${this.lastStartDateTime}_${tagSuffix}.xlsx`;
+        link.click();
+
+        window.URL.revokeObjectURL(url);
+        this.spinexcel = false;
+      },
+      () => {
+        this.showToast(
+          "error",
+          "Download Failed",
+          "Something went wrong while downloading the report",
+        );
+        this.spinexcel = false;
+      },
+    );
+  }
 }

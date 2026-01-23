@@ -36,16 +36,15 @@ export class EventsService {
 
   private readonly pendingEventsCountsUrl = `${this.mqBaseUrl}/queueManagement/getPendingEventsCounts_1_0`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   getSuspiciousEvents(
     actionTag: number,
     startDate?: string,
     endDate?: string,
-  
   ): Observable<any> {
     return this.http.get<any>(
-      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`
+      `${this.eventReportFullData}?fromDate=${startDate}&toDate=${endDate}&actionTag=${actionTag}`,
     );
   }
 
@@ -75,12 +74,22 @@ export class EventsService {
     startDate?: string,
     endDate?: string,
     actionTag?: number,
-    timezone?:string
+    timezone?: string,
   ): Observable<any> {
     const url =
       `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
-      `&toDate=${endDate}&actionTag=${actionTag}&timezone=${timezone}`;
-    return this.http.get<any>(url);
+      `&toDate=${endDate}&actionTag=${actionTag}`;
+
+    let params = new HttpParams();
+
+    // if (actionTag) {
+    //   params = params.set("actionTag", actionTag);
+    // }
+    if (timezone !== null && timezone !== undefined && timezone !== "") {
+      params = params.set("timezone", timezone);
+    }
+
+    return this.http.get<any>(url, { params });
   }
 
   getEventMoreInfo(eventId: number): Observable<any> {
@@ -122,20 +131,19 @@ export class EventsService {
     let url = `${this.apiBaseUrl}/events_data/getTimezones_1_0`;
 
     return this.http.get(url);
-
   }
 
-  downloadExcelreport(payload:any){
-   
-
-    let url=`${this.apiBaseUrl}/events_data/downloadEventsReport_1_0`;
+  downloadExcelreport(payload: any) {
+    let url = `${this.apiBaseUrl}/events_data/downloadEventsReport_1_0`;
     let params = new HttpParams();
 
-    params=params.set('fromDate',payload?.fromDate);
-     params=params.set('toDate',payload?.toDate);
-     params=params.set('actionTag',payload?.actionTag);
+    params = params.set("fromDate", payload?.fromDate);
+    params = params.set("toDate", payload?.toDate);
+    params = params.set("actionTag", payload?.actionTag);
 
-     return this.http.get<ArrayBuffer>(url,{params, responseType: 'arraybuffer' as 'json',});
+    return this.http.get<ArrayBuffer>(url, {
+      params,
+      responseType: "arraybuffer" as "json",
+    });
   }
-
 }

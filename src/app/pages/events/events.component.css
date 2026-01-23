@@ -116,6 +116,7 @@
   padding: 10px;
   flex: 1;
   overflow-y: auto;
+  height: 300px;
 }
 
 .refreshbutton {
@@ -383,7 +384,7 @@
   font-family: "Neometric Alt Bold";
 
   display: flex;
-  flex-direction: row;
+
   justify-content: space-between;
 }
 
@@ -397,10 +398,11 @@
 
 /* === CALENDAR SECTION BODY === */
 .calender-section-body {
-  display: grid;
+  display: flex;
   align-items: center;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 16px;
+justify-content: space-between;
+
+
 }
 
 .filters-title {
@@ -422,7 +424,8 @@
 
 .filters {
   display: flex;
-  gap: 20px;
+
+  justify-content: space-between;
   align-items: center;
 }
 
@@ -523,7 +526,7 @@ input:checked + .slider:before {
 }
 
 /* // */
-.calender-first-section {
+/* .calender-first-section {
   grid-column: span 6;
 }
 
@@ -533,11 +536,11 @@ input:checked + .slider:before {
 
 .calender-third-section {
   grid-column: span 3;
-}
+} */
 
-.calender-fifth-section {
+/* .calender-fifth-section {
   grid-column: span 7;
-}
+} */
 
 .calender-sixth-section {
   grid-column: span 4;
@@ -575,12 +578,7 @@ input:checked + .slider:before {
 }
 
 /* === FILTERS === */
-.filters {
-  display: inline-flex;
-  gap: 0.01rem;
-  margin-left: 1rem;
-  height: 25px;
-}
+
 
 .icons-group {
   display: flex;
@@ -922,6 +920,13 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.dot-manualevent {
+  background-color: #353636ff;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
 .dot-value {
   color: rgb(237, 50, 55);
   font-size: 14px;
@@ -947,11 +952,7 @@ input:checked + .slider:before {
       height: 18px;
 } */
 
-.popup-body {
-  overflow-y: auto;
-  /* margin: 15px; */
-  flex: 1;
-}
+
 
 .close-btn {
   background: none;
@@ -973,15 +974,14 @@ input:checked + .slider:before {
 }
 
 /* === CALENDAR SECTION === */
-.calendar-section-wrapper {
+/* .calendar-section-wrapper {
   display: flex;
-  justify-content: flex-start;
-  width: 100%;
+  justify-content:space-between;
   font-size: 12px;
   font-family: "Neometric Alt Bold";
-  gap: 20px;
+
   align-items: center;
-}
+} */
 
 .calendar-section {
   display: flex;
@@ -1107,17 +1107,15 @@ input:checked + .slider:before {
 }
 
 .escalated-section {
-  display: flex;
-  gap: 8px;
-  padding: 0;
-  height: 35px;
-  width: 100%;
-  justify-content: flex-end;
-  align-items: center;
+display: flex;
+justify-content:space-between;
+align-items: center;
+width: 100%;
+margin-bottom: 20px;
 }
 
 .calender-escalated-card {
-  flex: 1 1 0;
+  flex: 0 0 1;
   min-width: 0;
   background: #fff;
   border-radius: 8px;
@@ -1281,7 +1279,7 @@ input:checked + .slider:before {
   flex-direction: row;
   /* align-items: stretch; */
   /* justify-content: flex-start; */
-  gap: 16px;
+  gap: 10px;
 
   overflow-x: auto; /* 👈 horizontal scroll when many cards */
   overflow-y: hidden;
@@ -1289,22 +1287,12 @@ input:checked + .slider:before {
   height: 100%;
 }
 
-.escalated-content-section .first-section .escalated-card {
-  /* flex: 0 0 calc(22.222% - 12px);
-  max-width: calc(22.222% - 12px);
-  min-width: 100px; */
-}
 
-/* .play-image {
-  max-width: 320px;
-  max-height: 180px;
-  object-fit: contain;
-  border-radius: 4px;
-} */
+
 
 .play-image {
-  width: 340px;
-  height: 280px;
+  width: 100%;
+  height: 80%;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -1558,3 +1546,596 @@ input:checked + .slider:before {
 .custom-select option[value=""] {
   color: #999;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===============================
+   WRAPPER
+================================ */
+.closed-wrapper {
+  width: 100%;
+  /* padding: 8px 0; */
+}
+
+/* ===============================
+   BODY
+================================ */
+.closed-body {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ===============================
+   HORIZONTAL SCROLL ROW
+================================ */
+.closed-scroll-row {
+  display: flex;
+
+  gap: 6px;
+
+  overflow-x: auto;
+
+
+  /* padding-bottom: 10px; */
+  scroll-behavior: smooth;
+}
+
+/* scrollbar styling */
+.closed-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+
+.closed-scroll-row::-webkit-scrollbar-thumb {
+  background: #cfcfcf;
+  border-radius: 6px;
+}
+
+/* ===============================
+   CARD
+================================ */
+.closed-card {
+  flex: 1 1 0;              /* 🔥 critical */
+  max-width: 280px;
+    min-width: 200px; 
+  /* min-height: 160px; */
+
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
+
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+
+
+/* ===============================
+   CARD HEADER
+================================ */
+.closed-card-header {
+  display: flex;
+ justify-content: space-between;
+  gap: 4px;
+}
+
+.closed-card-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===============================
+   CARD FOOTER
+================================ */
+.closed-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 10px;
+}
+
+/* ===============================
+   DOT SECTION
+================================ */
+.closed-dots {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 6px;
+}
+
+.closed-dots .closed-icon-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.closed-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.closed-dots .dot-count {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ===============================
+   ICON GROUP
+================================ */
+.closed-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.closed-icon-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.closed-icon-item span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* icon image */
+.closed-icon-item img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* ===============================
+   NO DATA
+================================ */
+.no-data-wrapper {
+  text-align: center;
+  font-size: 14px;
+  padding: 20px;
+  color: #999;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* =========================
+   WRAPPER
+========================= */
+.pending-wrapper {
+  width: 100%;
+  overflow: hidden;
+}
+
+.pending-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+/* =========================
+   CARD
+========================= */
+.pending-card {
+  /* width: 220px;  */
+  /* min-height: 120px; */
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  /* justify-content: space-between; */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+  /* VERY IMPORTANT */
+  box-sizing: border-box;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+/* =========================
+   HEADER
+========================= */
+.pending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.pending-label {
+  font-size: 14px;
+  font-weight: 600;
+  max-width: 140px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pending-value {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* =========================
+   ICONS SECTION
+========================= */
+.pending-icons {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 6px;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+/* Individual icon row */
+.pending-icon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+
+
+/* Label */
+.pending-icon-label {
+  font-size: 12px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* Count */
+.pending-icon-count {
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* =========================
+   ZOOM / RESPONSIVE SAFETY
+========================= */
+@media (max-width: 1200px) {
+  .pending-card {
+    width: 200px;
+  }
+}
+
+@media (max-width: 992px) {
+  .pending-card {
+    width: 180px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===============================
+   LAYOUT CONTAINER
+================================ */
+.ec-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+
+}
+
+/* ===============================
+   LEFT CONTENT AREA
+================================ */
+.ec-left {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ===============================
+   CARD ROW
+================================ */
+.ec-card-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  flex-wrap: wrap;
+  /* overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px; */
+}
+
+/* smooth scrollbar */
+.ec-card-row::-webkit-scrollbar {
+  height: 6px;
+}
+.ec-card-row::-webkit-scrollbar-thumb {
+  background-color: #d0d0d0;
+  border-radius: 6px;
+}
+
+/* ===============================
+   CARD
+================================ */
+.ec-card {
+  flex: 0 0 200px;
+
+
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+
+}
+
+/* ===============================
+   CARD HEADER
+================================ */
+.ec-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec-card-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ec-card-header p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===============================
+   CARD FOOTER
+================================ */
+.ec-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+ 
+}
+
+/* ===============================
+   ICON
+================================ */
+.ec-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+ 
+}
+
+/* ===============================
+   DOT ITEM
+================================ */
+.ec-dot-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.ec-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+ 
+
+}
+
+.ec-dot-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* ===============================
+   DOWNLOAD AREA
+================================ */
+.ec-download {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ===============================
+   RIGHT SIDE (MORE / LESS)
+================================ */
+.ec-right {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+/* ===============================
+   MORE / LESS BUTTON
+================================ */
+.ec-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+
+  font-weight: 600;
+}
+
+/* ===============================
+   RESPONSIVE SAFETY
+================================ */
+@media (max-width: 1024px) {
+  .ec-card {
+    flex: 0 0 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ec-card {
+    flex: 0 0 160px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+::ng-deep .alert-red {
+  color: red;
+}
+
+::ng-deep .alert-green {
+  color: green;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
