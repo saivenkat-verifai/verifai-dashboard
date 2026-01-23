@@ -999,7 +999,7 @@ export class EventsComponent {
       this.falseChecked = false;
       // wait for dateRangeSelected
     } else {
-      // this.loadPendingEvents();
+      this.loadPendingEvents();
       // this.eventsService.getConsoleEventsCounts_1_0()
       this.loadEscalatedDetails();
     }
@@ -1190,7 +1190,7 @@ export class EventsComponent {
           });
         });
 
-        this.refreshData();
+        // this.refreshData();
       }
       // ✅ refresh button wiring (apply + call API + start timer)
       const btn = clone.querySelector(
@@ -2097,6 +2097,7 @@ export class EventsComponent {
           let alertColor = "#53BF8B";
           if (e?.eventType === "Manual_Wall") alertColor = "#FFC400";
           else if (e?.eventType === "Event_Wall") alertColor = "#53BF8B";
+          else if (e?.eventType === "Manual_Event") alertColor = "#353636ff";
 
           const empName = e?.userName ?? e?.user ?? "";
           const empLevel = e?.userLevels ?? "N/A";
