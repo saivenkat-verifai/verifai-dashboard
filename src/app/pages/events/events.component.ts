@@ -605,7 +605,7 @@ export class EventsComponent {
     this.selectedEndDate = this.selectedDate;
     this.setupColumnDefs();
     // this.loadPendingEvents();
-    this.preloadPendingCounts();
+    // this.preloadPendingCounts();
     // this.preloadClosedCounts();
 
     // this.timezoneDropdown();
@@ -916,7 +916,8 @@ export class EventsComponent {
     } else {
       this.loadPendingEvents();
       // this.eventsService.getConsoleEventsCounts_1_0()
-      this.loadEscalatedDetails();
+      // this.loadEscalatedDetails();
+      this.preloadPendingCounts();
     }
   }
 
@@ -947,7 +948,7 @@ export class EventsComponent {
 
     this.loadPendingEvents();
     this.preloadPendingCounts();
-    this.loadEscalatedDetails();
+    // this.loadEscalatedDetails();
 
     // if (this.showMore) {
     //   this.loadEscalatedDetails();
@@ -2113,57 +2114,57 @@ export class EventsComponent {
 
   escalatedDetailsPending: EscalatedDetail[] = [];
 
-  loadEscalatedDetails(): void {
-    // CLOSED
-    // if (this.selectedFilter === "CLOSED") {
+  // loadEscalatedDetails(): void {
+  //   // CLOSED
+  //   // if (this.selectedFilter === "CLOSED") {
 
 
-    //   const start = this.formatDateTimeFull(this.selectedStartDate!);
-    //   const end = this.formatDateTimeFull(this.selectedEndDate!);
+  //   //   const start = this.formatDateTimeFull(this.selectedStartDate!);
+  //   //   const end = this.formatDateTimeFull(this.selectedEndDate!);
 
    
    
-    //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
+  //   //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
 
  
-    // }
+  //   // }
 
-    // PENDING
-    if(this.selectedFilter=='PENDING'){
+  //   // PENDING
+  //   // if(this.selectedFilter=='PENDING'){
 
-      if (!this.consolesChecked && !this.queuesChecked) {
-        this.escalatedDetailsPending = [];
-        return;
-      }
+  //   //   if (!this.consolesChecked && !this.queuesChecked) {
+  //   //     this.escalatedDetailsPending = [];
+  //   //     return;
+  //   //   }
   
-      const consoles$ = this.consolesChecked
-        ? this.eventsService.getConsoleEventsCounts_1_0()
-        : of(null);
-      const queues$ = this.queuesChecked
-        ? this.eventsService.getPendingEventsCounts_1_0()
-        : of(null);
+  //   //   const consoles$ = this.consolesChecked
+  //   //     ? this.eventsService.getConsoleEventsCounts_1_0()
+  //   //     : of(null);
+  //   //   const queues$ = this.queuesChecked
+  //   //     ? this.eventsService.getPendingEventsCounts_1_0()
+  //   //     : of(null);
   
-      forkJoin([consoles$, queues$]).subscribe({
-        next: ([consolesRes, queuesRes]) => {
-          const details: EscalatedDetail[] = [];
+  //   //   forkJoin([consoles$, queues$]).subscribe({
+  //   //     next: ([consolesRes, queuesRes]) => {
+  //   //       const details: EscalatedDetail[] = [];
   
-          if (queuesRes) {
-            details.push(this.buildQueuesEscalationCard(queuesRes));
-          }
+  //   //       if (queuesRes) {
+  //   //         details.push(this.buildQueuesEscalationCard(queuesRes));
+  //   //       }
   
-          if (consolesRes) {
-            details.push(this.buildConsoleEscalationCard(consolesRes));
-          }
+  //   //       if (consolesRes) {
+  //   //         details.push(this.buildConsoleEscalationCard(consolesRes));
+  //   //       }
   
-          this.escalatedDetailsPending = details;
-        },
-        error: (err) => {
-          console.error("Error loading escalated details for PENDING:", err);
-          this.escalatedDetailsPending = [];
-        },
-      });
-    }
-  }
+  //   //       this.escalatedDetailsPending = details;
+  //   //     },
+  //   //     error: (err) => {
+  //   //       console.error("Error loading escalated details for PENDING:", err);
+  //   //       this.escalatedDetailsPending = [];
+  //   //     },
+  //   //   });
+  //   // }
+  // }
 
   private buildQueuesEscalationCard(res: any): EscalatedDetail {
     const total =
