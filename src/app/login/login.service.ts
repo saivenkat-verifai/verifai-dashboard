@@ -33,7 +33,7 @@ export interface LoginResponse {
 @Injectable({ providedIn: "root" })
 export class AuthService {
   /** 🔹 Base URL from environment */
-  private readonly baseUrl = `${environment.authBaseUrl}/userDetails`;
+  private readonly baseUrl = `${environment.authBaseUrl}`;
 
   /** 🔹 Storage keys */
   private readonly USER_KEY = 'verifai_user';

@@ -8,49 +8,48 @@ import { environment } from "src/environments/environment";
 })
 export class GroupsService {
   // 🔹 Base URL from environment
-  private readonly apiBaseUrl = environment.apiBaseUrl;
 
   private readonly getQueuesUrl =
-    `${this.apiBaseUrl}/events_data/getQueuesDetails_1_0`;
+    `${environment.eventDataUrl}/getQueuesDetails_1_0`;
 
   private readonly getQueueSitesAndUsersUrl =
-    `${this.apiBaseUrl}/events_data/getQueueSitesAndUsers_1_0`;
+    `${environment.eventDataUrl}/getQueueSitesAndUsers_1_0`;
 
   private readonly createQueueUrl =
-    `${this.apiBaseUrl}/events_data/createQueue_1_0`;
+    `${environment.eventDataUrl}/createQueue_1_0`;
 
   private readonly getLevelsInfoUrl =
-    `${this.apiBaseUrl}/events_data/getLevelsInfo_1_0`;
+    `${environment.eventDataUrl}/getLevelsInfo_1_0`;
 
   private readonly getCamerasForQueuesUrl =
-    `${this.apiBaseUrl}/events_data/getCamerasForQueues_1_0`;
+    `${environment.eventDataUrl}/getCamerasForQueues_1_0`;
 
   private readonly getSitesForQueuesUrl =
-    `${this.apiBaseUrl}/events_data/getSitesForQueues_1_0`;
+    `${environment.eventDataUrl}/getSitesForQueues_1_0`;
 
   private readonly addSiteCameraForQueueUrl =
-    `${this.apiBaseUrl}/events_data/addSiteCameraForQueue_1_0`;
+    `${environment.eventDataUrl}/addSiteCameraForQueue_1_0`;
 
   // New APIs
   private readonly listUsersByDepartmentUrl =
-    `${this.apiBaseUrl}/events_data/listUsersByDepartment_1_0`;
+    `${environment.eventDataUrl}/listUsersByDepartment_1_0`;
 
   private readonly addQueueUsersUrl =
-    `${this.apiBaseUrl}/events_data/addQueueUsers_1_0`;
+    `${environment.eventDataUrl}/addQueueUsers_1_0`;
 
   private readonly inActiveQueueUserMappingUrl =
-    `${this.apiBaseUrl}/events_data/inActiveQueueUserMapping_1_0`;
+    `${environment.eventDataUrl}/inActiveQueueUserMapping_1_0`;
 
   private readonly inActiveQueueSiteMappingUrl =
-    `${this.apiBaseUrl}/events_data/inActiveQueueSiteMapping_1_0`;
+    `${environment.eventDataUrl}/inActiveQueueSiteMapping_1_0`;
 
   private readonly inActiveQueueUrl =
-    `${this.apiBaseUrl}/events_data/inActiveQueue_1_0`;
+    `${environment.eventDataUrl}/inActiveQueue_1_0`;
 
   private readonly inActiveQueueCameraMappingUrl =
-    `${this.apiBaseUrl}/events_data/inActiveQueueCameraMapping_1_0`;
+    `${environment.eventDataUrl}/inActiveQueueCameraMapping_1_0`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // First API: Get all queues
   getGroups(): Observable<any> {

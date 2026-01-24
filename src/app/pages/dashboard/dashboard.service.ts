@@ -10,9 +10,10 @@ import { DatePipe } from "@angular/common";
   providedIn: "root",
 })
 export class DashboardService {
-  private readonly baseUrl = `${environment.mqApiBaseUrl}/queueManagement/getEventDashboardHourlyCounts_1_0`;
 
-  constructor(private http: HttpClient, private datePipe: DatePipe) {}
+  private readonly baseUrl = `${environment.mqApiBaseUrl}/getEventDashboardHourlyCounts_1_0`;
+
+  constructor(private http: HttpClient, private datePipe: DatePipe) { }
 
   isTimeSelected = false;
   getEventCountsByRange(
@@ -36,7 +37,7 @@ export class DashboardService {
     } else {
       toDateTime = this.formatDateTime(endDate, endTime);
     }
-   
+
 
     const apiUrl = `${this.baseUrl}?fromDate=${encodeURIComponent(
       fromDateTime
