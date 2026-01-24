@@ -7,36 +7,32 @@ import { environment } from "src/environments/environment";
   providedIn: "root",
 })
 export class EventsService {
-  // 🔹 Base URLs from environment
-  private readonly apiBaseUrl = environment.apiBaseUrl;
-  private readonly mqBaseUrl =
-    environment.mqApiBaseUrl ?? environment.apiBaseUrl;
 
-  // 🔹 events_data endpoints
-  private readonly eventReportFullData = `${this.apiBaseUrl}/events_data/getEventReportFullData_1_0`;
+  // 🔹 events data endpoints
+  private readonly eventReportFullData = `${environment.eventDataUrl}/getEventReportFullData_1_0`;
 
-  private readonly actionTagCategoriesUrl = `${this.apiBaseUrl}/events_data/getActionTagCategories_1_0`;
+  private readonly actionTagCategoriesUrl = `${environment.eventDataUrl}/getActionTagCategories_1_0`;
 
-  private readonly eventReportCountsForActionTag = `${this.apiBaseUrl}/events_data/getEventReportCountsForActionTag_1_0`;
+  private readonly eventReportCountsForActionTag = `${environment.eventDataUrl}/getEventReportCountsForActionTag_1_0`;
 
-  private readonly getEventsMoreInfoUrl = `${this.apiBaseUrl}/events_data/getEventsMoreInfo_1_0`;
+  private readonly getEventsMoreInfoUrl = `${environment.eventDataUrl}/getEventsMoreInfo_1_0`;
 
-  private readonly addCommentForEventUrl = `${this.apiBaseUrl}/events_data/addCommentForEvent_1_0`;
+  private readonly addCommentForEventUrl = `${environment.eventDataUrl}/addCommentForEvent_1_0`;
 
-  private readonly updateEventsMoreInfoUrl = `${this.apiBaseUrl}/events_data/updateEventsMoreInfo_1_0`;
+  private readonly updateEventsMoreInfoUrl = `${environment.eventDataUrl}/updateEventsMoreInfo_1_0`;
 
-  private readonly consoleEventsCountsUrl = `${this.apiBaseUrl}/events_data/getConsoleEventsCounts_1_0`;
+  private readonly consoleEventsCountsUrl = `${environment.eventDataUrl}/getConsoleEventsCounts_1_0`;
 
-  private readonly consolePendingMessagesDataUrl = `${this.apiBaseUrl}/events_data/getConsolePendingMessages_1_0`;
+  private readonly consolePendingMessagesDataUrl = `${environment.eventDataUrl}/getConsolePendingMessages_1_0`;
 
   // 🔹 MQ / queueManagement endpoints
-  private readonly pendingMessagesUrl = `${this.mqBaseUrl}/queueManagement/getEventsPendingMessages_1_0`;
+  private readonly pendingMessagesUrl = `${environment.mqApiBaseUrl}/getEventsPendingMessages_1_0`;
 
-  private readonly consolePendingMessagesUrl = `${this.mqBaseUrl}/queueManagement/getConsolePendingMessages_1_0`;
+  private readonly consolePendingMessagesUrl = `${environment.mqApiBaseUrl}/getConsolePendingMessages_1_0`;
 
-  private readonly pendingEventsCountsUrl = `${this.mqBaseUrl}/queueManagement/getPendingEventsCounts_1_0`;
+  private readonly pendingEventsCountsUrl = `${environment.mqApiBaseUrl}/getPendingEventsCounts_1_0`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getSuspiciousEvents(
     actionTag: number,
@@ -56,7 +52,7 @@ export class EventsService {
     return this.http.get<any>(this.pendingEventsCountsUrl);
   }
 
-  // ✅ From events_data
+  // ✅ From events data
   getConsolePendingMessages_1_0(): Observable<any> {
     return this.http.get<any>(`${this.consolePendingMessagesDataUrl}`);
   }
@@ -131,13 +127,13 @@ export class EventsService {
   }
 
   timezoneDropdown() {
-    let url = `${this.apiBaseUrl}/events_data/getTimezones_1_0`;
+    let url = `${environment.eventDataUrl}/getTimezones_1_0`;
 
     return this.http.get(url);
   }
 
   downloadExcelreport(payload: any) {
-    let url = `${this.apiBaseUrl}/events_data/downloadEventsReport_1_0`;
+    let url = `${environment.eventDataUrl}/downloadEventsReport_1_0`;
     let params = new HttpParams();
 
     params = params.set("fromDate", payload?.fromDate);

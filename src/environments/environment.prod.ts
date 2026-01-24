@@ -1,10 +1,9 @@
-// src/environments/environment.prod.ts
-
 export const environment = {
   name: "prod",
   production: true,
-  apiBaseUrl: "https://prod.ivisecurity.com",
-  authBaseUrl: "https://prod.ivisecurity.com",
-  mqApiBaseUrl: "https://prodmq.ivisecurity.com",
+  // apiBaseUrl: "https://prod.ivisecurity.com",
+  authBaseUrl: "https://prod.ivisecurity.com/userDetails",
+  mqApiBaseUrl: "https://prodmq.ivisecurity.com/queueManagement",
+  eventDataUrl: "https://prod.ivisecurity.com/events_data",
   loggingEnabled: false,
 };
