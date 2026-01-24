@@ -5,6 +5,7 @@ import * as CryptoJS from 'crypto-js';
 import { Router } from '@angular/router';
 import { environment } from 'src/environments/environment';
 
+
 export interface LoginResponse {
   Status?: string;
   message?: string;
@@ -168,12 +169,12 @@ export class AuthService {
   /** =========================
    * LOGOUT
    * ========================= */
-  logout(): void {
+  logout() {
     localStorage.removeItem(this.USER_KEY);
     localStorage.removeItem(this.TOKEN_KEY);
     sessionStorage.removeItem(this.USER_KEY);
     sessionStorage.removeItem(this.TOKEN_KEY);
-
+  
     this.router.navigate(['/login'], { replaceUrl: true });
   }
 }

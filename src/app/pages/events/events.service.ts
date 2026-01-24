@@ -73,12 +73,15 @@ export class EventsService {
   getEventReportCountsForActionTag(
     startDate?: string,
     endDate?: string,
-    actionTag?: number,
+    suspiciouscheck?: boolean,
+    falsecheck?:boolean,
     timezone?: string,
   ): Observable<any> {
+
     const url =
       `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
-      `&toDate=${endDate}&actionTag=${actionTag}`;
+      `&toDate=${endDate}&falseActionTag=${falsecheck}&suspiciousActionTag=${suspiciouscheck}`;
+
 
     let params = new HttpParams();
 

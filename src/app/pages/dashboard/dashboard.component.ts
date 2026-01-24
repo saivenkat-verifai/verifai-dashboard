@@ -9,6 +9,7 @@ import { LineChartComponent } from "src/app/shared/line-chart/line-chart.compone
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 import { FormsModule } from '@angular/forms';
 import { EventsService } from '../events/events.service';
+import { IdleService } from 'src/Services/idle.service';
 
 interface CardDot {
   iconcolor: string;
@@ -51,11 +52,12 @@ export class DashboardComponent implements OnInit {
   timezones: any[] = [];
   timeZone = '';
 
-  constructor(private dashboardService: DashboardService, private eventService: EventsService) { }
+  constructor(private dashboardService: DashboardService, private eventService: EventsService,private idleService : IdleService) { }
 
   ngOnInit() {
     const now = new Date();
     this.timezoneDropdown();
+    this.idleService.startWatching();
   }
 
 

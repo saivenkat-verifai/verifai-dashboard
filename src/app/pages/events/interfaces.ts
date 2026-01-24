@@ -59,6 +59,7 @@ export interface CardDot {
   count: number;
 }
 
+
 export interface EscalatedDetail {
   label: string;
   value: number;

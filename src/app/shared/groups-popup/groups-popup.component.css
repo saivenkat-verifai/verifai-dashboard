@@ -55,9 +55,10 @@
 
 .popup-container {
   max-width: 1200px;
-  margin: auto;
+  /* margin: auto; */
   background: #fff;
   border-radius: 12px;
+  overflow-y: auto;
 }
 
 h2 {

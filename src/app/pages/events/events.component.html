@@ -142,20 +142,7 @@
           </div>
 
           <div class="popup-body add-comment-body">
-            <!-- Tag -->
-            <!-- <div class="form-group">
-              <label class="form-label">Tag</label>
-              <select
-                class="select-input"
-                [(ngModel)]="addCommentForm.tag"
-                name="commentTag"
-              >
-                <option [ngValue]="null">Select</option>
-                <option *ngFor="let t of commentTags" [ngValue]="t.value">
-                  {{ t.label }}
-                </option>
-              </select>
-            </div> -->
+    
 
             <!-- Comment -->
             <div class="form-group">
@@ -346,7 +333,7 @@
         <ng-container *ngIf="selectedFilter === 'CLOSED'">
 
 
-          <ng-container *ngIf="escalatedDetailsCombined.length > 0  ; else noClosedData">
+          <ng-container *ngIf="escalatedDetailsCombined.length != 0  ; else noClosedData">
 
             <div class="closed-wrapper">
               <div class="closed-body">
@@ -391,30 +378,7 @@
 
         </ng-container>
 
-        <!-- PENDING More Section -->
-        <!-- <ng-container *ngIf="selectedFilter === 'PENDING'">
-          <div class="escalated-content-section">
-            <div class="escalated-section-body">
-              <div class="escalated-section first-section">
-                <div class="escalated-card" *ngFor="let e of escalatedDetailsPending">
-                  <div class="escalated-card-content">
-                    <h4 class="labelmargin">{{ e.label }}</h4>
-                    <h4 class="labelmargin">{{ e.value }}</h4>
-                  </div>
-
-                  <div class="icons">
-                    <div class="dots-column" *ngIf="e.colordot">
-                      <div class="icon-section" *ngFor="let dot of e.colordot">
-                        <span class="dot-label">{{ dot.label }}</span>
-                        <span class="dot-count">{{ dot.count }}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ng-container> -->
+     
         <ng-container *ngIf="selectedFilter === 'PENDING'">
           <div class="pending-wrapper">
             <div class="pending-row">

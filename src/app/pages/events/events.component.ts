@@ -1,3 +1,4 @@
+
 import {
   Component,
   OnInit,
@@ -93,7 +94,7 @@ interface SecondEscalatedDetail {
     CalendarComponent,
     OverlayPanelModule,
     EventsFilterPanelComponent,
-    ImagePipe,
+   
   ],
 })
 export class EventsComponent {
@@ -595,25 +596,7 @@ export class EventsComponent {
     private zone: NgZone,
   ) {}
 
-  private getAuthHeaders(): HttpHeaders {
-    let rawToken = localStorage.getItem("acTok");
-    let token: string | null = null;
 
-    try {
-      if (rawToken) {
-        token = rawToken.startsWith('"') ? JSON.parse(rawToken) : rawToken;
-      }
-    } catch (e) {
-      console.error(
-        "EventsComponent: failed to parse token from localStorage",
-        e,
-      );
-    }
-
-    return token
-      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-      : new HttpHeaders();
-  }
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
@@ -623,7 +606,7 @@ export class EventsComponent {
     this.setupColumnDefs();
     // this.loadPendingEvents();
     this.preloadPendingCounts();
-    this.preloadClosedCounts();
+    // this.preloadClosedCounts();
 
     // this.timezoneDropdown();
 
@@ -689,89 +672,36 @@ export class EventsComponent {
     });
   }
 
+  EscalatedDetailCombined:any=[];
   /** ✅ Preload CLOSED counts cards (without needing MORE click) */
   private preloadClosedCounts(): void {
     if (this.selectedFilter !== "CLOSED") return;
 
     if (!this.selectedStartDate || !this.selectedEndDate) {
-      this.escalatedDetailsFalse = [];
+      this.EscalatedDetailCombined = [];
       return;
     }
 
     if (!this.suspiciousChecked && !this.falseChecked) {
-      this.escalatedDetailsFalse = [];
+      this.EscalatedDetailCombined = [];
       return;
     }
 
-    // const actionTag = this.suspiciousChecked ? 2 : 1;
+  
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-    // this.escalatedDetailsFalse = [];
 
-    if (this.falseChecked) {
-    this.actionTagCountsclosed(start, end, 1);
-  }
 
-  if (this.suspiciousChecked) {
-    this.actionTagCountsclosed(start, end, 2);
-  } 
+   this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
 
   }
 
-  actionTagCountsclosed(start: any, end: any, actionTag: any) {
-    // this.eventsService
-    // .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
-    // .subscribe({
-    //   next: (res) => {
-    //     const counts = res?.counts || {};
-    //     const keys = Object.keys(counts);
-
-    //     if (keys.length === 1 && (keys[0] === "null" || keys[0] == null)) {
-    //       this.escalatedDetailsFalse = [];
-    //       return;
-    //     }
-
-    //     const details: EscalatedDetail[] = [];
-
-    //     Object.entries(counts).forEach(([label, data]: any) => {
-    //       if (!label || label === "null") return;
-
-    //       details.push({
-    //         label,
-    //         value: data.totalCount || 0,
-    //         color: ESCALATED_COLORS[0],
-    //         icons: [
-    //           { iconPath: "assets/home.svg", count: data.sites || 0 },
-    //           { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-    //         ],
-    //         colordot: [
-    //           {
-    //             iconcolor: "#53BF8B",
-    //             label: "Event Wall",
-    //             count: data.Event_Wall || 0,
-    //           },
-    //           {
-    //             iconcolor: "#FFC400",
-    //             label: "Manual Wall",
-    //             count: data.Manual_Wall || 0,
-    //           },
-    //         ],
-    //       });
-    //     });
-
-    //   console.log(details)
-
-    //     this.escalatedDetailsFalse = details;
-    //   },
-    //   error: (err) => {
-    //     console.error("preloadClosedCounts failed:", err);
-    //     this.escalatedDetailsFalse = [];
-    //   },
-    // });
+  actionTagCountsclosed(start: any, end: any, suspiciouscheck: any,falsecheck:any) {
+    
 
      this.eventsService
-    .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
+    .getEventReportCountsForActionTag(start, end, suspiciouscheck,falsecheck, this.timeZone)
     .subscribe({
       next: (res) => {
         const counts = res?.counts || [];
@@ -808,26 +738,22 @@ export class EventsComponent {
           });
         });
 
-        // 🔥 Assign based on actionTag
-        if (actionTag === 1) {
-          this.escalatedDetailsFalse = result;
-        } else if (actionTag === 2) {
-          this.escalatedDetailsSuspicious = result;
-        }
+       
+      
+       
+          this.EscalatedDetailCombined = result;
+        
      
       },
       error: () => {
-        if (actionTag === 1) this.escalatedDetailsFalse = [];
-        if (actionTag === 2) this.escalatedDetailsSuspicious = [];
+      
+        this.EscalatedDetailCombined = [];
       },
     });
   }
 
   get escalatedDetailsCombined(): EscalatedDetail[] {
-  return [
-    ...(this.falseChecked ? this.escalatedDetailsFalse : []),
-    ...(this.suspiciousChecked ? this.escalatedDetailsSuspicious : [])
-  ];
+  return this.EscalatedDetailCombined;
 }
 
 
@@ -948,17 +874,6 @@ export class EventsComponent {
     this.stopImageLoop();
   }
 
-  /** -------------------- Toast helpers -------------------- */
-  // onToastClose(event: any) {
-  //   this.toastMessages = this.toastMessages.filter((m) => m !== event.message);
-  // }
-
-  // showToast(severity: string, summary: string, detail: string, life = 3000) {
-  //   this.toastMessages = [
-  //     ...this.toastMessages,
-  //     { severity, summary, detail, life },
-  //   ];
-  // }
 
   /** -------------------- Toast helpers (PrimeNG) -------------------- */
   private showSuccess(summary: string, detail?: string) {
@@ -1015,7 +930,7 @@ export class EventsComponent {
     }
     this.loadClosedAndEscalatedDetails();
     this.preloadClosedCounts();
-    this.loadEscalatedDetails();
+    // this.loadEscalatedDetails();
 
       
   }
@@ -1046,19 +961,19 @@ export class EventsComponent {
     // }
   }
 
-  onSuspiciousToggle(): void {
-    this.suspiciousChecked = true;
-    this.falseChecked = false;
-    this.loadClosedAndEscalatedDetails();
-    if (this.showMore) this.loadEscalatedDetails();
-  }
+  // onSuspiciousToggle(): void {
+  //   this.suspiciousChecked = true;
+  //   this.falseChecked = false;
+  //   // this.loadClosedAndEscalatedDetails();
+  //   // if (this.showMore) this.loadEscalatedDetails();
+  // }
 
-  onFalseToggle(): void {
-    this.suspiciousChecked = false;
-    this.falseChecked = true;
-    this.loadClosedAndEscalatedDetails();
-    if (this.showMore) this.loadEscalatedDetails();
-  }
+  // onFalseToggle(): void {
+  //   this.suspiciousChecked = false;
+  //   this.falseChecked = true;
+  //   // this.loadClosedAndEscalatedDetails();
+  //   // if (this.showMore) this.loadEscalatedDetails();
+  // }
 
   onconsolesToggle(): void {
     this.consolesChecked = true;
@@ -2195,118 +2110,23 @@ export class EventsComponent {
   }
 
   /** -------------------- Escalated "More" cards -------------------- */
-  escalatedDetailsFalse: EscalatedDetail[] = [];
-  escalatedDetailsSuspicious: EscalatedDetail[] = [];
+
   escalatedDetailsPending: EscalatedDetail[] = [];
 
   loadEscalatedDetails(): void {
     // CLOSED
-    if (this.selectedFilter === "CLOSED") {
-      const actionTag = this.suspiciousChecked ? 2 : 1;
+    // if (this.selectedFilter === "CLOSED") {
 
-      const start = this.formatDateTimeFull(this.selectedStartDate!);
-      const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-      // this.eventsService
-      //   .getEventReportCountsForActionTag(start, end, actionTag)
-      //   .subscribe({
-      //     next: (res) => {
-      //       const counts = res?.counts || {};
-      //       const keys = Object.keys(counts);
+    //   const start = this.formatDateTimeFull(this.selectedStartDate!);
+    //   const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-      //       if (keys.length === 1 && (keys[0] === "null" || keys[0] === null)) {
-      //         this.escalatedDetailsFalse = [];
-      //         return;
-      //       }
-
-      //       const details: EscalatedDetail[] = [];
-
-      //       Object.entries(counts).forEach(([label, data]: any) => {
-      //         if (label === "null") return;
-
-      //         details.push({
-      //           label,
-      //           value: data.totalCount || 0,
-      //           color: ESCALATED_COLORS[0],
-      //           icons: [
-      //             { iconPath: "assets/home.svg", count: data.sites || 0 },
-      //             { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-      //           ],
-      //           colordot: [
-      //             {
-      //               iconcolor: "#53BF8B",
-      //               label: "Event Wall",
-      //               count: data.Event_Wall || 0,
-      //             },
-      //             {
-      //               iconcolor: "#FFC400",
-      //               label: "Manual Wall",
-      //               count: data.Manual_Wall || 0,
-      //             },
-      //           ],
-      //         });
-      //       });
-
-      //       this.escalatedDetailsFalse=details ;
-      //     },
-
-      //     error: () => {
-      //       this.escalatedDetailsFalse = [];
-      //     },
-      //   });
-    this.eventsService
-    .getEventReportCountsForActionTag(start, end, actionTag, this.timeZone)
-    .subscribe({
-      next: (res) => {
-        const counts = res?.counts || [];
-        const result: EscalatedDetail[] = [];
-
-        Object.entries(counts).forEach(([label, data]: any) => {
-          if (!label || label === "null") return;
-
-          result.push({
-            label,
-            value: data.totalCount || 0,
-            color: ESCALATED_COLORS[0],
-            icons: [
-              { iconPath: "assets/home.svg", count: data.sites || 0 },
-              { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-            ],
-            colordot: [
-              {
-                iconcolor: "#53BF8B",
-                label: "Event Wall",
-                count: data.Event_Wall || 0,
-              },
-              {
-                iconcolor: "#FFC400",
-                label: "Manual Wall",
-                count: data.Manual_Wall || 0,
-              },
-              {
-                iconcolor: "#353636ff",
-                label: "Manual Event",
-                count: data.Manual_Event || 0,
-              },
-            ],
-          });
-        });
-
-        // 🔥 Assign based on actionTag
-        if (actionTag === 1) {
-          this.escalatedDetailsFalse = result;
-        } else if (actionTag === 2) {
-          this.escalatedDetailsSuspicious = result;
-        }
-      },
-      error: () => {
-        if (actionTag === 1) this.escalatedDetailsFalse = [];
-        if (actionTag === 2) this.escalatedDetailsSuspicious = [];
-      },
-    });
+   
+   
+    //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
 
  
-    }
+    // }
 
     // PENDING
     if(this.selectedFilter=='PENDING'){
