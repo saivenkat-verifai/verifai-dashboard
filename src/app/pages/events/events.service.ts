@@ -71,7 +71,8 @@ export class EventsService {
     endDate?: string,
     suspiciouscheck?: boolean,
     falsecheck?:boolean,
-    timezone?: string,
+
+    filter?:any
   ): Observable<any> {
 
     const url =
@@ -84,8 +85,22 @@ export class EventsService {
     // if (actionTag) {
     //   params = params.set("actionTag", actionTag);
     // }
-    if (timezone !== null && timezone !== undefined && timezone !== "") {
-      params = params.set("timezone", timezone);
+    if (filter.timeZone !== null && filter.timeZone !== "All" && filter.timeZone !== "") {
+      params = params.set("timezone", filter.timeZone.timezoneCode);
+    }
+
+    if(filter.site !== null){
+      params = params.set("siteId", filter.site.siteId);
+    }
+
+  if(filter.camera !== null && filter.camera!== "" && filter.camera!== "All"){
+
+      params = params.set("cameraId", filter.camera);
+    }
+    
+      if(filter.consoleType !== null && filter.consoleType!== "" && filter.consoleType!== "All"){
+
+      params = params.set("EventType", filter.consoleType);
     }
 
     return this.http.get<any>(url, { params });

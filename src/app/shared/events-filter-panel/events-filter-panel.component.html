@@ -2,7 +2,7 @@
   <div class="events-filter-header">
     <span class="events-filter-title">FILTER</span>
     <button type="button" class="events-filter-close" (click)="onClose()" aria-label="Close filters">
-      ×
+      × 
     </button>
   </div>
 
@@ -77,9 +77,9 @@
   <!-- Site -->
   <div class="events-filter-group">
     <label class="events-filter-label">Select Site</label>
-    <select class="events-filter-select" [(ngModel)]="model.site"  (ngModelChange)="onCriteriaChanged()" >
-      <option value="All">All</option>
-      <option *ngFor="let s of sites" [value]="s">{{ s }}</option>
+    <select class="events-filter-select" [(ngModel)]="model.site"  (ngModelChange)="onCriteriaChanged()" [compareWith]="compareSites">
+      <option [ngValue]="null">All</option>
+      <option *ngFor="let s of sites" [ngValue]="s">{{ s.site }}</option>
     </select>
   </div>
 
@@ -92,6 +92,15 @@
     </select>
   </div>
 
+
+   <div class="events-filter-group">
+     <label class="events-filter-label">Select Timezone</label>
+          <select class="events-filter-select" [(ngModel)]="model.timeZone" (ngModelChange)="onCriteriaChanged()" [compareWith]="compareTimezones">
+            <option [ngValue]="null">All</option>
+            <option *ngFor="let item of timezones" [ngValue]="item">   {{ item.timezoneValue }} - {{item.timezoneCode}}</option>
+          </select>
+        </div>
+
   <!-- Action Tag (you use eventTypes array) -->
   <div class="events-filter-group">
     <label class="events-filter-label">Select Action Tag</label>
@@ -100,6 +109,8 @@
       <option *ngFor="let e of eventTypes" [value]="e">{{ e }}</option>
     </select>
   </div>
+
+
 
   <!-- Alert Type -->
   <div class="events-filter-group">

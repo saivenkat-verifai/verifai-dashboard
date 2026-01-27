@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { EventsService } from 'src/app/pages/events/events.service';
 
 /** 👉 Shared between EventsComponent and this panel */
 export interface EventsFilterCriteria {
@@ -12,7 +13,9 @@ export interface EventsFilterCriteria {
   maxDuration: number | null;
 
   city: string;
-  site: string;
+   timeZone: Timezoneoption | null,
+   site: SiteOption | null;
+
   camera: string;
   actionTag: string;   // used mainly in CLOSED tab
   eventType: string;   // used as "Alert Type"
@@ -25,6 +28,17 @@ export interface EventsFilterCriteria {
   consoleType: string;
 }
 
+export interface SiteOption {
+  siteId: number;
+  site: string;
+}
+
+export interface Timezoneoption {
+  timezoneCode: string;
+  timezoneValue: string;
+}
+
+
 @Component({
   selector: 'app-events-filter-panel',
   standalone: true,
@@ -36,7 +50,7 @@ export class EventsFilterPanelComponent {
   @Input() showDateRange = true;
 
   @Input() cities: string[] = [];
-  @Input() sites: string[] = [];
+  @Input() sites: any[] = [];
   @Input() cameras: string[] = [];
   @Input() actionTags: string[] = [];
   @Input() eventTypes: string[] = [];
@@ -78,7 +92,8 @@ export class EventsFilterPanelComponent {
     maxDuration: 1440,
     userLevels: 'All',
     city: 'All',
-    site: 'All',
+   timeZone : null,   
+   site: null, 
     camera: 'All',
     actionTag: 'All',
     eventType: 'All',
@@ -87,6 +102,30 @@ export class EventsFilterPanelComponent {
     queueName: 'All',
     consoleType: 'All',
   };
+
+  constructor(private eventService:EventsService){
+
+  }
+
+ngOnInit(){
+this.timezoneDropdown()
+}
+
+timezones:any;
+  timezoneDropdown() {
+    this.eventService.timezoneDropdown().subscribe((res: any) => {
+      this.timezones = res.timezones;
+     
+    })
+  }
+
+compareSites = (a: any, b: any): boolean => {
+  return a && b ? a.siteId === b.siteId : a === b;
+};
+
+compareTimezones = (a: any, b: any): boolean => {
+  return a && b ? a.timezoneValue === b.timezoneValue : a === b;
+};
 
   onCriteriaChanged(): void {
     this.criteriaChange.emit({ ...this.model });
@@ -134,6 +173,7 @@ export class EventsFilterPanelComponent {
   /** -------------------- UI events -------------------- */
 
   onClose(): void {
+
     this.close.emit();
   }
 
@@ -145,7 +185,7 @@ export class EventsFilterPanelComponent {
     this.apply.emit(this.model);
   }
 
-  onReset(): void {
+  onReset() {
     this.model = {
       startDate: null,
       startTime: '00:00',
@@ -155,7 +195,8 @@ export class EventsFilterPanelComponent {
       maxDuration: 1440,
       userLevels: 'All',
       city: 'All',
-      site: 'All',
+      timeZone : null,  
+     site: null, 
       camera: 'All',
       actionTag: 'All',
       eventType: 'All',

@@ -146,7 +146,8 @@ export class EventsComponent {
     maxDuration: 1440,
     userLevels: "All",
     city: "All",
-    site: "All",
+    timeZone:null,
+    site: null,
     camera: "All",
     actionTag: "All",
     eventType: "All",
@@ -174,8 +175,9 @@ export class EventsComponent {
   }
 
   onFilterApply(criteria: EventsFilterCriteria) {
-    this.currentFilter = criteria;
 
+    this.preloadClosedCounts()
+    console.log(criteria.timeZone)
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
 
@@ -208,8 +210,12 @@ export class EventsComponent {
       // dropdowns
       const city = row.cityName ?? row.city;
       if (criteria.city !== "All" && city !== criteria.city) return false;
-      if (criteria.site !== "All" && row.siteName !== criteria.site)
+      if (criteria.site !== null && row.siteName !== criteria.site.site)
         return false;
+
+      if (criteria.timeZone !== null && row.timezone !== criteria.timeZone.timezoneValue)
+        return false;
+
       if (criteria.camera !== "All" && row.cameraId !== criteria.camera)
         return false;
 
@@ -268,7 +274,7 @@ export class EventsComponent {
 
   onFilterCriteriaChange(criteria: EventsFilterCriteria): void {
     this.currentFilter = { ...criteria };
-    console.log(criteria);
+   
     // ✅ rebuild dropdown lists based on current selections
     this.recomputeFilterDropdowns();
 
@@ -304,7 +310,14 @@ export class EventsComponent {
     // build each options list by filtering rows with currentFilter,
     // but ignoring the same field so options don't collapse incorrectly.
     const siteRows = this.filterRowsForOptions(rows, "site");
-    this.filterLists.sites = this.uniq(siteRows.map((r) => r.siteName));
+   this.filterLists.sites = Array.from(
+  new Map(
+    siteRows.map(r => [
+      r.siteId,
+      { siteId: r.siteId, site: r.siteName }
+    ])
+  ).values()
+);
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
     this.filterLists.cameras = this.uniq(cameraRows.map((r) => r.cameraId));
@@ -362,7 +375,7 @@ export class EventsComponent {
 
     return rows.filter((row) => {
       // Site
-      if (ignoreField !== "site" && c.site !== "All" && row.siteName !== c.site)
+      if (ignoreField !== "site" && c.site !== null && row.siteName !== c.site.site)
         return false;
 
       // Camera
@@ -499,7 +512,7 @@ export class EventsComponent {
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
 
-  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true };
+  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true, };
 
   /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
@@ -546,7 +559,7 @@ export class EventsComponent {
   /** -------------------- Filters (dropdown lists) -------------------- */
   filterLists = {
     cities: [] as string[],
-    sites: [] as string[],
+    sites: [] as any[],
     cameras: [] as string[],
     actionTags: ["Suspicious", "False", "Event_Wall", "Manual_Wall"],
     eventTypes: ["Event_Wall", "Manual_Wall", "Timed_Out"],
@@ -701,7 +714,7 @@ export class EventsComponent {
     
 
      this.eventsService
-    .getEventReportCountsForActionTag(start, end, suspiciouscheck,falsecheck, this.timeZone)
+    .getEventReportCountsForActionTag(start, end, suspiciouscheck,falsecheck,this.currentFilter)
     .subscribe({
       next: (res) => {
         const counts = res?.counts || [];
@@ -2028,7 +2041,7 @@ export class EventsComponent {
             device: e?.unitId,
             cameraId: e?.cameraId,
             duration: e?.eventDuration,
-            tz: e?.timezone,
+            timezone: e?.timezoneValue,
             eventStartTime: e?.eventStartTime,
             actionTag: e?.actionTag ?? e?.subActionTag,
             subActionTag: e?.subActionTag ?? e?.actionTag,
@@ -2203,7 +2216,8 @@ export class EventsComponent {
       maxDuration: 1440,
       userLevels: "All",
       city: "All",
-      site: "All",
+      timeZone : null,  
+      site: null,
       camera: "All",
       actionTag: "All",
       eventType: "All",
@@ -2278,7 +2292,14 @@ export class EventsComponent {
   private refreshDropdownListsFromClosed() {
     const rows = this.rowData || [];
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
-    this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
+ this.filterLists.sites = Array.from(
+  new Map(
+    rows.map(r => [
+      r.siteId,
+      { siteId: r.siteId, site: r.siteName }
+    ])
+  ).values()
+);
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // 🔁 Use levels instead of names
@@ -2296,28 +2317,12 @@ export class EventsComponent {
     // this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
 
-  selectedTimezone: any;
-  timezones: any[] = [];
-  timeZone = "";
 
-  timezonechange() {
-    // this.selectedTimezone = this.timezones.find(
-    //   (el) => el.timezoneCode === this.timeZone
-    // );
-    // if (this.selectedFilter == "CLOSED") {
-    //   this.loadClosedAndEscalatedDetails();
-    // }
-    // if (this.selectedFilter == "PENDING") {
-    //   this.loadPendingEvents();
-    // }
-  }
+  
 
-  timezoneDropdown() {
-    this.eventsService.timezoneDropdown().subscribe((res: any) => {
-      this.timezones = res.timezones;
-      this.timezonechange();
-    });
-  }
+
+
+
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
@@ -2380,7 +2385,7 @@ export class EventsComponent {
       },
       {
         headerName: "TZ",
-        field: "tz",
+        field: "timezone",
         headerClass: "custom-header",
         cellClass: "custom-cell",
         cellStyle: { opacity: "0.5" },
