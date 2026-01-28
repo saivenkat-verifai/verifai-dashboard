@@ -8,7 +8,7 @@ import { AuthService } from 'src/app/login/login.service';
 export class IdleService {
 
   private timeoutId: any;
-  private readonly IDLE_TIME = 1 * 60 * 1000; // 5 minutes
+  private readonly IDLE_TIME = 5 * 60 * 1000; // 5 minutes
 
   constructor(
     private router: Router,

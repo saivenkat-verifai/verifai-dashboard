@@ -1432,7 +1432,7 @@ export class EventsComponent {
 
     const item = params.data;
     const media: string[] = this.resolveMediaUrls(item);
-    console.log(item);
+   
 
     console.log("DEBUG media:", media);
 
@@ -1548,7 +1548,7 @@ export class EventsComponent {
   }
 
   getCurrentImageUrl() {
-    console.log(this.validImages.length);
+
     if (!this.validImages.length) return null;
     return this.validImages[this.currentSlideIndex] ?? this.validImages[0];
   }
