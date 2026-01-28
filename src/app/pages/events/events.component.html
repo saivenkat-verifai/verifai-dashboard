@@ -234,16 +234,15 @@
               <ng-container *ngIf="!isMediaLoading && validImages.length">
                 <ng-container *ngIf="getCurrentImageUrl() as media">
 
-                  <!-- IMAGE -->
-                  <img *ngIf="media.type === 'image'" class="play-image" [src]="media.url"
-                    (mouseenter)="stopImageLoop()" (mouseleave)="startImageLoop()" />
-
-                  <!-- VIDEO -->
-                  <video *ngIf="media.type === 'video'" width="100%" height="80%" controls autoplay
-                    (mouseenter)="stopImageLoop()" (mouseleave)="startImageLoop()">
-                    <source [src]="media.url" />
-                  </video>
-
+                  <div class="media-wrapper" (mouseenter)="stopImageLoop()" (mouseleave)="startImageLoop()">
+                    <!-- IMAGE -->
+                    <img *ngIf="media.type === 'image'" class="play-image" [src]="media.url"  />
+                  
+                    <!-- VIDEO -->
+                    <video *ngIf="media.type === 'video'" class="play-image" controls autoplay >
+                      <source [src]="media.url" />
+                    </video>
+                  </div>
                 </ng-container>
               </ng-container>
             </div>
