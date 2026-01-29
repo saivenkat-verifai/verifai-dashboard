@@ -25,9 +25,9 @@ interface DashboardCard {
 }
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css'],
+  selector: "app-dashboard",
+  templateUrl: "./dashboard.component.html",
+  styleUrls: ["./dashboard.component.css"],
   standalone: true,
   imports: [
     CommonModule,
@@ -37,7 +37,7 @@ interface DashboardCard {
     ColumnChartComponent,
     CalendarComponent,
     LineChartComponent,
-    FormsModule
+    FormsModule,
   ],
 })
 export class DashboardComponent implements OnInit {
@@ -50,9 +50,13 @@ export class DashboardComponent implements OnInit {
   compareGraph: any[] = [];
   hourlyBreakdownData: any[] = [];
   timezones: any[] = [];
-  timeZone = '';
+  timeZone = "";
 
-  constructor(private dashboardService: DashboardService, private eventService: EventsService,private idleService : IdleService) { }
+  constructor(
+    private dashboardService: DashboardService,
+    private eventService: EventsService,
+    private idleService: IdleService,
+  ) {}
 
   ngOnInit() {
     const now = new Date();
@@ -60,12 +64,11 @@ export class DashboardComponent implements OnInit {
     this.idleService.startWatching();
   }
 
-
   timezoneDropdown() {
     this.eventService.timezoneDropdown().subscribe((res: any) => {
       this.timezones = res.timezones;
       this.timezonechange();
-    })
+    });
   }
 
   // getCircleGradient(percent: number): string {
@@ -88,8 +91,10 @@ export class DashboardComponent implements OnInit {
 
   selectedTimezone: any;
   timezonechange() {
-    this.selectedTimezone = this.timezones.find((el) => el.timezoneCode === this.timeZone);
-    this.onDateRangeSelected(this.event)
+    this.selectedTimezone = this.timezones.find(
+      (el) => el.timezoneCode === this.timeZone,
+    );
+    this.onDateRangeSelected(this.event);
   }
 
   onDateRangeSelected(event: {
@@ -97,12 +102,18 @@ export class DashboardComponent implements OnInit {
     startTime: string;
     endDate: Date;
     endTime: string;
-
   }) {
-    this.event = event
+    this.event = event;
     this.isLoading = true;
     this.dashboardService
-      .getEventCountsByRange(event.startDate, event.startTime, event.endDate, event.endTime, this.timeZone, this.selectedTimezone?.timezoneValue)
+      .getEventCountsByRange(
+        event.startDate,
+        event.startTime,
+        event.endDate,
+        event.endTime,
+        this.timeZone,
+        this.selectedTimezone?.timezoneValue,
+      )
       .subscribe({
         next: (data) => {
           if (!data) return;
@@ -119,34 +130,40 @@ export class DashboardComponent implements OnInit {
 
   private mapCards(data: any): DashboardCard[] {
     const formatTitle = (k: string) =>
-      k.replace(/[_\-]/g, ' ')
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/\s+/g, ' ')
+      k
+        .replace(/[_\-]/g, " ")
+        .replace(/([A-Z])/g, " $1")
+        .replace(/\s+/g, " ")
         .trim()
-        .replace(/^./, s => s.toUpperCase());
+        .replace(/^./, (s) => s.toUpperCase());
 
     const items = Object.keys(data).map((rawKey) => {
       const value = data[rawKey] ?? {};
       const keyLc = rawKey.toLowerCase();
 
       // consider various "total" shapes but exclude percentage fields
-      const isTotal =
-        keyLc.includes('total') && !keyLc.includes('percentage');
+      const isTotal = keyLc.includes("total") && !keyLc.includes("percentage");
 
-      const percKey = Object.keys(value).find(k => k.toLowerCase().includes('percentage'));
+      const percKey = Object.keys(value).find((k) =>
+        k.toLowerCase().includes("percentage"),
+      );
 
       const card: DashboardCard & { _isTotal: boolean } = {
-        title: formatTitle(rawKey),                // becomes "Total Events" → template uppercases to "TOTAL EVENTS"
+        title: formatTitle(rawKey), // becomes "Total Events" → template uppercases to "TOTAL EVENTS"
         value: value.total ?? 0,
         percentage: !isTotal && percKey ? value[percKey] : undefined,
-        color: isTotal ? 'red' : 'white',
+        color: isTotal ? "red" : "white",
         colordot: [
-          { iconcolor: '#53BF8B', count: value.eventWall ?? 0 },
-          { iconcolor: '#FFC400', count: value.manualWall ?? 0 },
+          { iconcolor: "#53BF8B", count: value.eventWall ?? 0 },
+          { iconcolor: "#FFC400", count: value.manualWall ?? 0 },
+
+          (rawKey == "escalated") || (rawKey=="totalEvents")
+            ? { iconcolor: "#353636ff", count: value.manualEvent ?? 0 }
+            : { iconcolor: "", count: "" },
         ],
         icons: [
-          { iconPath: 'assets/home.svg', count: value.sitesCount ?? 0 },
-          { iconPath: 'assets/cam.svg', count: value.cameraCount ?? 0 },
+          { iconPath: "assets/home.svg", count: value.sitesCount ?? 0 },
+          { iconPath: "assets/cam.svg", count: value.cameraCount ?? 0 },
         ],
         _isTotal: isTotal,
       };
@@ -160,19 +177,23 @@ export class DashboardComponent implements OnInit {
     return items.map(({ _isTotal, ...rest }) => rest);
   }
 
-
   private mapDetails(details: any) {
+
     return Object.keys(details).map((k, i) => ({
       label: k.charAt(0).toUpperCase() + k.slice(1),
       value: details[k].total,
-      color: ESCALATED_COLORS[i] || '#000',
+      color: ESCALATED_COLORS[i] || "#000",
       colordot: [
-        { iconcolor: '#53BF8B', count: details[k].eventWall },
-        { iconcolor: '#FFC400', count: details[k].manualWall },
+        { iconcolor: "#53BF8B", count: details[k].eventWall },
+        { iconcolor: "#FFC400", count: details[k].manualWall },
+
+         k === "suspicious"
+            ? { iconcolor: "#353636ff", count: details[k].manualEvent }
+            : { iconcolor: "", count: "" },
       ],
       icons: [
-        { iconPath: 'assets/home.svg', count: details[k].sitesCount },
-        { iconPath: 'assets/cam.svg', count: details[k].cameraCount },
+        { iconPath: "assets/home.svg", count: details[k].sitesCount },
+        { iconPath: "assets/cam.svg", count: details[k].cameraCount },
       ],
     }));
   }
@@ -197,16 +218,26 @@ export class DashboardComponent implements OnInit {
     const series: any[] = [];
     Object.keys(details).forEach((k) => {
       const d = details[k];
+      
       series.push({
         name: `${k} - Event Wall`,
-        type: 'line',
+        type: "line",
         data: d.hourlyBreakdown.HourlyEventWall,
       });
       series.push({
         name: `${k} - Manual Wall`,
-        type: 'line',
+        type: "line",
         data: d.hourlyBreakdown.HourlyManualWall,
       });
+
+      if (k === "suspicious") {
+        series.push({
+          name: `${k} - Manual Event`,
+          type: "line",
+          data: d.hourlyBreakdown.HourlyManualEvent,
+        });
+      }
+     
     });
     return series;
   }

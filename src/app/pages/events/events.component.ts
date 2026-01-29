@@ -35,6 +35,8 @@ import {
   catchError,
   map,
   Observable,
+  firstValueFrom,
+  switchMap,
 } from "rxjs";
 import {
   EventsFilterPanelComponent,
@@ -1321,6 +1323,35 @@ export class EventsComponent {
     });
   }
 
+   extractAssetNameOrUrl(input: any): any {
+  try {
+    const url = new URL(input);
+
+    // Case 1: ?assetName=
+    const assetName = url.searchParams.get('assetName');
+    if (assetName) {
+      return assetName;
+    }
+
+    // Case 2: /dotimages/filename
+    if (url.pathname.includes('/dotimages/')) {
+      return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+    }
+
+    // Case 3: /images/filename
+    if (url.pathname.includes('/images/')) {
+      return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+    }
+
+    // Case 4: nothing matched → return full URL
+    return input;
+
+  } catch (e) {
+    // Invalid or non-standard URL
+    return input;
+  }
+}
+
   downloadImageWithToken(
     url: string,
     isDownload: boolean,
@@ -1341,6 +1372,7 @@ export class EventsComponent {
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
+  
 
     this.http.get(url, { headers, responseType: "blob" }).subscribe({
       next: (blob) => {
@@ -1349,17 +1381,22 @@ export class EventsComponent {
           return;
         }
 
+        const fileName = this.extractAssetNameOrUrl(url)
+
         const objectUrl = URL.createObjectURL(blob);
+      
 
         if (isDownload) {
+          
           const a = document.createElement("a");
           a.href = objectUrl;
-          a.download = "";
+          a.download = fileName;
           document.body.appendChild(a);
           a.click();
-          // document.body.removeChild(a);
+          document.body.removeChild(a);
           URL.revokeObjectURL(objectUrl);
         } else {
+          
           window.open(objectUrl, "_blank");
           setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
         }
@@ -1477,12 +1514,10 @@ export class EventsComponent {
 
   getMediaType(url: any) {
     try {
-      const parsedUrl = new URL(url);
-      const assetName = parsedUrl.searchParams.get("assetName");
-      const nameToCheck = assetName || parsedUrl.pathname;
+      const parsedUrl = this.extractAssetNameOrUrl(url);
 
-      if (/\.(mp4|webm|ogg)$/i.test(nameToCheck)) return "video";
-      if (/\.(png|jpg|jpeg|gif|webp)$/i.test(nameToCheck)) return "image";
+      if (/\.(mp4|webm|ogg|avi)$/i.test(parsedUrl)) return "video";
+      if (/\.(png|jpg|jpeg|gif|webp)$/i.test(parsedUrl)) return "image";
 
       return "image";
     } catch {
@@ -1518,7 +1553,59 @@ export class EventsComponent {
       }),
       catchError(() => of(null)),
     );
+   
+
   }
+
+//  downloaddisplayimage(
+//   url: string,
+//   type: string
+// ): Observable<{ url: string; type: string } | null> {
+
+//   const rawUser =
+//     sessionStorage.getItem("verifai_user") ||
+//     localStorage.getItem("verifai_user");
+
+//   const user = rawUser ? JSON.parse(rawUser) : null;
+//   const token = user?.AccessToken;
+
+//   if (!token) {
+//     return of(null);
+//   }
+
+//   const headers = new HttpHeaders({
+//     Authorization: `Bearer ${token}`,
+//   });
+
+//   return this.http.get(url, { headers, responseType: "blob" }).pipe(
+//     switchMap(blob => {
+//       if (!blob || blob.size === 0 || blob.type === "application/json") {
+//         return of(null);
+//       }
+
+//       return new Observable<{ url: string; type: string }>(observer => {
+//         const reader = new FileReader();
+
+//         reader.onload = () => {
+//           observer.next({
+//             url: reader.result as string, // ✅ base64
+//             type,
+//           });
+//           observer.complete();
+//         };
+
+//         reader.onerror = () => {
+//           observer.complete();
+//         };
+
+//         reader.readAsDataURL(blob);
+//       });
+//     }),
+//     catchError(() => of(null))
+//   );
+// }
+
+
 
   closePlayPopup(): void {
     this.stopImageLoop();
@@ -1548,6 +1635,8 @@ export class EventsComponent {
   }
 
   getCurrentImageUrl() {
+
+   
 
     if (!this.validImages.length) return null;
     return this.validImages[this.currentSlideIndex] ?? this.validImages[0];

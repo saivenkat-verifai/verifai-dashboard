@@ -43,6 +43,7 @@ export class DashboardService {
       fromDateTime
     )}&toDate=${toDateTime}`;
 
+
     let params = new HttpParams();
 
     if (timeZone) {
@@ -79,6 +80,7 @@ export class DashboardService {
         suspiciousPercentage: 0,
         eventWall: 0,
         manualWall: 0,
+        manualEvent:0,
         sitesCount: 0,
         cameraCount: 0,
         details: {
@@ -86,6 +88,7 @@ export class DashboardService {
             total: 0,
             eventWall: 0,
             manualWall: 0,
+            manualEvent:0,
             sitesCount: 0,
             cameraCount: 0,
             hourlyBreakdown: {

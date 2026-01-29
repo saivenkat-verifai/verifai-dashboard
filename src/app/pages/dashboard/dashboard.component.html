@@ -66,8 +66,10 @@
           <div class="icons-row">
             <div class="dots-column">
               <div class="icon" *ngFor="let dot of card.colordot">
-                <span class="dot" [ngStyle]="{ 'background-color': dot.iconcolor }"></span>
-                <span class="icon-counts">{{ dot.count }}</span>
+
+                  <span  class="dot" [ngStyle]="{ 'background-color': dot.iconcolor }"></span>
+                  <span class="icon-counts">{{ dot.count }}</span>
+                
               </div>
             </div>
             <div class="icons-group icon-counts">

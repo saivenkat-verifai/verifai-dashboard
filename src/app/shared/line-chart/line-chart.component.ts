@@ -102,3 +102,152 @@ export class LineChartComponent implements OnChanges {
     };
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+// import * as Highcharts from "highcharts";
+// import { HighchartsChartModule } from "highcharts-angular";
+
+// @Component({
+//   selector: "app-line-chart",
+//   standalone: true,
+//   imports: [HighchartsChartModule],
+//   templateUrl: "./line-chart.component.html",
+//   styleUrls: ["./line-chart.component.css"],
+// })
+// export class LineChartComponent implements OnChanges {
+//   @Input() chartMode: "suspiciousHourlyData" | "otherMode" =
+//     "suspiciousHourlyData";
+
+//   @Input() hourlyData: Highcharts.SeriesOptionsType[] = [];
+
+//   Highcharts: typeof Highcharts = Highcharts;
+//   chartOptions: Highcharts.Options = {};
+
+//   // 24-hour categories
+//   private categories = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+
+//   ngOnChanges(changes: SimpleChanges): void {
+//     const safeSeries = this.sanitizeSeries(this.hourlyData);
+
+//     if (safeSeries.length > 0) {
+//       this.updateChartWithHourlyData(safeSeries);
+//     } else {
+//       this.setDefaultChart();
+//     }
+//   }
+
+//   // 🔐 Prevent Highcharts crashes
+//   private sanitizeSeries(
+//     series: Highcharts.SeriesOptionsType[]
+//   ): Highcharts.SeriesOptionsType[] {
+//     return (series || [])
+//       .filter((s: any) => Array.isArray(s?.data))
+//       .map((s: any) => ({
+//         ...s,
+//         data: s.data ?? [],
+//       }));
+//   }
+
+//   private updateChartWithHourlyData(
+//     series: Highcharts.SeriesOptionsType[]
+//   ) {
+//     this.chartOptions = {
+//       chart: {
+//         type: "line",
+//         panning: { enabled: false },
+//         events: {
+//           load() {
+//             if (this.container) {
+//               this.container.style.touchAction = "none";
+//             }
+//           },
+//         },
+//       },
+
+//       accessibility: { enabled: false },
+//       title: { text: "" },
+
+//       xAxis: {
+//         categories: this.categories,
+//         title: { text: "Hours" },
+//       },
+
+//       yAxis: {
+//         title: { text: "Count" },
+//         allowDecimals: false,
+//       },
+
+//       legend: {
+//         layout: "vertical",
+//         align: "right",
+//         verticalAlign: "middle",
+//       },
+
+//       plotOptions: {
+//         series: {
+//           marker: { enabled: false },
+//           enableMouseTracking: true,
+//         },
+//       },
+
+//       tooltip: {
+//         shared: true,
+//       },
+
+//       series,
+//       credits: { enabled: false },
+
+//       responsive: {
+//         rules: [
+//           {
+//             condition: { maxWidth: 600 },
+//             chartOptions: {
+//               legend: {
+//                 layout: "horizontal",
+//                 align: "center",
+//                 verticalAlign: "bottom",
+//               },
+//             },
+//           },
+//         ],
+//       },
+//     };
+//   }
+
+//   private setDefaultChart() {
+//     this.chartOptions = {
+//       chart: {
+//         type: "line",
+//       },
+//       accessibility: { enabled: false },
+//       title: { text: "No Data Available" },
+//       xAxis: {
+//         categories: this.categories,
+//         title: { text: "Hours" },
+//       },
+//       yAxis: {
+//         title: { text: "Count" },
+//       },
+//       series: [],
+//       credits: { enabled: false },
+//     };
+//   }
+// }
