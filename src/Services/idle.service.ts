@@ -1,5 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { AuthService } from 'src/app/login/login.service';
 
 @Injectable({
@@ -7,17 +8,18 @@ import { AuthService } from 'src/app/login/login.service';
 })
 export class IdleService {
 
+  isLoading = new BehaviorSubject(false);
   private timeoutId: any;
   private readonly IDLE_TIME = 5 * 60 * 1000; // 5 minutes
 
   constructor(
     private router: Router,
     private ngZone: NgZone,
-    private auth :AuthService
-  ) {}
+    private auth: AuthService
+  ) { }
 
   startWatching() {
-   
+
     this.resetTimer();
 
     const events = [
@@ -48,8 +50,8 @@ export class IdleService {
     });
   }
 
-   logout1() {
+  logout1() {
 
-  this.auth.logout();
+    this.auth.logout();
   }
 }

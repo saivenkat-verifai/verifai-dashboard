@@ -13,8 +13,8 @@ export interface EventsFilterCriteria {
   maxDuration: number | null;
 
   city: string;
-   timeZone: Timezoneoption | null,
-   site: SiteOption | null;
+  timeZone: Timezoneoption | null,
+  site: SiteOption | null;
 
   camera: string;
   actionTag: string;   // used mainly in CLOSED tab
@@ -92,8 +92,8 @@ export class EventsFilterPanelComponent {
     maxDuration: 1440,
     userLevels: 'All',
     city: 'All',
-   timeZone : null,   
-   site: null, 
+    timeZone: null,
+    site: null,
     camera: 'All',
     actionTag: 'All',
     eventType: 'All',
@@ -103,29 +103,30 @@ export class EventsFilterPanelComponent {
     consoleType: 'All',
   };
 
-  constructor(private eventService:EventsService){
+  constructor(private eventService: EventsService) {
 
   }
 
-ngOnInit(){
-this.timezoneDropdown()
-}
+  ngOnInit() {
+    this.onReset();
+    this.timezoneDropdown();
+  }
 
-timezones:any;
+  timezones: any;
   timezoneDropdown() {
     this.eventService.timezoneDropdown().subscribe((res: any) => {
       this.timezones = res.timezones;
-     
+
     })
   }
 
-compareSites = (a: any, b: any): boolean => {
-  return a && b ? a.siteId === b.siteId : a === b;
-};
+  compareSites = (a: any, b: any): boolean => {
+    return a && b ? a.siteId === b.siteId : a === b;
+  };
 
-compareTimezones = (a: any, b: any): boolean => {
-  return a && b ? a.timezoneValue === b.timezoneValue : a === b;
-};
+  compareTimezones = (a: any, b: any): boolean => {
+    return a && b ? a.timezoneValue === b.timezoneValue : a === b;
+  };
 
   onCriteriaChanged(): void {
     this.criteriaChange.emit({ ...this.model });
@@ -163,17 +164,14 @@ compareTimezones = (a: any, b: any): boolean => {
   }
 
   formatDuration(value: number | null): string {
- 
     const m = Math.round(value ?? 0);
     const mm = m.toString().padStart(2, '0');
-
     return `${mm}:00`;
   }
 
   /** -------------------- UI events -------------------- */
 
   onClose(): void {
-
     this.close.emit();
   }
 
@@ -195,8 +193,8 @@ compareTimezones = (a: any, b: any): boolean => {
       maxDuration: 1440,
       userLevels: 'All',
       city: 'All',
-      timeZone : null,  
-     site: null, 
+      timeZone: null,
+      site: null,
       camera: 'All',
       actionTag: 'All',
       eventType: 'All',

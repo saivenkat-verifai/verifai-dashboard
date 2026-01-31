@@ -37,6 +37,7 @@ import {
   Observable,
   firstValueFrom,
   switchMap,
+  delay,
 } from "rxjs";
 import {
   EventsFilterPanelComponent,
@@ -49,6 +50,7 @@ import { ProfileImageRendererComponent } from "./profile-image-renderer.componen
 import { NgZone } from "@angular/core";
 import { RefreshStatusPanelComponent } from "./refresh-status-panel.component";
 import { ImagePipe } from "src/app/shared/image.pipe"; // adjust path
+import { IdleService } from "src/Services/idle.service";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -96,7 +98,7 @@ interface SecondEscalatedDetail {
     CalendarComponent,
     OverlayPanelModule,
     EventsFilterPanelComponent,
-   
+
   ],
 })
 export class EventsComponent {
@@ -148,7 +150,7 @@ export class EventsComponent {
     maxDuration: 1440,
     userLevels: "All",
     city: "All",
-    timeZone:null,
+    timeZone: null,
     site: null,
     camera: "All",
     actionTag: "All",
@@ -179,7 +181,6 @@ export class EventsComponent {
   onFilterApply(criteria: EventsFilterCriteria) {
 
     this.preloadClosedCounts()
-    console.log(criteria.timeZone)
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
 
@@ -276,7 +277,7 @@ export class EventsComponent {
 
   onFilterCriteriaChange(criteria: EventsFilterCriteria): void {
     this.currentFilter = { ...criteria };
-   
+
     // ✅ rebuild dropdown lists based on current selections
     this.recomputeFilterDropdowns();
 
@@ -312,14 +313,14 @@ export class EventsComponent {
     // build each options list by filtering rows with currentFilter,
     // but ignoring the same field so options don't collapse incorrectly.
     const siteRows = this.filterRowsForOptions(rows, "site");
-   this.filterLists.sites = Array.from(
-  new Map(
-    siteRows.map(r => [
-      r.siteId,
-      { siteId: r.siteId, site: r.siteName }
-    ])
-  ).values()
-);
+    this.filterLists.sites = Array.from(
+      new Map(
+        siteRows.map(r => [
+          r.siteId,
+          { siteId: r.siteId, site: r.siteName }
+        ])
+      ).values()
+    );
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
     this.filterLists.cameras = this.uniq(cameraRows.map((r) => r.cameraId));
@@ -473,7 +474,8 @@ export class EventsComponent {
   showMore = false;
 
   /** Loading flag for top-level data fetches */
-  isLoading = false;
+  // isLoading = false;
+  _loader!: Observable<any>;
 
   /** -------------------- AG Grid APIs -------------------- */
   gridApi!: GridApi;
@@ -609,12 +611,14 @@ export class EventsComponent {
     private http: HttpClient,
     private notification: NotificationService,
     private zone: NgZone,
-  ) {}
+    private idelService: IdleService
+  ) { }
 
 
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
+    this._loader = this.idelService.isLoading.pipe(delay(100));
     this.selectedDate = new Date();
     this.selectedStartDate = this.selectedDate;
     this.selectedEndDate = this.selectedDate;
@@ -687,7 +691,7 @@ export class EventsComponent {
     });
   }
 
-  EscalatedDetailCombined:any=[];
+  EscalatedDetailCombined: any = [];
   /** ✅ Preload CLOSED counts cards (without needing MORE click) */
   private preloadClosedCounts(): void {
     if (this.selectedFilter !== "CLOSED") return;
@@ -702,74 +706,74 @@ export class EventsComponent {
       return;
     }
 
-  
+
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
 
 
-   this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
+    this.actionTagCountsclosed(start, end, this.suspiciousChecked, this.falseChecked);
 
   }
 
-  actionTagCountsclosed(start: any, end: any, suspiciouscheck: any,falsecheck:any) {
-    
+  actionTagCountsclosed(start: any, end: any, suspiciouscheck: any, falsecheck: any) {
 
-     this.eventsService
-    .getEventReportCountsForActionTag(start, end, suspiciouscheck,falsecheck,this.currentFilter)
-    .subscribe({
-      next: (res) => {
-        const counts = res?.counts || [];
-        const result: EscalatedDetail[] = [];
 
-        Object.entries(counts).forEach(([label, data]: any) => {
-          if (!label || label === "null") return;
+    this.eventsService
+      .getEventReportCountsForActionTag(start, end, suspiciouscheck, falsecheck, this.currentFilter)
+      .subscribe({
+        next: (res) => {
+          const counts = res?.counts || [];
+          const result: EscalatedDetail[] = [];
 
-          result.push({
-            label,
-            value: data.totalCount || 0,
-            color: ESCALATED_COLORS[0],
-            icons: [
-              { iconPath: "assets/home.svg", count: data.sites || 0 },
-              { iconPath: "assets/cam.svg", count: data.cameras || 0 },
-            ],
-            colordot: [
-              {
-                iconcolor: "#53BF8B",
-                label: "Event Wall",
-                count: data.Event_Wall || 0,
-              },
-              {
-                iconcolor: "#FFC400",
-                label: "Manual Wall",
-                count: data.Manual_Wall || 0,
-              },
-              {
-                iconcolor: "#353636ff",
-                label: "Manual Event",
-                count: data.Manual_Event || 0,
-              },
-            ],
+          Object.entries(counts).forEach(([label, data]: any) => {
+            if (!label || label === "null") return;
+
+            result.push({
+              label,
+              value: data.totalCount || 0,
+              color: ESCALATED_COLORS[0],
+              icons: [
+                { iconPath: "assets/home.svg", count: data.sites || 0 },
+                { iconPath: "assets/cam.svg", count: data.cameras || 0 },
+              ],
+              colordot: [
+                {
+                  iconcolor: "#53BF8B",
+                  label: "Event Wall",
+                  count: data.Event_Wall || 0,
+                },
+                {
+                  iconcolor: "#FFC400",
+                  label: "Manual Wall",
+                  count: data.Manual_Wall || 0,
+                },
+                {
+                  iconcolor: "#353636ff",
+                  label: "Manual Event",
+                  count: data.Manual_Event || 0,
+                },
+              ],
+            });
           });
-        });
 
-       
-      
-       
+
+
+
           this.EscalatedDetailCombined = result;
-        
-     
-      },
-      error: () => {
-      
-        this.EscalatedDetailCombined = [];
-      },
-    });
+
+
+        },
+        error: () => {
+
+          this.EscalatedDetailCombined = [];
+        },
+      });
   }
 
   get escalatedDetailsCombined(): EscalatedDetail[] {
-  return this.EscalatedDetailCombined;
-}
+    return this.EscalatedDetailCombined;
+  }
 
 
 
@@ -948,7 +952,7 @@ export class EventsComponent {
     this.preloadClosedCounts();
     // this.loadEscalatedDetails();
 
-      
+
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
@@ -1323,34 +1327,34 @@ export class EventsComponent {
     });
   }
 
-   extractAssetNameOrUrl(input: any): any {
-  try {
-    const url = new URL(input);
+  extractAssetNameOrUrl(input: any): any {
+    try {
+      const url = new URL(input);
 
-    // Case 1: ?assetName=
-    const assetName = url.searchParams.get('assetName');
-    if (assetName) {
-      return assetName;
+      // Case 1: ?assetName=
+      const assetName = url.searchParams.get('assetName');
+      if (assetName) {
+        return assetName;
+      }
+
+      // Case 2: /dotimages/filename
+      if (url.pathname.includes('/dotimages/')) {
+        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      }
+
+      // Case 3: /images/filename
+      if (url.pathname.includes('/images/')) {
+        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      }
+
+      // Case 4: nothing matched → return full URL
+      return input;
+
+    } catch (e) {
+      // Invalid or non-standard URL
+      return input;
     }
-
-    // Case 2: /dotimages/filename
-    if (url.pathname.includes('/dotimages/')) {
-      return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
-    }
-
-    // Case 3: /images/filename
-    if (url.pathname.includes('/images/')) {
-      return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
-    }
-
-    // Case 4: nothing matched → return full URL
-    return input;
-
-  } catch (e) {
-    // Invalid or non-standard URL
-    return input;
   }
-}
 
   downloadImageWithToken(
     url: string,
@@ -1372,7 +1376,7 @@ export class EventsComponent {
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
     });
-  
+
 
     this.http.get(url, { headers, responseType: "blob" }).subscribe({
       next: (blob) => {
@@ -1384,10 +1388,10 @@ export class EventsComponent {
         const fileName = this.extractAssetNameOrUrl(url)
 
         const objectUrl = URL.createObjectURL(blob);
-      
+
 
         if (isDownload) {
-          
+
           const a = document.createElement("a");
           a.href = objectUrl;
           a.download = fileName;
@@ -1396,7 +1400,7 @@ export class EventsComponent {
           document.body.removeChild(a);
           URL.revokeObjectURL(objectUrl);
         } else {
-          
+
           window.open(objectUrl, "_blank");
           setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
         }
@@ -1469,7 +1473,7 @@ export class EventsComponent {
 
     const item = params.data;
     const media: string[] = this.resolveMediaUrls(item);
-   
+
 
     console.log("DEBUG media:", media);
 
@@ -1553,57 +1557,57 @@ export class EventsComponent {
       }),
       catchError(() => of(null)),
     );
-   
+
 
   }
 
-//  downloaddisplayimage(
-//   url: string,
-//   type: string
-// ): Observable<{ url: string; type: string } | null> {
+  //  downloaddisplayimage(
+  //   url: string,
+  //   type: string
+  // ): Observable<{ url: string; type: string } | null> {
 
-//   const rawUser =
-//     sessionStorage.getItem("verifai_user") ||
-//     localStorage.getItem("verifai_user");
+  //   const rawUser =
+  //     sessionStorage.getItem("verifai_user") ||
+  //     localStorage.getItem("verifai_user");
 
-//   const user = rawUser ? JSON.parse(rawUser) : null;
-//   const token = user?.AccessToken;
+  //   const user = rawUser ? JSON.parse(rawUser) : null;
+  //   const token = user?.AccessToken;
 
-//   if (!token) {
-//     return of(null);
-//   }
+  //   if (!token) {
+  //     return of(null);
+  //   }
 
-//   const headers = new HttpHeaders({
-//     Authorization: `Bearer ${token}`,
-//   });
+  //   const headers = new HttpHeaders({
+  //     Authorization: `Bearer ${token}`,
+  //   });
 
-//   return this.http.get(url, { headers, responseType: "blob" }).pipe(
-//     switchMap(blob => {
-//       if (!blob || blob.size === 0 || blob.type === "application/json") {
-//         return of(null);
-//       }
+  //   return this.http.get(url, { headers, responseType: "blob" }).pipe(
+  //     switchMap(blob => {
+  //       if (!blob || blob.size === 0 || blob.type === "application/json") {
+  //         return of(null);
+  //       }
 
-//       return new Observable<{ url: string; type: string }>(observer => {
-//         const reader = new FileReader();
+  //       return new Observable<{ url: string; type: string }>(observer => {
+  //         const reader = new FileReader();
 
-//         reader.onload = () => {
-//           observer.next({
-//             url: reader.result as string, // ✅ base64
-//             type,
-//           });
-//           observer.complete();
-//         };
+  //         reader.onload = () => {
+  //           observer.next({
+  //             url: reader.result as string, // ✅ base64
+  //             type,
+  //           });
+  //           observer.complete();
+  //         };
 
-//         reader.onerror = () => {
-//           observer.complete();
-//         };
+  //         reader.onerror = () => {
+  //           observer.complete();
+  //         };
 
-//         reader.readAsDataURL(blob);
-//       });
-//     }),
-//     catchError(() => of(null))
-//   );
-// }
+  //         reader.readAsDataURL(blob);
+  //       });
+  //     }),
+  //     catchError(() => of(null))
+  //   );
+  // }
 
 
 
@@ -1636,7 +1640,7 @@ export class EventsComponent {
 
   getCurrentImageUrl() {
 
-   
+
 
     if (!this.validImages.length) return null;
     return this.validImages[this.currentSlideIndex] ?? this.validImages[0];
@@ -1879,7 +1883,7 @@ export class EventsComponent {
       return;
     }
 
-    if (!silent) this.isLoading = true;
+    if (!silent) this.idelService.isLoading.next(true);
 
     const calls = [
       this.consolesChecked
@@ -1892,7 +1896,7 @@ export class EventsComponent {
 
     forkJoin(calls).subscribe({
       next: ([consoleRes, queueRes]) => {
-        if (!silent) this.isLoading = false;
+        if (!silent) this.idelService.isLoading.next(false);
 
         const allRows: any[] = [];
 
@@ -1944,10 +1948,10 @@ export class EventsComponent {
               row.employee ??
               (empName
                 ? {
-                    name: empName,
-                    level: empLevel,
-                    profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
-                  }
+                  name: empName,
+                  level: empLevel,
+                  profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
+                }
                 : undefined),
           };
         });
@@ -2005,7 +2009,7 @@ export class EventsComponent {
         // }
       },
       error: (err) => {
-        if (!silent) this.isLoading = false;
+        if (!silent) this.idelService.isLoading.next(false);
         console.error("Pending events load failed:", err);
       },
     });
@@ -2065,7 +2069,7 @@ export class EventsComponent {
       return;
     }
 
-    if (!silent) this.isLoading = true;
+    if (!silent) this.idelService.isLoading.next(true);
 
     const startDateStr = this.formatDateTimeFull(this.selectedStartDate);
     const endDateStr = this.formatDateTimeFull(this.selectedEndDate);
@@ -2081,7 +2085,7 @@ export class EventsComponent {
 
     forkJoin(calls).subscribe({
       next: ([suspRes, falseRes]) => {
-        if (!silent) this.isLoading = false;
+        if (!silent) this.idelService.isLoading.next(false);
 
         const allEventData: any[] = [];
         const countsList: any[] = [];
@@ -2203,7 +2207,7 @@ export class EventsComponent {
         );
       },
       error: (err) => {
-        if (!silent) this.isLoading = false;
+        if (!silent) this.idelService.isLoading.next(false);
         console.error("Failed to load/merge CLOSED results", err);
         this.rowData = [];
         this.closedDisplayRows = [];
@@ -2224,11 +2228,11 @@ export class EventsComponent {
   //   //   const start = this.formatDateTimeFull(this.selectedStartDate!);
   //   //   const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-   
-   
+
+
   //   //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
 
- 
+
   //   // }
 
   //   // PENDING
@@ -2238,26 +2242,26 @@ export class EventsComponent {
   //   //     this.escalatedDetailsPending = [];
   //   //     return;
   //   //   }
-  
+
   //   //   const consoles$ = this.consolesChecked
   //   //     ? this.eventsService.getConsoleEventsCounts_1_0()
   //   //     : of(null);
   //   //   const queues$ = this.queuesChecked
   //   //     ? this.eventsService.getPendingEventsCounts_1_0()
   //   //     : of(null);
-  
+
   //   //   forkJoin([consoles$, queues$]).subscribe({
   //   //     next: ([consolesRes, queuesRes]) => {
   //   //       const details: EscalatedDetail[] = [];
-  
+
   //   //       if (queuesRes) {
   //   //         details.push(this.buildQueuesEscalationCard(queuesRes));
   //   //       }
-  
+
   //   //       if (consolesRes) {
   //   //         details.push(this.buildConsoleEscalationCard(consolesRes));
   //   //       }
-  
+
   //   //       this.escalatedDetailsPending = details;
   //   //     },
   //   //     error: (err) => {
@@ -2305,7 +2309,7 @@ export class EventsComponent {
       maxDuration: 1440,
       userLevels: "All",
       city: "All",
-      timeZone : null,  
+      timeZone: null,
       site: null,
       camera: "All",
       actionTag: "All",
@@ -2381,14 +2385,14 @@ export class EventsComponent {
   private refreshDropdownListsFromClosed() {
     const rows = this.rowData || [];
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
- this.filterLists.sites = Array.from(
-  new Map(
-    rows.map(r => [
-      r.siteId,
-      { siteId: r.siteId, site: r.siteName }
-    ])
-  ).values()
-);
+    this.filterLists.sites = Array.from(
+      new Map(
+        rows.map(r => [
+          r.siteId,
+          { siteId: r.siteId, site: r.siteName }
+        ])
+      ).values()
+    );
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // 🔁 Use levels instead of names
@@ -2407,7 +2411,7 @@ export class EventsComponent {
   }
 
 
-  
+
 
 
 
@@ -2487,21 +2491,21 @@ export class EventsComponent {
         cellClass: "custome-cell",
         cellStyle: { opacity: "0.5" },
         suppressHeaderMenuButton: true,
-         valueGetter: (params) => {
+        valueGetter: (params) => {
           return params.data?.subActionTag ? params.data.subActionTag : "-";
         },
-       cellClassRules: {
-    // 🔴 Red when actionTag = Suspicious and checkbox checked
-    'alert-red': (params) =>
-      this.suspiciousChecked && this.falseChecked &&
-      params.data?.actionTagId === 2,
+        cellClassRules: {
+          // 🔴 Red when actionTag = Suspicious and checkbox checked
+          'alert-red': (params) =>
+            this.suspiciousChecked && this.falseChecked &&
+            params.data?.actionTagId === 2,
 
-    // 🟢 Green when actionTag = False and checkbox checked
-    'alert-green': (params) =>
-      this.falseChecked && this.suspiciousChecked &&
-      params.data?.actionTagId === 1 
-   
-  }
+          // 🟢 Green when actionTag = False and checkbox checked
+          'alert-green': (params) =>
+            this.falseChecked && this.suspiciousChecked &&
+            params.data?.actionTagId === 1
+
+        }
       },
       {
         headerName: "ALERT",

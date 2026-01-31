@@ -18,13 +18,13 @@
             class="calender-escalated-card"
             *ngFor="let e of secondEscalatedDetails; let i = index"
             [ngClass]="{ 'hidden-card': i >= 3 }"
-            [ngStyle]="{ 'background-color': i === 0 ? 'red' : 'white' }"
+            [ngStyle]="{ 'background-color': i === 0 ? '#ed3237' : 'white' }"
           >
             <span
               class="label"
               [ngStyle]="{
                 color: i === 0 ? 'white' : '#000000',
-                opacity: i === 0 ? '1' : '0.6'
+                opacity: i === 0 ? '1' : '0.6',
               }"
             >
               {{ e.label }}
@@ -55,9 +55,8 @@
 
       <!-- AG Grid Table -->
       <div *ngIf="selectedFilter === 'CLOSED'" class="table-section m-t-20">
-     
         <ag-grid-angular
-          style=" height: 460px"
+          style="height: 460px"
           class="ag-theme-alpine"
           theme="legacy"
           [rowData]="rowData"
@@ -75,6 +74,7 @@
           [quickFilterMatcher]="quickFilterMatcher"
           (gridReady)="onGridReady($event)"
           (cellClicked)="onCellClicked($event)"
+          [sideBar]=""
         ></ag-grid-angular>
       </div>
     </div>
@@ -145,8 +145,8 @@
             currentSection.toLowerCase() === "queue"
               ? "CREATE QUEUE"
               : currentSection.toLowerCase() === "camera"
-              ? "ADD SITE & CAMERA"
-              : "ADD " + (currentSection | titlecase | uppercase)
+                ? "ADD SITE & CAMERA"
+                : "ADD " + (currentSection | titlecase | uppercase)
           }}
         </p>
         <img
@@ -256,34 +256,35 @@
               class="escalated-card-container"
               style="max-height: 400px; overflow-y: auto"
             >
-             <div class="escalated-card" *ngFor="let user of filteredUsers">
-  <div class="escalated-card-content">
-    <input
-      #checkbox
-      type="checkbox"
-      [checked]="selectedUserIds.includes(user.userId)"
-      (change)="toggleUserSelection(user.userId, checkbox.checked)"
-    />
+              <div class="escalated-card" *ngFor="let user of filteredUsers">
+                <div class="escalated-card-content">
+                  <input
+                    #checkbox
+                    type="checkbox"
+                    [checked]="selectedUserIds.includes(user.userId)"
+                    (change)="
+                      toggleUserSelection(user.userId, checkbox.checked)
+                    "
+                  />
 
-    <!-- ✅ Use renderer with API profileImageUrl -->
-<app-profile-image-renderer
-  [data]="{
-    userName: user.userName || user.User_Name,
-    profileImageUrl: user.profileImageUrl,
-    profileImage: user.profileImage
-  }"
-  [showLabel]="false"
-></app-profile-image-renderer>
+                  <!-- ✅ Use renderer with API profileImageUrl -->
+                  <app-profile-image-renderer
+                    [data]="{
+                      userName: user.userName || user.User_Name,
+                      profileImageUrl: user.profileImageUrl,
+                      profileImage: user.profileImage,
+                    }"
+                    [showLabel]="false"
+                  ></app-profile-image-renderer>
 
-    <div class="nameemail">
-      <h4 class="labelmargin">{{ user.userName }}</h4>
-      <p class="labelmail">
-        {{ user.email }} | {{ user.userContact }}
-      </p>
-    </div>
-  </div>
-</div>
-
+                  <div class="nameemail">
+                    <h4 class="labelmargin">{{ user.userName }}</h4>
+                    <p class="labelmail">
+                      {{ user.email }} | {{ user.userContact }}
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="form-actions">

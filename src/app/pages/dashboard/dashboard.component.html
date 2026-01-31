@@ -1,13 +1,13 @@
 <div class="dashboard-container">
   <!-- Loader -->
-  <div class="loader-overlay" *ngIf="isLoading">
+  <div class="loader-overlay" *ngIf="load | async">
     <div class="loader"></div>
     <div class="timeout-message">
       <p>Loading dashboard data...</p>
     </div>
   </div>
 
-  <div class="dashboard-content" [class.loading]="isLoading">
+  <div class="dashboard-content" [class.loading]="load | async">
     <!-- Dashboard Header -->
     <div class="dashboard-content-section">
       <div class="main-section-header">
@@ -16,36 +16,54 @@
 
       <!-- Calendar Section -->
       <div class="calendar-section-wrapper">
-        <app-calendar [showViewDropdown]="false" [timezone]="selectedTimezone" variant="dashboard"
-          (dateRangeSelected)="onDateRangeSelected($event)">
+        <app-calendar
+          [showViewDropdown]="false"
+          [timezone]="selectedTimezone"
+          variant="dashboard"
+          (dateRangeSelected)="onDateRangeSelected($event)"
+        >
         </app-calendar>
 
         <div class="select-wrapper">
-          <select class="custom-select" [(ngModel)]="timeZone" (ngModelChange)="timezonechange()">
+          <select
+            class="custom-select"
+            [(ngModel)]="timeZone"
+            (ngModelChange)="timezonechange()"
+          >
             <option value="">All</option>
             @for (item of timezones; track item.id) {
-            <option [value]="item.timezoneCode" [title]="item.timezoneValue">
-              {{ item.timezoneCode }}
-            </option>
+              <option [value]="item.timezoneCode" [title]="item.timezoneValue">
+                {{ item.timezoneCode }}
+              </option>
             }
           </select>
         </div>
-
       </div>
 
       <!-- Dashboard Cards -->
       <div class="cards-row">
-        <p-card *ngFor="let card of dashboardCards" class="card" [ngClass]="{
+        <p-card
+          *ngFor="let card of dashboardCards"
+          class="card"
+          [ngClass]="{
             red: card.color === 'red',
-            white: card.color === 'white'
-          }" [styleClass]="card.color === 'red' ? 'is-red' : 'is-white'">
+            white: card.color === 'white',
+          }"
+          [styleClass]="card.color === 'red' ? 'is-red' : 'is-white'"
+        >
           <ng-template pTemplate="header">
             <div class="card-top">
               <div class="card-top-left">
-                <p class="main-number" [ngClass]="{ 'red-text': card.color === 'white' }">
+                <p
+                  class="main-number"
+                  [ngClass]="{ 'red-text': card.color === 'white' }"
+                >
                   {{ card.value }}
                 </p>
-                <p class="label" [ngClass]="{ 'black-text': card.color === 'white' }">
+                <p
+                  class="label"
+                  [ngClass]="{ 'black-text': card.color === 'white' }"
+                >
                   {{ card.title | uppercase }}
                 </p>
               </div>
@@ -53,10 +71,16 @@
                 <div class="circle-chart">
                   <svg class="progress-ring" viewBox="0 0 36 36">
                     <circle class="bg" cx="18" cy="18" r="16" />
-                    <circle class="progress" cx="18" cy="18" r="16" [attr.stroke-dasharray]="100"
+                    <circle
+                      class="progress"
+                      cx="18"
+                      cy="18"
+                      r="16"
+                      [attr.stroke-dasharray]="100"
                       [attr.stroke-dashoffset]="
                         100 - getSafePercent(card.percentage)
-                      " />
+                      "
+                    />
                   </svg>
                   <div class="circle-text">{{ card.percentage }}%</div>
                 </div>
@@ -66,10 +90,11 @@
           <div class="icons-row">
             <div class="dots-column">
               <div class="icon" *ngFor="let dot of card.colordot">
-
-                  <span  class="dot" [ngStyle]="{ 'background-color': dot.iconcolor }"></span>
-                  <span class="icon-counts">{{ dot.count }}</span>
-                
+                <span
+                  class="dot"
+                  [ngStyle]="{ 'background-color': dot.iconcolor }"
+                ></span>
+                <span class="icon-counts">{{ dot.count }}</span>
               </div>
             </div>
             <div class="icons-group icon-counts">
@@ -100,15 +125,23 @@
             <div class="icons">
               <div class="dots-column" *ngIf="e.colordot">
                 <div class="icon-section" *ngFor="let dot of e.colordot">
-                  <span class="dot" [ngStyle]="{ 'background-color': dot.iconcolor }"></span>
+                  <span
+                    class="dot"
+                    [ngStyle]="{ 'background-color': dot.iconcolor }"
+                  ></span>
                   <span class="opacity-25">{{ dot.count }}</span>
                 </div>
               </div>
               <div class="icons-group opacity-25" *ngIf="e.icons">
                 <div class="icon-section" *ngFor="let icon of e.icons">
-                  <img [src]="icon.iconPath" alt="icon" class="icon-image" [ngClass]="{
-                      'cam-icon': icon.iconPath.includes('cam.svg')
-                    }" />
+                  <img
+                    [src]="icon.iconPath"
+                    alt="icon"
+                    class="icon-image"
+                    [ngClass]="{
+                      'cam-icon': icon.iconPath.includes('cam.svg'),
+                    }"
+                  />
                   <span>{{ icon.count }}</span>
                 </div>
               </div>
@@ -131,11 +164,17 @@
       <div class="chart-section-body">
         <div class="chart-section">
           <div class="chart-container">
-            <app-column-chart chartMode="suspicious" [chartData]="escalatedGraph">
+            <app-column-chart
+              chartMode="suspicious"
+              [chartData]="escalatedGraph"
+            >
             </app-column-chart>
           </div>
           <div class="chart-container">
-            <app-line-chart chartMode="suspiciousHourlyData" [hourlyData]="hourlyBreakdownData">
+            <app-line-chart
+              chartMode="suspiciousHourlyData"
+              [hourlyData]="hourlyBreakdownData"
+            >
             </app-line-chart>
           </div>
         </div>

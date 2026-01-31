@@ -44,7 +44,7 @@ interface SecondEscalatedDetail {
 export class GroupsComponent implements OnInit, OnDestroy {
   selectedQueueId: number | null = null;
 
- currentUser: any = null;   // 👈 add this
+  currentUser: any = null;   // 👈 add this
 
   currentDate: Date = new Date();
 
@@ -53,35 +53,35 @@ export class GroupsComponent implements OnInit, OnDestroy {
   gridApi!: GridApi;
   private apiSub?: Subscription;
 
-  constructor(private groupsService: GroupsService,  private notificationService: NotificationService) { }
+  constructor(private groupsService: GroupsService, private notificationService: NotificationService) { }
 
-ngOnInit() {
-  this.selectedDate = new Date();
+  ngOnInit() {
+    this.selectedDate = new Date();
 
-  // 👇 Read whatever you stored when logging in
-  const raw =
-    localStorage.getItem('verifai_user') ||
-    sessionStorage.getItem('verifai_user');
+    // 👇 Read whatever you stored when logging in
+    const raw =
+      localStorage.getItem('verifai_user') ||
+      sessionStorage.getItem('verifai_user');
     console.log('Stored user data:', raw);
 
-  if (raw) {
-    try {
-      this.currentUser = JSON.parse(raw);
-      console.log('Current user in Groups:', this.currentUser);
-    } catch (e) {
-      console.error('Error parsing stored user data', e);
+    if (raw) {
+      try {
+        this.currentUser = JSON.parse(raw);
+        console.log('Current user in Groups:', this.currentUser);
+      } catch (e) {
+        console.error('Error parsing stored user data', e);
+      }
     }
+
+    this.loadGroups();
+  }
+  private showSuccess(summary: string, detail?: string) {
+    this.notificationService.success(summary, detail);
   }
 
-  this.loadGroups();
-}
-private showSuccess(summary: string, detail?: string) {
-  this.notificationService.success(summary, detail);
-}
-
-private showError(summary: string, detail?: string) {
-  this.notificationService.error(summary, detail);
-}
+  private showError(summary: string, detail?: string) {
+    this.notificationService.error(summary, detail);
+  }
 
   /** Close popups */
   closePopup() {
@@ -139,9 +139,17 @@ private showError(summary: string, detail?: string) {
   };
 
   columnDefs: ColDef[] = [
-    { headerName: "ID", field: "id", sortable: true , cellStyle: { opacity: "0.5" }},
-    { headerName: "NAME", field: "name",  sortable: true },
-    { headerName: "CATEGORY", field: "category", sortable: true, cellStyle: { opacity: "0.5" }},
+    {
+      headerName: "ID", field: "id", sortable: true, cellStyle: { opacity: "0.5" }, filterParams: {
+        buttons: ['reset', 'apply']
+      }
+    },
+    { headerName: "NAME", field: "name", sortable: true },
+    {
+      headerName: "CATEGORY", field: "category", sortable: true, cellStyle: { opacity: "0.5" }, filterParams: {
+        buttons: ['reset', 'apply']
+      }
+    },
 
     {
       headerName: "LEVEL",
@@ -157,10 +165,25 @@ private showError(summary: string, detail?: string) {
         return levelMap[params.data.level] ?? params.data.level;
       },
       sortable: true,
+      filterParams: {
+        buttons: ['reset', 'apply']
+      }
     },
-    { headerName: "SITES", field: "site", cellStyle: { opacity: "0.5" } },
-    { headerName: "CAMERAS", field: "cameras", cellStyle: { opacity: "0.5" } },
-    { headerName: "EMPLOYEES", field: "employees", cellStyle: { opacity: "0.5" } },
+    {
+      headerName: "SITES", field: "site", cellStyle: { opacity: "0.5" }, filterParams: {
+        buttons: ['reset', 'apply']
+      }
+    },
+    {
+      headerName: "CAMERAS", field: "cameras", cellStyle: { opacity: "0.5" }, filterParams: {
+        buttons: ['reset', 'apply']
+      }
+    },
+    {
+      headerName: "EMPLOYEES", field: "employees", cellStyle: { opacity: "0.5" }, filterParams: {
+        buttons: ['reset', 'apply']
+      }
+    },
     {
       headerName: "STATUS",
       field: "status",
@@ -173,10 +196,13 @@ private showError(summary: string, detail?: string) {
           </span>
         `;
       },
+      filterParams: {
+        buttons: ['reset', 'apply']
+      }
     },
     {
-     headerName: 'MORE INFO',
-     
+      headerName: 'MORE INFO',
+
       field: "more",
       cellRenderer: () => `
         <span class="info-icon">
@@ -207,7 +233,7 @@ private showError(summary: string, detail?: string) {
   newQueue = {
     queueName: "", // bind this to your input
     levelId: null, // bind this to your dropdown
-     category: null as string | null,  // ⭐ NEW - category dropdown
+    category: null as string | null,  // ⭐ NEW - category dropdown
   };
 
   onCreateQueueClick() {
@@ -215,67 +241,67 @@ private showError(summary: string, detail?: string) {
     this.getLevelsData();
   }
 
-createQueue() {
-  if (
-    !this.newQueue.queueName ||
-    !this.newQueue.levelId ||
-    !this.newQueue.category
-  ) {
-    console.warn("Queue Name, Level, and Category are required");
-    this.showError('Create Queue', 'Queue Name, Level, and Category are required');
-    return;
+  createQueue() {
+    if (
+      !this.newQueue.queueName ||
+      !this.newQueue.levelId ||
+      !this.newQueue.category
+    ) {
+      console.warn("Queue Name, Level, and Category are required");
+      this.showError('Create Queue', 'Queue Name, Level, and Category are required');
+      return;
+    }
+
+    const payload = {
+      queueName: this.newQueue.queueName,
+      levelId: this.newQueue.levelId,
+      queueCategory: this.newQueue.category,
+      remarks: "",
+      createdBy: this.currentUser?.UserId || 0,
+    };
+
+    console.log("Create Queue payload:", payload);
+
+    this.groupsService.postQueues(payload).subscribe({
+      next: (res) => {
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          'Queue created successfully';
+
+        const newId =
+          res?.queueId ??
+          res?.data?.queueId ??
+          res?.createdQueueId;
+
+        this.newQueue = {
+          queueName: "",
+          levelId: null,
+          category: null,
+        };
+
+        this.goBack();
+
+        if (newId) {
+          this.selectedQueueId = newId;
+          this.loadGroups(newId);
+        } else {
+          this.loadGroups(this.selectedQueueId ?? undefined);
+        }
+
+        this.showSuccess('Create Queue', msg);
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          'Failed to create queue';
+        console.error("Error creating queue:", err);
+        this.showError('Create Queue Failed', msg);
+      },
+    });
   }
-
-  const payload = {
-    queueName: this.newQueue.queueName,
-    levelId: this.newQueue.levelId,
-    queueCategory: this.newQueue.category,
-    remarks: "",
-    createdBy: this.currentUser?.UserId || 0,
-  };
-
-  console.log("Create Queue payload:", payload);
-
-  this.groupsService.postQueues(payload).subscribe({
-    next: (res) => {
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Queue created successfully';
-
-      const newId =
-        res?.queueId ??
-        res?.data?.queueId ??
-        res?.createdQueueId;
-
-      this.newQueue = {
-        queueName: "",
-        levelId: null,
-        category: null,
-      };
-
-      this.goBack();
-
-      if (newId) {
-        this.selectedQueueId = newId;
-        this.loadGroups(newId);
-      } else {
-        this.loadGroups(this.selectedQueueId ?? undefined);
-      }
-
-      this.showSuccess('Create Queue', msg);
-    },
-    error: (err) => {
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to create queue';
-      console.error("Error creating queue:", err);
-      this.showError('Create Queue Failed', msg);
-    },
-  });
-}
 
 
   onAddClick() {
@@ -311,57 +337,57 @@ createQueue() {
   }
 
   defaultColDef: ColDef = { resizable: true, filter: true, flex: 1, minWidth: 80 };
-  
-onQueueStatusChanged(queueId: number) {
-  this.loadGroups(queueId);          // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
-  // if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too
-}
 
-// Pass an optional queue id you want to preserve
-loadGroups(preserveId?: number) {
-  const desiredId = preserveId ?? this.selectedQueueId ?? undefined;
+  onQueueStatusChanged(queueId: number) {
+    this.loadGroups(queueId);          // 👉 calls getQueuesDetails_1_0 and rebuilds rowData + cards
+    // if (queueId) this.loadGroupDetails(queueId); // keep right pane in sync too
+  }
 
-  this.apiSub = this.groupsService.getGroups().subscribe({
-    next: (res) => {
-      if (res?.status === "Success" && Array.isArray(res.queuesData)) {
-        this.rowData = res.queuesData.map((g: any) => ({
-          id: g.queueId,
-          category: g.category,
-          name: g.queueName,
-          level: g.levelId,
-          site: g.sites,
-          cameras: g.cameras,
-          employees: g.employees,
-          status: g.status?.toUpperCase(),
-          more: true,
-        }));
+  // Pass an optional queue id you want to preserve
+  loadGroups(preserveId?: number) {
+    const desiredId = preserveId ?? this.selectedQueueId ?? undefined;
 
-        const total = res.queuesData.length;
-        const active = res.queuesData.filter((g: any) => g.status?.toUpperCase() === "ACTIVE").length;
-        const inactive = total - active;
+    this.apiSub = this.groupsService.getGroups().subscribe({
+      next: (res) => {
+        if (res?.status === "Success" && Array.isArray(res.queuesData)) {
+          this.rowData = res.queuesData.map((g: any) => ({
+            id: g.queueId,
+            category: g.category,
+            name: g.queueName,
+            level: g.levelId,
+            site: g.sites,
+            cameras: g.cameras,
+            employees: g.employees,
+            status: g.status?.toUpperCase(),
+            more: true,
+          }));
 
-        this.secondEscalatedDetails = [
-          { label: "TOTAL", value: total, color: "#f44336" },
-          { label: "ACTIVE", value: active, color: "#2196f3" },
-          { label: "INACTIVE", value: inactive, color: "#4caf50" },
-        ];
+          const total = res.queuesData.length;
+          const active = res.queuesData.filter((g: any) => g.status?.toUpperCase() === "ACTIVE").length;
+          const inactive = total - active;
 
-        // 👉 Only load details for the preserved id if it still exists;
-        //    else fall back to first (if any)
-        let idToOpen = desiredId && this.rowData.some(r => r.id === desiredId)
-          ? desiredId
-          : (this.rowData[0]?.id);
+          this.secondEscalatedDetails = [
+            { label: "TOTAL", value: total, color: "#f44336" },
+            { label: "ACTIVE", value: active, color: "#2196f3" },
+            { label: "INACTIVE", value: inactive, color: "#4caf50" },
+          ];
 
-        if (idToOpen != null) {
-          this.currentIndex = Math.max(0, this.rowData.findIndex(r => r.id === idToOpen));
-          // important: do NOT call loadGroupDetails anywhere else now
-          this.loadGroupDetails(idToOpen);
+          // 👉 Only load details for the preserved id if it still exists;
+          //    else fall back to first (if any)
+          let idToOpen = desiredId && this.rowData.some(r => r.id === desiredId)
+            ? desiredId
+            : (this.rowData[0]?.id);
+
+          if (idToOpen != null) {
+            this.currentIndex = Math.max(0, this.rowData.findIndex(r => r.id === idToOpen));
+            // important: do NOT call loadGroupDetails anywhere else now
+            this.loadGroupDetails(idToOpen);
+          }
         }
-      }
-    },
-    error: (err) => console.error("Failed to load groups:", err),
-  });
-}
+      },
+      error: (err) => console.error("Failed to load groups:", err),
+    });
+  }
 
   onUserInactivated(queueId: number) {
     // Reload group details after user is inactivated
@@ -371,23 +397,23 @@ loadGroups(preserveId?: number) {
     // this.loadAllGroups(); // or whatever method reloads the table
   }
 
-/** Load second API and send data to popup */
-loadGroupDetails(queueId: number) {
-  this.selectedQueueId = queueId;                 // 👈 remember selection
-  this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
-    next: (res) => {
-      const baseData = this.rowData.find(r => r.id === queueId);
-      this.selectedItem = {
-        ...baseData,
-        groupSites: res.queuesData || [],
-        groupUsers: res.queueUsers || [],
-        id: queueId
-      };
-      this.isTablePopupVisible = true;
-    },
-    error: (err) => console.error("Failed to load group sites/users:", err),
-  });
-}
+  /** Load second API and send data to popup */
+  loadGroupDetails(queueId: number) {
+    this.selectedQueueId = queueId;                 // 👈 remember selection
+    this.groupsService.getGroupSitesAndUsers(queueId).subscribe({
+      next: (res) => {
+        const baseData = this.rowData.find(r => r.id === queueId);
+        this.selectedItem = {
+          ...baseData,
+          groupSites: res.queuesData || [],
+          groupUsers: res.queueUsers || [],
+          id: queueId
+        };
+        this.isTablePopupVisible = true;
+      },
+      error: (err) => console.error("Failed to load group sites/users:", err),
+    });
+  }
 
   onGridReady(params: GridReadyEvent) {
     this.gridApi = params.api;
@@ -403,22 +429,22 @@ loadGroupDetails(queueId: number) {
   }
 
   onCellClicked(event: any) {
-  if (!event?.data) return;
+    if (!event?.data) return;
 
-  const target = event.event?.target as HTMLElement | null;
-  const clickedMoreIcon = !!target?.closest(".info-icon");
+    const target = event.event?.target as HTMLElement | null;
+    const clickedMoreIcon = !!target?.closest(".info-icon");
 
-  this.currentIndex = event.rowIndex ?? this.rowData.findIndex(r => r.id === event.data.id);
+    this.currentIndex = event.rowIndex ?? this.rowData.findIndex(r => r.id === event.data.id);
 
-  // If they hit the "more" icon, you could do extra work here…
-  if (clickedMoreIcon) {
-    // e.g., open a context menu, then load details
-    // openContextMenu(event);
+    // If they hit the "more" icon, you could do extra work here…
+    if (clickedMoreIcon) {
+      // e.g., open a context menu, then load details
+      // openContextMenu(event);
+    }
+
+    // Always load details on any cell click
+    this.loadGroupDetails(event.data.id);
   }
-
-  // Always load details on any cell click
-  this.loadGroupDetails(event.data.id);
-}
 
   users: any[] = [];
   selectedUserIds: number[] = [];
@@ -437,18 +463,18 @@ loadGroupDetails(queueId: number) {
   currentPage: number = 1;
   pageSize: number = 8; // number of users per page
 
-get filteredUsers() {
-  if (this.searchUserTerm) {
-    const term = this.searchUserTerm.toLowerCase();
-    return this.users.filter(
-      (u) =>
-        u.userName.toLowerCase().includes(term) ||
-        u.email.toLowerCase().includes(term) ||
-        u.userContact.toLowerCase().includes(term)
-    );
+  get filteredUsers() {
+    if (this.searchUserTerm) {
+      const term = this.searchUserTerm.toLowerCase();
+      return this.users.filter(
+        (u) =>
+          u.userName.toLowerCase().includes(term) ||
+          u.email.toLowerCase().includes(term) ||
+          u.userContact.toLowerCase().includes(term)
+      );
+    }
+    return this.users;
   }
-  return this.users;
-}
 
   get totalPages() {
     return Math.ceil(
@@ -476,94 +502,94 @@ get filteredUsers() {
   }
 
   errorMessage: string = ""; // Add this at the top of your component
-addSelectedUsers() {
-  if (!this.selectedUserIds.length) {
-    this.errorMessage = "Please select at least one user.";
-    this.showError('Add Employees', this.errorMessage);
-    return;
+  addSelectedUsers() {
+    if (!this.selectedUserIds.length) {
+      this.errorMessage = "Please select at least one user.";
+      this.showError('Add Employees', this.errorMessage);
+      return;
+    }
+
+    const payload = {
+      queueId: this.selectedItem?.id || 0,
+      userId: this.selectedUserIds,
+      createdBy: this.currentUser?.UserId || 0,
+    };
+
+    this.groupsService.addUsersToQueue(payload).subscribe({
+      next: (res) => {
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          'Employees added successfully';
+
+        console.log("Users added successfully", res);
+        this.selectedUserIds = [];
+        this.errorMessage = "";
+        this.goBack();
+        this.loadGroups();
+
+        this.showSuccess('Add Employees', msg);
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          'Failed to add employees';
+        console.error("Error adding users:", err);
+        this.errorMessage = "Failed to add users. Please try again.";
+        this.showError('Add Employees Failed', msg);
+      },
+    });
   }
-
-  const payload = {
-    queueId: this.selectedItem?.id || 0,
-    userId: this.selectedUserIds,
-    createdBy: this.currentUser?.UserId || 0,
-  };
-
-  this.groupsService.addUsersToQueue(payload).subscribe({
-    next: (res) => {
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Employees added successfully';
-
-      console.log("Users added successfully", res);
-      this.selectedUserIds = [];
-      this.errorMessage = "";
-      this.goBack();
-      this.loadGroups();
-
-      this.showSuccess('Add Employees', msg);
-    },
-    error: (err) => {
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to add employees';
-      console.error("Error adding users:", err);
-      this.errorMessage = "Failed to add users. Please try again.";
-      this.showError('Add Employees Failed', msg);
-    },
-  });
-}
 
 
   selectedCameraIds: string[] = [];
 
-addSiteCamera() {
-  if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraIds.length) {
-    console.warn("Form is incomplete: select queue, site, and at least one camera");
-    this.showError('Add Site & Cameras', 'Please select queue, site, and at least one camera.');
-    return;
+  addSiteCamera() {
+    if (!this.selectedItem || !this.selectedSiteId || !this.selectedCameraIds.length) {
+      console.warn("Form is incomplete: select queue, site, and at least one camera");
+      this.showError('Add Site & Cameras', 'Please select queue, site, and at least one camera.');
+      return;
+    }
+
+    const payload = {
+      queueId: this.selectedItem.id,
+      siteId: this.selectedSiteId,
+      cameraIds: this.selectedCameraIds,
+      createdBy: this.currentUser?.UserId,
+    };
+
+    console.log("Payload for addSiteCamera:", payload);
+
+    this.groupsService.postSiteCamera(payload).subscribe({
+      next: (res) => {
+        const msg =
+          res?.message ||
+          res?.msg ||
+          res?.statusMessage ||
+          'Site & cameras added successfully';
+
+        console.log("Site & Cameras added successfully:", res);
+
+        this.selectedSiteId = null;
+        this.selectedCameraIds = [];
+        this.camerasDropdown = [];
+        this.goBack();
+        this.loadGroups();
+
+        this.showSuccess('Add Site & Cameras', msg);
+      },
+      error: (err) => {
+        const msg =
+          err?.error?.message ||
+          err?.error?.msg ||
+          'Failed to add site & cameras';
+        console.error("Error adding site & cameras:", err);
+        this.showError('Add Site & Cameras Failed', msg);
+      },
+    });
   }
-
-  const payload = {
-    queueId: this.selectedItem.id,
-    siteId: this.selectedSiteId,
-    cameraIds: this.selectedCameraIds,
-    createdBy: this.currentUser?.UserId,
-  };
-
-  console.log("Payload for addSiteCamera:", payload);
-
-  this.groupsService.postSiteCamera(payload).subscribe({
-    next: (res) => {
-      const msg =
-        res?.message ||
-        res?.msg ||
-        res?.statusMessage ||
-        'Site & cameras added successfully';
-
-      console.log("Site & Cameras added successfully:", res);
-
-      this.selectedSiteId = null;
-      this.selectedCameraIds = [];
-      this.camerasDropdown = [];
-      this.goBack();
-      this.loadGroups();
-
-      this.showSuccess('Add Site & Cameras', msg);
-    },
-    error: (err) => {
-      const msg =
-        err?.error?.message ||
-        err?.error?.msg ||
-        'Failed to add site & cameras';
-      console.error("Error adding site & cameras:", err);
-      this.showError('Add Site & Cameras Failed', msg);
-    },
-  });
-}
 
 
   sites: any[] = []; // initially empty
@@ -582,34 +608,34 @@ addSiteCamera() {
     this.showPopup = !this.showPopup; // toggle popup
   }
 
-onSectionChange(section: string) {
-  this.currentSection = section;
+  onSectionChange(section: string) {
+    this.currentSection = section;
 
-  if (section === "camera") {
-    // 🔄 Every time you go to Site & Camera, start with a clean form
-    this.selectedSiteId = null;
-    this.selectedCameraId = null;
-    this.selectedCameraIds = [];
-    this.sitesDropdown = [];
-    this.camerasDropdown = [];
+    if (section === "camera") {
+      // 🔄 Every time you go to Site & Camera, start with a clean form
+      this.selectedSiteId = null;
+      this.selectedCameraId = null;
+      this.selectedCameraIds = [];
+      this.sitesDropdown = [];
+      this.camerasDropdown = [];
 
-    this.loadSitesDropdown();
-  } else if (section === "employee") {
-    // 🔄 Every time you go to Employee, reset selection & filters
-    this.searchUserTerm = "";
-    this.selectedUserIds = [];
-    this.errorMessage = "";
-    this.loadUsers();
-  } else if (section === "queue") {
-    // 🔄 Reset create queue form
-    this.newQueue = {
-      queueName: "",
-      levelId: null,
-       category: null,        
-    };
-    this.getLevelsData();
+      this.loadSitesDropdown();
+    } else if (section === "employee") {
+      // 🔄 Every time you go to Employee, reset selection & filters
+      this.searchUserTerm = "";
+      this.selectedUserIds = [];
+      this.errorMessage = "";
+      this.loadUsers();
+    } else if (section === "queue") {
+      // 🔄 Reset create queue form
+      this.newQueue = {
+        queueName: "",
+        levelId: null,
+        category: null,
+      };
+      this.getLevelsData();
+    }
   }
-}
 
 
 
@@ -619,7 +645,7 @@ onSectionChange(section: string) {
       next: (res: any) => {
         this.sitesDropdown = res.data.map((s: any) => ({
           label: `${s.siteId} - ${s.siteName}`,   // 👈 ID + Name
-  value: s.siteId,
+          value: s.siteId,
         }));
         console.log("Sites dropdown:", this.sitesDropdown);
       },
@@ -642,34 +668,34 @@ onSectionChange(section: string) {
     });
   }
 
-    // ⭐ NEW: Static categories for queues
+  // ⭐ NEW: Static categories for queues
   queueCategories = [
     { label: 'Timed-Out', value: 'Timed-Out' },
-    { label: 'Console',   value: 'Console' },
-    { label: 'Manual',    value: 'Manual' },
+    { label: 'Console', value: 'Console' },
+    { label: 'Manual', value: 'Manual' },
   ];
 
 
   // Load cameras based on selected site
-onSiteChange(siteId: number) {
-  this.selectedSiteId = siteId;
-  this.selectedCameraId = null;
-  this.selectedCameraIds = []; // clear previous camera selection
+  onSiteChange(siteId: number) {
+    this.selectedSiteId = siteId;
+    this.selectedCameraId = null;
+    this.selectedCameraIds = []; // clear previous camera selection
 
-  this.groupsService.getCameras(siteId).subscribe({
-    next: (res: any) => {
-      const cams = Array.isArray(res.data) ? res.data : [];
+    this.groupsService.getCameras(siteId).subscribe({
+      next: (res: any) => {
+        const cams = Array.isArray(res.data) ? res.data : [];
 
-      this.camerasDropdown = cams.map((c: any) => ({
-        label: `${c.cameraId} - ${c.cameraName || c.name || 'Camera'}`,
-  value: c.cameraId,
-      }));
+        this.camerasDropdown = cams.map((c: any) => ({
+          label: `${c.cameraId} - ${c.cameraName || c.name || 'Camera'}`,
+          value: c.cameraId,
+        }));
 
-      console.log("Cameras dropdown:", this.camerasDropdown);
-    },
-    error: (err) => console.error("Error fetching cameras:", err),
-  });
-}
+        console.log("Cameras dropdown:", this.camerasDropdown);
+      },
+      error: (err) => console.error("Error fetching cameras:", err),
+    });
+  }
 
 
   cameras = [
@@ -679,28 +705,28 @@ onSiteChange(siteId: number) {
 
   currentSection: string = "default"; // default = normal right section
 
-goBack() {
-  // Switch back to the default right section (right panel summary view)
-  this.currentSection = "default";
+  goBack() {
+    // Switch back to the default right section (right panel summary view)
+    this.currentSection = "default";
 
-  // 🔹 Reset Site / Camera section state
-  this.selectedSiteId = null;
-  this.selectedCameraId = null;
-  this.selectedCameraIds = [];
-  this.sitesDropdown = [];
-  this.camerasDropdown = [];
+    // 🔹 Reset Site / Camera section state
+    this.selectedSiteId = null;
+    this.selectedCameraId = null;
+    this.selectedCameraIds = [];
+    this.sitesDropdown = [];
+    this.camerasDropdown = [];
 
-  // 🔹 Reset Employee section state
-  this.searchUserTerm = "";
-  this.selectedUserIds = [];
-  this.errorMessage = "";
+    // 🔹 Reset Employee section state
+    this.searchUserTerm = "";
+    this.selectedUserIds = [];
+    this.errorMessage = "";
 
-  // (Optional) reset users list so it's always freshly loaded next time
-  // this.users = [];
+    // (Optional) reset users list so it's always freshly loaded next time
+    // this.users = [];
 
-  // (Optional) reset create queue form too if you like:
-  // this.newQueue = { queueName: "", levelId: null };
-}
+    // (Optional) reset create queue form too if you like:
+    // this.newQueue = { queueName: "", levelId: null };
+  }
 
 
   formatDateTime(dateStr: string) {

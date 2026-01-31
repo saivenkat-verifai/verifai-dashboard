@@ -10,6 +10,7 @@ import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 import { FormsModule } from '@angular/forms';
 import { EventsService } from '../events/events.service';
 import { IdleService } from 'src/Services/idle.service';
+import { BehaviorSubject, delay, Observable, Subject } from 'rxjs';
 
 interface CardDot {
   iconcolor: string;
@@ -42,7 +43,8 @@ interface DashboardCard {
 })
 export class DashboardComponent implements OnInit {
   currentDate = new Date();
-  isLoading = false;
+  // isLoading = new Subject();
+  load!: Observable<any>;
 
   dashboardCards: DashboardCard[] = [];
   escalatedDetails: any[] = [];
@@ -56,12 +58,13 @@ export class DashboardComponent implements OnInit {
     private dashboardService: DashboardService,
     private eventService: EventsService,
     private idleService: IdleService,
-  ) {}
+  ) { }
 
   ngOnInit() {
     const now = new Date();
     this.timezoneDropdown();
     this.idleService.startWatching();
+    this.load = this.idleService.isLoading.pipe(delay(500));
   }
 
   timezoneDropdown() {
@@ -104,7 +107,8 @@ export class DashboardComponent implements OnInit {
     endTime: string;
   }) {
     this.event = event;
-    this.isLoading = true;
+
+    this.idleService.isLoading.next(true);
     this.dashboardService
       .getEventCountsByRange(
         event.startDate,
@@ -124,7 +128,7 @@ export class DashboardComponent implements OnInit {
           this.hourlyBreakdownData = this.mapHourly(data.escalated.details);
         },
         error: (err) => console.error(err),
-        complete: () => (this.isLoading = false),
+        complete: () => (this.idleService.isLoading.next(false)),
       });
   }
 
@@ -157,7 +161,7 @@ export class DashboardComponent implements OnInit {
           { iconcolor: "#53BF8B", count: value.eventWall ?? 0 },
           { iconcolor: "#FFC400", count: value.manualWall ?? 0 },
 
-          (rawKey == "escalated") || (rawKey=="totalEvents")
+          (rawKey == "escalated") || (rawKey == "totalEvents")
             ? { iconcolor: "#353636ff", count: value.manualEvent ?? 0 }
             : { iconcolor: "", count: "" },
         ],
@@ -187,9 +191,9 @@ export class DashboardComponent implements OnInit {
         { iconcolor: "#53BF8B", count: details[k].eventWall },
         { iconcolor: "#FFC400", count: details[k].manualWall },
 
-         k === "suspicious"
-            ? { iconcolor: "#353636ff", count: details[k].manualEvent }
-            : { iconcolor: "", count: "" },
+        k === "suspicious"
+          ? { iconcolor: "#353636ff", count: details[k].manualEvent }
+          : { iconcolor: "", count: "" },
       ],
       icons: [
         { iconPath: "assets/home.svg", count: details[k].sitesCount },
@@ -218,7 +222,7 @@ export class DashboardComponent implements OnInit {
     const series: any[] = [];
     Object.keys(details).forEach((k) => {
       const d = details[k];
-      
+
       series.push({
         name: `${k} - Event Wall`,
         type: "line",
@@ -237,7 +241,7 @@ export class DashboardComponent implements OnInit {
           data: d.hourlyBreakdown.HourlyManualEvent,
         });
       }
-     
+
     });
     return series;
   }

@@ -1,0 +1,8 @@
+::ng-deep .ag-theme-alpine .ag-standard-button {
+  border-color: #454141 !important;
+  color: #454141 !important;
+}
+
+::ng-deep .p-datepicker table td {
+  padding: 0 !important;
+}

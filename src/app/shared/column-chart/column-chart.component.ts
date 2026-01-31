@@ -9,6 +9,7 @@ import * as Highcharts from "highcharts";
 import { HighchartsChartModule } from "highcharts-angular";
 import { CommonModule } from "@angular/common";
 import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
+import { delay, Observable, Subject } from "rxjs";
 
 
 
@@ -29,7 +30,13 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
 
   Highcharts: typeof Highcharts = Highcharts;
   chartOptions: Highcharts.Options = {};
-  chartRendered = false;
+
+  chart$ = new Subject();
+  chartRendered!: Observable<any>;
+
+  ngOnInit() {
+    this.chartRendered = this.chart$.pipe(delay(500));
+  }
 
   ngAfterViewInit(): void {
     if (this.chartData?.length) {
@@ -48,7 +55,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
 
   private renderChart(): void {
     if (!this.chartData || this.chartData.length === 0) {
-      this.chartRendered = false;
+      this.chart$.next(false);
       return;
     }
 
@@ -89,7 +96,7 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
         title: { text: "", align: "center" },
         credits: { enabled: false },
         xAxis: { categories: this.chartData.map((d) => d.label) },
-        
+
         yAxis: { title: { text: "Count" } },
         plotOptions: {
           column: { borderRadius: 25, pointWidth: 25 },
@@ -107,6 +114,6 @@ export class ColumnChartComponent implements OnChanges, AfterViewInit {
       };
     }
 
-    this.chartRendered = true;
+    this.chart$.next(true);
   }
 }

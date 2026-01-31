@@ -594,7 +594,7 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
     { label: "Event Time Customer", field: "eventStartTime" },
     { label: "Event Time (IN)", field: "eventTime_IN" },
     { label: "Type", field: "eventType", default: "--" },
-    { label: "City", field: "country" },
+    { label: "Country", field: "country" },
   ];
 
   getEventDotColor(eventType: string): string {
@@ -603,10 +603,10 @@ export class EscalationPopupComponent implements OnChanges, OnInit {
         return "#FFC400";
       case "Event Wall":
         return "#53BF8B";
-         case "Manual Event":
+      case "Manual Event":
         return "#353636ff";
       case "Missed Wall":
-        return "#FF0000";  
+        return "#FF0000";
       default:
         return "#ccc";
     }

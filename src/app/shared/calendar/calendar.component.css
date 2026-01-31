@@ -1,61 +1,61 @@
 /* FONTS */
 @font-face {
-  font-family: 'Neometric Regular';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
-    format('woff');
+  font-family: "Neometric Regular";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Medium';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff')
-    format('woff');
+  font-family: "Neometric Medium";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Medium-(Regular).woff")
+    format("woff");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Bold';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff')
-    format('woff');
+  font-family: "Neometric Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Regular.woff")
+    format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Neometric Alt Bold';
-  src: url('src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff')
-    format('woff');
+  font-family: "Neometric Alt Bold";
+  src: url("src/assets/fonts/neometric-2-webfont/Neometric-Alt-Bold-(Regular).woff")
+    format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Nasalization';
-  src: url('src/assets/fonts/neometric-2-webfont/NASALIZA.woff') format('woff');
+  font-family: "Nasalization";
+  src: url("src/assets/fonts/neometric-2-webfont/NASALIZA.woff") format("woff");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'NasalizationLight';
+  font-family: "NasalizationLight";
   font-style: normal;
-  src: url('src/assets/fonts/Nasalization Rg.otf') format('opentype');
+  src: url("src/assets/fonts/Nasalization Rg.otf") format("opentype");
 }
 
 .font-Neometric-Medium {
-  font-family: 'Neometric Medium';
+  font-family: "Neometric Medium";
   font-size: 12px;
 }
 
 .font-Neometric-Bold {
-  font-family: 'Neometric Alt Bold';
+  font-family: "Neometric Alt Bold";
   font-size: 12px;
 }
 
@@ -100,7 +100,7 @@
 .view-select ::ng-deep .p-dropdown-label {
   text-transform: uppercase;
   padding: 0 !important;
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 12px !important;
   color: #ffffff !important;
 }
@@ -118,7 +118,7 @@
   background: #ffffff00 !important;
   color: #ed3237 !important;
   border: 1px solid #ed3237 !important;
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 14px !important;
   height: 30px !important;
   padding: 0 6px !important;
@@ -129,7 +129,7 @@
   background: #fff !important;
   color: #000 !important;
   border: 1px solid #000 !important;
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 14px !important;
   height: 30px !important;
   padding: 0 6px !important;
@@ -172,6 +172,7 @@
 .selected-range {
   color: #000 !important;
   margin: 0 10px !important;
+  cursor: pointer;
 }
 
 /* WEEK / MONTH cards -------------------------------------------------------- */
@@ -224,8 +225,8 @@
   background: #ffffff;
   border-radius: 18px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
-  padding: 12px 16px 14px;  /* reduced padding */
-  min-width: 520px;         /* narrower box */
+  padding: 8px; /* reduced padding */
+  /* min-width: 520px; */
 }
 
 /* Toggle row */
@@ -240,7 +241,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 13px;
 }
 
@@ -252,18 +253,18 @@
 .range-input-row {
   display: flex;
   align-items: flex-end;
-  gap: 14px;
+  gap: 4px;
   margin-bottom: 10px;
 }
 
 .range-input {
-  flex: 1;
+  /* flex: 1; */
   display: flex;
   flex-direction: column;
 }
 
 .range-label {
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 12px;
   color: #999999;
   margin-bottom: 4px;
@@ -273,7 +274,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;   /* smaller */
+  padding: 8px 12px; /* smaller */
   border-radius: 10px;
   border: 1px solid #ececec;
   background: #ffffff;
@@ -294,7 +295,7 @@
 }
 
 .range-input-box span {
-  font-family: 'Neometric Medium';
+  font-family: "Neometric Medium";
   font-size: 12px;
   color: #333333;
 }
@@ -327,7 +328,7 @@
 /* BODY: calendar + times */
 .range-body {
   display: flex;
-  gap: 12px;       /* smaller gap between calendar and times */
+  gap: 12px; /* smaller gap between calendar and times */
   align-items: flex-start;
 }
 
@@ -344,7 +345,7 @@
 }
 
 :host ::ng-deep .calendar-col .p-datepicker-title {
-  font-family: 'Neometric Bold';
+  font-family: "Neometric Bold";
   font-size: 12px;
   color: #ed3237;
   text-transform: uppercase;
@@ -355,39 +356,21 @@
 }
 
 :host ::ng-deep .calendar-col .p-datepicker table thead th {
-  font-family: 'Neometric Regular';
+  font-family: "Neometric Regular";
   font-size: 9px;
   color: #999999;
 }
 
-:host
-  ::ng-deep
-  .calendar-col
-  .p-datepicker
-  table
-  thead
-  th:last-child {
+:host ::ng-deep .calendar-col .p-datepicker table thead th:last-child {
   color: #ed3237;
 }
 
-:host
-  ::ng-deep
-  .calendar-col
-  .p-datepicker
-  table
-  td
-  span.p-highlight {
+:host ::ng-deep .calendar-col .p-datepicker table td span.p-highlight {
   background: #ed3237;
   color: #ffffff;
 }
 
-:host
-  ::ng-deep
-  .calendar-col
-  .p-datepicker
-  table
-  td
-  span.p-disabled {
+:host ::ng-deep .calendar-col .p-datepicker table td span.p-disabled {
   color: #d3d3d3;
 }
 
@@ -396,13 +379,13 @@
 /* ========================================================================= */
 
 .time-col {
-  width: 115px;            /* slimmer column */
+  width: 115px; /* slimmer column */
   display: flex;
   flex-direction: column;
 }
 
 .time-title {
-  font-family: 'Neometric Bold';
+  font-family: "Neometric Bold";
   font-size: 12px;
   margin-bottom: 8px;
 }
@@ -418,7 +401,7 @@
   border-radius: 10px;
   border: 1px solid #ececec;
   background: #ffffff;
-  font-family: 'Neometric Medium';
+  font-family: "Neometric Medium";
   font-size: 10px;
   padding: 4px 6px;
   margin-bottom: 4px;

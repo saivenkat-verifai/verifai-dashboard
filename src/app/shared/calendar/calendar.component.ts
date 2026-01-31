@@ -187,6 +187,8 @@ export class CalendarComponent implements OnInit {
     } else {
       this.startTime = this.formatTime24(this.startDate);
       this.endTime = this.formatTime24(this.endDate);
+
+      if (this.endDate < this.startDate) return alert('Please select valid date range!');
       // extra guard: never allow future end
       if (this.endDate > now) {
         this.endDate = now;
@@ -240,7 +242,7 @@ export class CalendarComponent implements OnInit {
       this.startTime = '00:00:00';
       this.endTime = '23:59:59';
     } else {
-      this.startDate = dayStart;
+      // this.startDate = dayStart;
       // this.endDate = now
       this.startTime = '00:00:00';
       this.endTime = this.formatTime24(now);
