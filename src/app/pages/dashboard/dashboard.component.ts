@@ -10,7 +10,7 @@ import { ESCALATED_COLORS } from "src/app/shared/constants/chart-colors";
 import { FormsModule } from '@angular/forms';
 import { EventsService } from '../events/events.service';
 import { IdleService } from 'src/Services/idle.service';
-import { BehaviorSubject, delay, Observable, Subject } from 'rxjs';
+import {  delay, Observable } from 'rxjs';
 
 interface CardDot {
   iconcolor: string;
@@ -234,7 +234,7 @@ export class DashboardComponent implements OnInit {
         data: d.hourlyBreakdown.HourlyManualWall,
       });
 
-      if (k === "suspicious") {
+      if (k === "suspicious"  && d.hourlyBreakdown.HourlyManualEvent) {
         series.push({
           name: `${k} - Manual Event`,
           type: "line",

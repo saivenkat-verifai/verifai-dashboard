@@ -12,7 +12,7 @@
     <div class="events-filter-row">
       <div class="events-filter-input-with-icon">
         <img src="assets/icons/calendar_month_24dp_EA3323_FILL0_wght400_GRAD0_opsz24.svg" alt="calendar" class="events-filter-input-icon" />
-        <input type="date" class="events-filter-input" [(ngModel)]="model.startDate"   (ngModelChange)="onCriteriaChanged()" />
+        <input type="date" class="events-filter-input" [(ngModel)]="model.startDate" [max]="today"  (ngModelChange)="onCriteriaChanged()" />
       </div>
       <div class="events-filter-time-wrapper">
         <input type="time" class="events-filter-time-input" [(ngModel)]="model.startTime"   (ngModelChange)="onCriteriaChanged()" />
@@ -29,7 +29,7 @@
     <div class="events-filter-row">
       <div class="events-filter-input-with-icon">
         <img src="assets/icons/calendar_month_24dp_EA3323_FILL0_wght400_GRAD0_opsz24.svg" alt="calendar" class="events-filter-input-icon" />
-        <input type="date" class="events-filter-input" [(ngModel)]="model.endDate"  (ngModelChange)="onCriteriaChanged()"  />
+        <input type="date" class="events-filter-input" [(ngModel)]="model.endDate"   [min]="model.startDate" [max]="today" (ngModelChange)="onCriteriaChanged()"  />
       </div>
       <div class="events-filter-time-wrapper">
         <input type="time" class="events-filter-time-input" [(ngModel)]="model.endTime"  (ngModelChange)="onCriteriaChanged()"  />

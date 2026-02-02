@@ -19,6 +19,7 @@ import { CalendarModule } from 'primeng/calendar';
 import { ButtonModule } from 'primeng/button';
 import { OverlayPanelModule } from 'primeng/overlaypanel';
 import { DashboardService } from 'src/app/pages/dashboard/dashboard.service';
+import { NotificationService } from '../notification.service';
 
 type DateRangePayload = {
   startDate: Date;
@@ -56,7 +57,8 @@ export class CalendarComponent implements OnInit {
   private readonly autoEmit: boolean = false;
 
   constructor(
-    public dashboard_service: DashboardService
+    public dashboard_service: DashboardService,
+    private notification: NotificationService,
   ) { }
 
   // UI mode
@@ -185,10 +187,10 @@ export class CalendarComponent implements OnInit {
         this.endTime = '23:59:59';
       }
     } else {
-      this.startTime = this.formatTime24(this.startDate);
+      this.startTime = this.formatTime24(this.startDate);   
       this.endTime = this.formatTime24(this.endDate);
 
-      if (this.endDate < this.startDate) return alert('Please select valid date range!');
+      if (this.endDate < this.startDate) return this.notification.error("Please select valid date range");
       // extra guard: never allow future end
       if (this.endDate > now) {
         this.endDate = now;

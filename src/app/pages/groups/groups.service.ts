@@ -58,7 +58,7 @@ export class GroupsService {
 
   // Second API: Get sites and users for a queue
   getGroupSitesAndUsers(queueId: number): Observable<any> {
-    console.log(queueId, "groupservice");
+    // console.log(queueId, "groupservice");
     const url = `${this.getQueueSitesAndUsersUrl}?queueId=${queueId}`;
     return this.http.get<any>(url);
   }

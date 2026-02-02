@@ -6,3 +6,21 @@
 ::ng-deep .p-datepicker table td {
   padding: 0 !important;
 }
+
+::ng-deep .p-dialog .p-dialog-header .p-dialog-title {
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+}
+::ng-deep .p-dialog .p-dialog-footer button{
+  height: 25px !important;
+
+}
+::ng-deep .p-button .p-button-icon-left {
+    margin-right: 0.3rem !important;
+}
+::ng-deep .p-icon{
+
+    width: 0.7rem !important; 
+     height: 0.7rem !important;
+
+}
