@@ -2,8 +2,8 @@ export const environment = {
   name: "staging",
   production: false,
   // apiBaseUrl: "https://usstaging.ivisecurity.com",
-  authBaseUrl: "https://usstaging.ivisecurity.com/userDetails",
-  mqApiBaseUrl: "https://stagingmq.ivisecurity.com/queueManagement",
-  eventDataUrl: "https://usstaging.ivisecurity.com/events_data",
+  authBaseUrl: "https://prod.ivisecurity.com/userDetails_test",
+  mqApiBaseUrl: "https://prodmq.ivisecurity.com/queueManagement_test",
+  eventDataUrl: "https://prod.ivisecurity.com/events_data_test",
   loggingEnabled: true,
 };
