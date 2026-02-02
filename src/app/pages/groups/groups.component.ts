@@ -62,12 +62,12 @@ export class GroupsComponent implements OnInit, OnDestroy {
     const raw =
       localStorage.getItem('verifai_user') ||
       sessionStorage.getItem('verifai_user');
-    console.log('Stored user data:', raw);
+    // console.log('Stored user data:', raw);
 
     if (raw) {
       try {
         this.currentUser = JSON.parse(raw);
-        console.log('Current user in Groups:', this.currentUser);
+        // console.log('Current user in Groups:', this.currentUser);
       } catch (e) {
         console.error('Error parsing stored user data', e);
       }
@@ -144,7 +144,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
         buttons: ['reset', 'apply']
       }
     },
-    { headerName: "NAME", field: "name", sortable: true },
+    { headerName: "NAME", field: "name", sortable: true,filterParams: {
+        buttons: ['reset', 'apply']
+      } },
     {
       headerName: "CATEGORY", field: "category", sortable: true, cellStyle: { opacity: "0.5" }, filterParams: {
         buttons: ['reset', 'apply']

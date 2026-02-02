@@ -461,8 +461,8 @@
                     *ngFor="let e of escalatedDetailsCombined"
                   >
                     <div class="closed-card-header">
-                      <h4>{{ e.label }}</h4>
-                      <h4>{{ e.value }}</h4>
+                      <h4 [title]="e.label">{{ e.label }}</h4>
+                      <h4 [title]="e.value">{{ e.value }}</h4>
                     </div>
 
                     <div class="closed-card-footer">
@@ -508,10 +508,10 @@
                 *ngFor="let e of escalatedDetailsPending"
               >
                 <div class="pending-header">
-                  <h4 class="pending-label" title="{{ e.label }}">
+                  <h4 class="pending-label" [title]="e.label">
                     {{ e.label }}
                   </h4>
-                  <h4 class="pending-value">{{ e.value }}</h4>
+                  <h4 class="pending-value" [title]="e.value">{{ e.value }}</h4>
                 </div>
 
                 <div class="pending-icons" *ngIf="e.colordot">

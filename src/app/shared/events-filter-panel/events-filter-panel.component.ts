@@ -106,11 +106,14 @@ export class EventsFilterPanelComponent {
   constructor(private eventService: EventsService) {
 
   }
-
+today: any;
   ngOnInit() {
     this.onReset();
     this.timezoneDropdown();
+    this.today = new Date().toISOString().split('T')[0];
   }
+
+
 
   timezones: any;
   timezoneDropdown() {

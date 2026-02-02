@@ -5,6 +5,7 @@ import { HeaderComponent } from './shared/header/header.component';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { NotificationService } from 'src/app/shared/notification.service';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
@@ -13,7 +14,7 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, HeaderComponent, ToastModule],
+  imports: [CommonModule, RouterModule, HeaderComponent, ToastModule,ConfirmDialogModule],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })

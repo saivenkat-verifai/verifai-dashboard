@@ -78,7 +78,7 @@
 // src/app/shared/notification.service.ts
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService,  } from 'primeng/api';
 
 export interface AppNotification {
   id: number;
@@ -97,7 +97,7 @@ export class NotificationService {
 
   private idCounter = 0;
 
-  constructor(private messageService: MessageService) {}
+  constructor(private messageService: MessageService,private confirmationService: ConfirmationService ) {}
 
   private push(
     severity: 'success' | 'error' | 'warn' | 'info',
@@ -146,8 +146,41 @@ export class NotificationService {
     this.messageService.clear();
   }
 
+  //   confirm(message: string): Promise<boolean> {
+  //   return new Promise((resolve) => {
+  //     this.confirmationService.confirm({
+  //       message,
+  //       header: 'Confirmation',
+  //       icon: 'pi pi-exclamation-triangle',
+  //       acceptLabel: 'Yes',
+  //       rejectLabel: 'No',
+
+  //       accept: () => resolve(true),
+  //       reject: () => resolve(false),
+  //     });
+  //   });
+  // }
+
   // optional snapshot helper
   getSnapshot(): AppNotification[] {
     return this.notificationsSubject.getValue();
+  }
+
+    confirm(message: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.confirmationService.confirm({
+        message,
+        header: 'Confirmation',
+        icon: 'pi pi-exclamation-triangle',
+        acceptLabel: 'Yes',
+        rejectLabel: 'No',
+        
+        acceptButtonStyleClass: 'p-button-danger',
+    rejectButtonStyleClass: 'p-button-secondary',
+
+        accept: () => resolve(true),
+        reject: () => resolve(false),
+      });
+    });
   }
 }
