@@ -89,7 +89,7 @@ export class GroupsPopupComponent implements OnChanges, OnInit {
   constructor(
     private groupsService: GroupsService,
     private notificationService: NotificationService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const raw =
@@ -201,8 +201,11 @@ export class GroupsPopupComponent implements OnChanges, OnInit {
     this.inactivateCamera(cam.cameraId, cam.queueSitesId, this.data.id);
   }
 
-  onUserDelete(user: DisplayUser) {
-    this.inactivateUser(user.userId as number, this.data.id);
+  async onUserDelete(user: DisplayUser) {
+    const confirmed = await this.notificationService.confirm("Are you sure ?");
+    if (confirmed) {
+      this.inactivateUser(user.userId as number, this.data.id);
+    }
   }
 
   inactivateCamera(
@@ -349,12 +352,12 @@ export class GroupsPopupComponent implements OnChanges, OnInit {
     this.sitesDisplay = queuesData.map((site: any) => {
       const cameras: DisplayCamera[] = Array.isArray(site.cameraInfo)
         ? site.cameraInfo.map((cam: any) => ({
-            cameraId: cam.cameraId,
-            cameraName: cam.cameraName || "Unnamed Camera",
-            status: cam.status || "ACTIVE",
-            queueSitesId: cam.queueSitesId ?? site.queueSitesId,
-            queueId: site.queueId,
-          }))
+          cameraId: cam.cameraId,
+          cameraName: cam.cameraName || "Unnamed Camera",
+          status: cam.status || "ACTIVE",
+          queueSitesId: cam.queueSitesId ?? site.queueSitesId,
+          queueId: site.queueId,
+        }))
         : [];
 
       const displaySite: DisplaySite = {
