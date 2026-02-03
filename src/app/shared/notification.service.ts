@@ -166,21 +166,30 @@ export class NotificationService {
     return this.notificationsSubject.getValue();
   }
 
-    confirm(message: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      this.confirmationService.confirm({
-        message,
-        header: 'Confirmation',
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Yes',
-        rejectLabel: 'No',
-        
-        acceptButtonStyleClass: 'p-button-danger',
-    rejectButtonStyleClass: 'p-button-secondary',
-
-        accept: () => resolve(true),
-        reject: () => resolve(false),
-      });
-    });
+confirm(
+  message: string,
+  options?: {
+    acceptLabel?: string;
+    rejectLabel?: string;
+    header?: string;
   }
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    this.confirmationService.confirm({
+      message,
+      header: options?.header ?? 'Confirmation',
+      icon: 'pi pi-exclamation-triangle',
+
+      acceptLabel: options?.acceptLabel ?? 'Yes',
+      rejectLabel: options?.rejectLabel ?? 'No',
+
+      acceptButtonStyleClass: 'p-button-danger',
+      rejectButtonStyleClass: 'p-button-secondary',
+
+      accept: () => resolve(true),
+      reject: () => resolve(false),
+    });
+  });
+}
+
 }

@@ -145,32 +145,41 @@ export class GroupsPopupComponent implements OnChanges, OnInit {
   onStatusToggle(event: Event) {
     if (!this.data || !this.data.id) return;
 
-    const input = event.target as HTMLInputElement;
-    const isActive = input.checked;
-    const status = isActive ? "ACTIVE" : "INACTIVE";
-    const modifiedBy = this.currentUser?.UserId || 0;
+    this.notificationService
+      .confirm(`This action will disable all queues and remove queue access for users.`,{acceptLabel:"Disable",rejectLabel:"Cancel"}
+      )
+      .then((res: any) => {
+        const input = event.target as HTMLInputElement;
+        const isActive = input.checked;
+        const status = isActive ? "ACTIVE" : "INACTIVE";
+        const modifiedBy = this.currentUser?.UserId || 0;
 
-    this.groupsService
-      .toggleQueueStatus(this.data.id, status, modifiedBy)
-      .subscribe({
-        next: (res) => {
-          const msg =
-            res?.message ||
-            res?.msg ||
-            res?.statusMessage ||
-            `Queue marked as ${status}`;
-          this.data.status = status;
-          this.refreshRequested.emit(this.data.id);
-          this.showSuccess("Update Queue Status", msg);
-        },
-        error: (err) => {
-          const msg =
-            err?.error?.message ||
-            err?.error?.msg ||
-            "Failed to update queue status";
+        if (res) {
+          this.groupsService
+            .toggleQueueStatus(this.data.id, status, modifiedBy)
+            .subscribe({
+              next: (res) => {
+                const msg =
+                  res?.message ||
+                  res?.msg ||
+                  res?.statusMessage ||
+                  `Queue marked as ${status}`;
+                this.data.status = status;
+                this.refreshRequested.emit(this.data.id);
+                this.showSuccess("Update Queue Status", msg);
+              },
+              error: (err) => {
+                const msg =
+                  err?.error?.message ||
+                  err?.error?.msg ||
+                  "Failed to update queue status";
+                input.checked = !isActive;
+                this.showError("Update Queue Status Failed", msg);
+              },
+            });
+        } else {
           input.checked = !isActive;
-          this.showError("Update Queue Status Failed", msg);
-        },
+        }
       });
   }
 
