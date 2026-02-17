@@ -3,11 +3,16 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 import * as moment from "moment";
+import { DatePipe } from "@angular/common";
 
 @Injectable({
   providedIn: "root",
 })
 export class EventsService {
+  constructor(
+    private datePipe: DatePipe,
+    private http: HttpClient,
+  ) {}
 
   // 🔹 events data endpoints
   private readonly eventReportFullData = `${environment.eventDataUrl}/getEventReportFullData_1_0`;
@@ -32,8 +37,6 @@ export class EventsService {
   private readonly consolePendingMessagesUrl = `${environment.mqApiBaseUrl}/getConsolePendingMessages_1_0`;
 
   private readonly pendingEventsCountsUrl = `${environment.mqApiBaseUrl}/getPendingEventsCounts_1_0`;
-
-  constructor(private http: HttpClient) { }
 
   getSuspiciousEvents(
     actionTag: number,
@@ -71,36 +74,44 @@ export class EventsService {
     startDate?: string,
     endDate?: string,
     suspiciouscheck?: boolean,
-    falsecheck?:boolean,
+    falsecheck?: boolean,
 
-    filter?:any
+    filter?: any,
   ): Observable<any> {
-
     const url =
       `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
       `&toDate=${endDate}&falseActionTag=${falsecheck}&suspiciousActionTag=${suspiciouscheck}`;
-
 
     let params = new HttpParams();
 
     // if (actionTag) {
     //   params = params.set("actionTag", actionTag);
     // }
-    if (filter.timeZone !== null && filter.timeZone !== "All" && filter.timeZone !== "") {
+    if (
+      filter.timeZone !== null &&
+      filter.timeZone !== "All" &&
+      filter.timeZone !== ""
+    ) {
       params = params.set("timezone", filter.timeZone.timezoneCode);
     }
 
-    if(filter.site !== null){
+    if (filter.site !== null) {
       params = params.set("siteId", filter.site.siteId);
     }
 
-  if(filter.camera !== null && filter.camera!== "" && filter.camera!== "All"){
-
+    if (
+      filter.camera !== null &&
+      filter.camera !== "" &&
+      filter.camera !== "All"
+    ) {
       params = params.set("cameraId", filter.camera);
     }
-    
-      if(filter.consoleType !== null && filter.consoleType!== "" && filter.consoleType!== "All"){
 
+    if (
+      filter.consoleType !== null &&
+      filter.consoleType !== "" &&
+      filter.consoleType !== "All"
+    ) {
       params = params.set("EventType", filter.consoleType);
     }
 
@@ -162,39 +173,41 @@ export class EventsService {
     });
   }
 
-
-    weekdays = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
+  weekdays = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
   ];
-    getHour(timezone: string) {
+  getHour(timezone: string) {
     return moment().tz(timezone).hours();
   }
-    getDay(timezone: string) {
+  getDay(timezone: string) {
     return moment().tz(timezone).day();
   }
 
-   getEmailDataForVMSEvents(payload: any) {
+  getEmailDataForVMSEvents(payload: any) {
     // let url = `${environment.guard_monitoring_url}/getEmailDataForVMSEvents_1_0`;
     let url = `http://192.168.0.125:3009/getEmailDataForClosedEvent_1_0`;
     // let timer;
     // payload?.siteId == 36444 ? (timer = 10) : (timer = 120);
     let params = new HttpParams();
-    params = params.set('siteId', payload?.siteId);
-    params = params.set('siteName', payload?.siteName);
-    params = params.set('cameraId', payload?.cameraId);
-    params = params.set('alertTypeId', payload?.alertTypeId);
-    params = params.set('subTypeId', payload?.subTypeId);
-    params = params.set('day', payload?.day);
-    params = params.set('hour', payload?.hour);
-    params = params.set('currentTime', payload?.currentTime);
+    params = params.set("siteId", payload?.siteId);
+    params = params.set("siteName", payload?.siteName);
+    params = params.set("cameraId", payload?.cameraId);
+    params = params.set("alertTypeId", payload?.alertTypeId);
+    params = params.set("subTypeId", payload?.subTypeId);
+    params = params.set("day", payload?.day);
+    params = params.set("hour", payload?.hour);
+    params = params.set(
+      "currentTime",
+      this.datePipe.transform(payload?.currentTime, "yyyy-MM-dd HH:mm:ss")!
+    );
     // params = params.set('timer', timer);
-  
+
     return this.http.get(url, { params: params });
   }
 }

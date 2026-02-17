@@ -117,8 +117,15 @@
   /* flex: 1; */
   overflow-y: auto;
   height: 300px;
+ 
 }
-
+.popup-body-email {
+  padding: 10px;
+  /* flex: 1; */
+  overflow-y: auto;
+  height: 500px;
+  width: 700px;
+}
 .refreshbutton {
   height: 25px;
   background-color: white;
@@ -1992,4 +1999,90 @@ input:checked + .slider:before {
 
 ::ng-deep .alert-green {
   color: green;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.email-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  max-width: 650px;
+  margin: 10px auto;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.email-header .subject {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.meta {
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.email-section {
+  margin-top: 14px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.alert-info {
+  background: #f3f4f6;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+.tag {
+  display: inline-block;
+  background: #ef4444;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.email-body {
+ 
+  line-height: 1.6;
+  color: #111827;
+  /* white-space: pre-line; */
+   margin-top: 5px;
+}
+
+.email-footer {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 10px;
 }

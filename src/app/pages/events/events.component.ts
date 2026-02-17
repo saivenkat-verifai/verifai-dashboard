@@ -1496,19 +1496,27 @@ export class EventsComponent {
       hour: this.eventsService.getHour(this.mailselectitem?.timezone),
       currentTime: this.mailselectitem?.eventStartTime,
     };
- 
+    
+    this.isMediaLoading = true;
+
       this.eventsService.getEmailDataForVMSEvents(this.emailObject).subscribe({
         next: (res: any) => {
           if (res.statusCode === 200) {
             this.emailData = res.emailDetails;
             this.smsDetails = res.smsDetails;
+            this.isMediaLoading = false;
+          }
+          else{
+             this.isMediaLoading = false;
           }
         },
         error: (err) => {
+
+          this.isMediaLoading = false;
            this.showToast(
           "error",
           "Connection Failed",
-          ""
+          "Something went wrong!"
         );
         }
       });
@@ -1667,6 +1675,7 @@ export class EventsComponent {
 
   closeMailoverlay() {
     this.mailoverlay.hide();
+    this.emailData=null;
   }
 
   closePlayPopup(): void {

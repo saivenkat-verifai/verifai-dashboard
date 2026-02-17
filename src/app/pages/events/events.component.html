@@ -474,16 +474,57 @@
       </div>
     </div>
 
-    <div class="popup-body" style="position: relative">
+    <div class="popup-body-email" style="position: relative">
 
         <ng-container *ngIf="isMediaLoading">
                 <div class="spinner" style="position: absolute; top: 40%; left: 40%"></div>
               </ng-container>
 
               <!-- NO IMAGES -->
-              <ng-container *ngIf="!isMediaLoading && !validImages.length">
-                <p>No images available</p>
+              <ng-container *ngIf="!isMediaLoading &&  !emailData">
+                <p>No Data</p>
               </ng-container>
+
+            <div class="email-card" *ngIf="emailData">
+
+  <!-- Header -->
+  <div class="email-header">
+    <h3 class="subject">{{ emailData.emailSubject }}</h3>
+    <p class="meta">
+      <strong>From:</strong> {{ emailData.senderEmail }}
+    </p>
+  </div>
+
+  <!-- Recipients -->
+  <div class="email-section">
+    <p><strong>To:</strong> {{ emailData.recipientEmails?.join(', ') || '—' }}</p>
+    <p><strong>Cc:</strong> {{ emailData.Cc?.join(', ') || '—' }}</p>
+    <p><strong>Bcc:</strong> {{ emailData.BCC?.join(', ') || '—' }}</p>
+  </div>
+
+  <!-- Alert Info -->
+  <div class="email-section alert-info">
+    <span class="tag">{{ emailData.alertTag }}</span>
+    <div class="fields">
+      <p><strong>Location:</strong> {{ emailData.emailFields?.LOCATION }}</p>
+      <p><strong>Date:</strong> {{ emailData.emailFields?.DATE }}</p>
+      <p><strong>Time:</strong> {{ emailData.emailFields?.TIME }}</p>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="email-body">
+    {{ emailData.emailBody }}
+  </div>
+
+  <!-- Footer -->
+  <div class="email-footer">
+    {{ emailData.emailFooter }}
+  </div>
+
+</div>
+
+
 
     </div>
   </div>
