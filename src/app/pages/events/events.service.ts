@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
+import * as moment from "moment";
 
 @Injectable({
   providedIn: "root",
@@ -159,5 +160,41 @@ export class EventsService {
       params,
       responseType: "arraybuffer" as "json",
     });
+  }
+
+
+    weekdays = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+    getHour(timezone: string) {
+    return moment().tz(timezone).hours();
+  }
+    getDay(timezone: string) {
+    return moment().tz(timezone).day();
+  }
+
+   getEmailDataForVMSEvents(payload: any) {
+    // let url = `${environment.guard_monitoring_url}/getEmailDataForVMSEvents_1_0`;
+    let url = `http://192.168.0.125:3009/getEmailDataForClosedEvent_1_0`;
+    // let timer;
+    // payload?.siteId == 36444 ? (timer = 10) : (timer = 120);
+    let params = new HttpParams();
+    params = params.set('siteId', payload?.siteId);
+    params = params.set('siteName', payload?.siteName);
+    params = params.set('cameraId', payload?.cameraId);
+    params = params.set('alertTypeId', payload?.alertTypeId);
+    params = params.set('subTypeId', payload?.subTypeId);
+    params = params.set('day', payload?.day);
+    params = params.set('hour', payload?.hour);
+    params = params.set('currentTime', payload?.currentTime);
+    // params = params.set('timer', timer);
+  
+    return this.http.get(url, { params: params });
   }
 }

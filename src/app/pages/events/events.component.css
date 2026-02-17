@@ -114,7 +114,7 @@
 
 .popup-body {
   padding: 10px;
-  flex: 1;
+  /* flex: 1; */
   overflow-y: auto;
   height: 300px;
 }

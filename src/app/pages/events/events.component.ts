@@ -1,4 +1,3 @@
-
 import {
   Component,
   OnInit,
@@ -18,7 +17,7 @@ import {
 } from "ag-grid-community";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { MatNativeDateModule } from "@angular/material/core";
+import { MatNativeDateModule, MatOption } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EscalationPopupComponent } from "src/app/shared/escalation-popup/escalation-popup.component";
 import { AgGridModule } from "ag-grid-angular";
@@ -51,6 +50,13 @@ import { NgZone } from "@angular/core";
 import { RefreshStatusPanelComponent } from "./refresh-status-panel.component";
 import { ImagePipe } from "src/app/shared/image.pipe"; // adjust path
 import { IdleService } from "src/Services/idle.service";
+import {
+  MatFormField,
+  MatFormFieldModule,
+  MatLabel,
+} from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -98,7 +104,11 @@ interface SecondEscalatedDetail {
     CalendarComponent,
     OverlayPanelModule,
     EventsFilterPanelComponent,
-
+    MatLabel,
+    MatOption,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
   ],
 })
 export class EventsComponent {
@@ -108,6 +118,8 @@ export class EventsComponent {
   @ViewChild("paginationControls")
   paginationControls!: ElementRef<HTMLDivElement>;
   @ViewChild("playOverlay") playOverlay!: OverlayPanel;
+
+  @ViewChild("mailoverlay") mailoverlay!: OverlayPanel;
 
   filterPanelVisible = false;
 
@@ -179,8 +191,7 @@ export class EventsComponent {
   }
 
   onFilterApply(criteria: EventsFilterCriteria) {
-
-    this.preloadClosedCounts()
+    this.preloadClosedCounts();
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
 
@@ -216,7 +227,10 @@ export class EventsComponent {
       if (criteria.site !== null && row.siteName !== criteria.site.site)
         return false;
 
-      if (criteria.timeZone !== null && row.timezone !== criteria.timeZone.timezoneValue)
+      if (
+        criteria.timeZone !== null &&
+        row.timezone !== criteria.timeZone.timezoneValue
+      )
         return false;
 
       if (criteria.camera !== "All" && row.cameraId !== criteria.camera)
@@ -315,11 +329,8 @@ export class EventsComponent {
     const siteRows = this.filterRowsForOptions(rows, "site");
     this.filterLists.sites = Array.from(
       new Map(
-        siteRows.map(r => [
-          r.siteId,
-          { siteId: r.siteId, site: r.siteName }
-        ])
-      ).values()
+        siteRows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
+      ).values(),
     );
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
@@ -378,7 +389,11 @@ export class EventsComponent {
 
     return rows.filter((row) => {
       // Site
-      if (ignoreField !== "site" && c.site !== null && row.siteName !== c.site.site)
+      if (
+        ignoreField !== "site" &&
+        c.site !== null &&
+        row.siteName !== c.site.site
+      )
         return false;
 
       // Camera
@@ -516,7 +531,7 @@ export class EventsComponent {
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
 
-  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true, };
+  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true };
 
   /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
@@ -611,10 +626,8 @@ export class EventsComponent {
     private http: HttpClient,
     private notification: NotificationService,
     private zone: NgZone,
-    private idelService: IdleService
-  ) { }
-
-
+    private idelService: IdleService,
+  ) {}
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
@@ -706,21 +719,31 @@ export class EventsComponent {
       return;
     }
 
-
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-
-
-    this.actionTagCountsclosed(start, end, this.suspiciousChecked, this.falseChecked);
-
+    this.actionTagCountsclosed(
+      start,
+      end,
+      this.suspiciousChecked,
+      this.falseChecked,
+    );
   }
 
-  actionTagCountsclosed(start: any, end: any, suspiciouscheck: any, falsecheck: any) {
-
-
+  actionTagCountsclosed(
+    start: any,
+    end: any,
+    suspiciouscheck: any,
+    falsecheck: any,
+  ) {
     this.eventsService
-      .getEventReportCountsForActionTag(start, end, suspiciouscheck, falsecheck, this.currentFilter)
+      .getEventReportCountsForActionTag(
+        start,
+        end,
+        suspiciouscheck,
+        falsecheck,
+        this.currentFilter,
+      )
       .subscribe({
         next: (res) => {
           const counts = res?.counts || [];
@@ -757,15 +780,9 @@ export class EventsComponent {
             });
           });
 
-
-
-
           this.EscalatedDetailCombined = result;
-
-
         },
         error: () => {
-
           this.EscalatedDetailCombined = [];
         },
       });
@@ -774,8 +791,6 @@ export class EventsComponent {
   get escalatedDetailsCombined(): EscalatedDetail[] {
     return this.EscalatedDetailCombined;
   }
-
-
 
   private readonly DOT_IMAGES_BASE =
     "https://usstaging.ivisecurity.com/dotimages/";
@@ -893,7 +908,6 @@ export class EventsComponent {
     this.stopImageLoop();
   }
 
-
   /** -------------------- Toast helpers (PrimeNG) -------------------- */
   private showSuccess(summary: string, detail?: string) {
     this.notification.success(summary, detail);
@@ -951,8 +965,6 @@ export class EventsComponent {
     this.loadClosedAndEscalatedDetails();
     this.preloadClosedCounts();
     // this.loadEscalatedDetails();
-
-
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
@@ -1103,7 +1115,7 @@ export class EventsComponent {
 
       // ✅ clone your hidden template div
       const tplRef = this.paginationControls;
-      const clone = tplRef.nativeElement.cloneNode(true) as HTMLElement;
+      const clone = tplRef.nativeElement?.cloneNode(true) as HTMLElement;
 
       // ✅ mark it so we can find/remove next time
       clone.classList.add("custom-pagination-toolbar");
@@ -1165,8 +1177,14 @@ export class EventsComponent {
 
     const target = event.event.target as HTMLElement;
 
+    if (target.closest(".mail")) {
+      this.openMailTooltip(event.event as MouseEvent, event);
+      return;
+    }
+
     if (target.closest(".play-icon")) {
       this.openPlayTooltip(event.event as MouseEvent, event);
+      return;
     }
 
     if (target.closest(".info-icon")) {
@@ -1332,24 +1350,23 @@ export class EventsComponent {
       const url = new URL(input);
 
       // Case 1: ?assetName=
-      const assetName = url.searchParams.get('assetName');
+      const assetName = url.searchParams.get("assetName");
       if (assetName) {
         return assetName;
       }
 
       // Case 2: /dotimages/filename
-      if (url.pathname.includes('/dotimages/')) {
-        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      if (url.pathname.includes("/dotimages/")) {
+        return url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
       }
 
       // Case 3: /images/filename
-      if (url.pathname.includes('/images/')) {
-        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      if (url.pathname.includes("/images/")) {
+        return url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
       }
 
       // Case 4: nothing matched → return full URL
       return input;
-
     } catch (e) {
       // Invalid or non-standard URL
       return input;
@@ -1377,7 +1394,6 @@ export class EventsComponent {
       Authorization: `Bearer ${token}`,
     });
 
-
     this.http.get(url, { headers, responseType: "blob" }).subscribe({
       next: (blob) => {
         if (blob.type === "application/json") {
@@ -1385,13 +1401,11 @@ export class EventsComponent {
           return;
         }
 
-        const fileName = this.extractAssetNameOrUrl(url)
+        const fileName = this.extractAssetNameOrUrl(url);
 
         const objectUrl = URL.createObjectURL(blob);
 
-
         if (isDownload) {
-
           const a = document.createElement("a");
           a.href = objectUrl;
           a.download = fileName;
@@ -1400,7 +1414,6 @@ export class EventsComponent {
           document.body.removeChild(a);
           URL.revokeObjectURL(objectUrl);
         } else {
-
           window.open(objectUrl, "_blank");
           setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
         }
@@ -1465,6 +1478,52 @@ export class EventsComponent {
     }
   }
 
+
+
+  emailObject: any;
+  emailData: any;
+  smsDetails: any;
+  getEmailDataForVMSEvents() {
+    this.emailObject = {
+      siteId: this.mailselectitem?.siteId,
+      siteName: this.mailselectitem?.siteName,
+      alertTypeId: this.mailselectitem?.alertTagId,
+      subTypeId: this.mailselectitem?.subAlertTagId,
+      cameraId: this.mailselectitem?.cameraId,
+      day: this.eventsService.weekdays[
+        this.eventsService.getDay(this.mailselectitem?.timezone)
+      ],
+      hour: this.eventsService.getHour(this.mailselectitem?.timezone),
+      currentTime: this.mailselectitem?.eventStartTime,
+    };
+ 
+      this.eventsService.getEmailDataForVMSEvents(this.emailObject).subscribe({
+        next: (res: any) => {
+          if (res.statusCode === 200) {
+            this.emailData = res.emailDetails;
+            this.smsDetails = res.smsDetails;
+          }
+        },
+        error: (err) => {
+           this.showToast(
+          "error",
+          "Connection Failed",
+          ""
+        );
+        }
+      });
+    
+  }
+
+
+  mailselectitem: any;
+  openMailTooltip(event: MouseEvent, params: any) {
+    console.log(params);
+    this.mailselectitem = params.data;
+    this.getEmailDataForVMSEvents();
+    this.mailoverlay.show(event);
+  }
+
   validImages: any[] = [];
   isMediaLoading = false;
 
@@ -1473,7 +1532,6 @@ export class EventsComponent {
 
     const item = params.data;
     const media: string[] = this.resolveMediaUrls(item);
-
 
     console.log("DEBUG media:", media);
 
@@ -1557,8 +1615,6 @@ export class EventsComponent {
       }),
       catchError(() => of(null)),
     );
-
-
   }
 
   //  downloaddisplayimage(
@@ -1609,7 +1665,9 @@ export class EventsComponent {
   //   );
   // }
 
-
+  closeMailoverlay() {
+    this.mailoverlay.hide();
+  }
 
   closePlayPopup(): void {
     this.stopImageLoop();
@@ -1639,9 +1697,6 @@ export class EventsComponent {
   }
 
   getCurrentImageUrl() {
-
-
-
     if (!this.validImages.length) return null;
     return this.validImages[this.currentSlideIndex] ?? this.validImages[0];
   }
@@ -1948,10 +2003,10 @@ export class EventsComponent {
               row.employee ??
               (empName
                 ? {
-                  name: empName,
-                  level: empLevel,
-                  profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
-                }
+                    name: empName,
+                    level: empLevel,
+                    profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
+                  }
                 : undefined),
           };
         });
@@ -2224,14 +2279,10 @@ export class EventsComponent {
   //   // CLOSED
   //   // if (this.selectedFilter === "CLOSED") {
 
-
   //   //   const start = this.formatDateTimeFull(this.selectedStartDate!);
   //   //   const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-
-
   //   //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
-
 
   //   // }
 
@@ -2387,11 +2438,8 @@ export class EventsComponent {
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = Array.from(
       new Map(
-        rows.map(r => [
-          r.siteId,
-          { siteId: r.siteId, site: r.siteName }
-        ])
-      ).values()
+        rows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
+      ).values(),
     );
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
@@ -2409,13 +2457,6 @@ export class EventsComponent {
     // const colIds = cols.map((c: Column) => c.getColId());
     // this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
-
-
-
-
-
-
-
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
@@ -2496,16 +2537,17 @@ export class EventsComponent {
         },
         cellClassRules: {
           // 🔴 Red when actionTag = Suspicious and checkbox checked
-          'alert-red': (params) =>
-            this.suspiciousChecked && this.falseChecked &&
+          "alert-red": (params) =>
+            this.suspiciousChecked &&
+            this.falseChecked &&
             params.data?.actionTagId === 2,
 
           // 🟢 Green when actionTag = False and checkbox checked
-          'alert-green': (params) =>
-            this.falseChecked && this.suspiciousChecked &&
-            params.data?.actionTagId === 1
-
-        }
+          "alert-green": (params) =>
+            this.falseChecked &&
+            this.suspiciousChecked &&
+            params.data?.actionTagId === 1,
+        },
       },
       {
         headerName: "ALERT",
@@ -2583,7 +2625,11 @@ export class EventsComponent {
           // alignItems: "center",
         },
         cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;">
+          `
+        <span class="material-symbols-outlined  mail" style="color:green;margin-right:8px;cursor:pointer;">
+                mail
+              </span>
+        <span class="play-icon" style="margin-right:8px;">
             <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
           </span>
           <span class="info-icon">
