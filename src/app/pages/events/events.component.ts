@@ -4,6 +4,7 @@ import {
   OnDestroy,
   ViewChild,
   ElementRef,
+  forwardRef,
 } from "@angular/core";
 import {
   GridApi,
@@ -109,6 +110,7 @@ interface SecondEscalatedDetail {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    forwardRef(() => FilePreviewPipe),
   ],
 })
 export class EventsComponent {
@@ -1478,8 +1480,96 @@ export class EventsComponent {
     }
   }
 
+  isSubmitting = false;
+  submitResolution() {
+    if (
+      !this.action?.trim() ||
+      !this.resolution?.trim() ||
+      !this.emailData?.recipientEmails?.length ||
+      !this.selectedFiles.length
+    ) {
+      this.showToast(
+        "error",
+        "Failed",
+        "Action Taken, Notes,Files and Recipient Email are mandatory.",
+      );
 
+      return;
+    }
+    this.isSubmitting = true;
+    this.eventsService
+      .sendResolution({
+        ...this.mailselectitem,
+        ...this.emailData,
+        selectedFiles: this.selectedFiles,
+        action: this.action,
+        resolution: this.resolution,
+      })
+      .subscribe((res: any) => {
+        if (res.statusCode == 200) {
+          this.showToast("success", "Successfully completed", "");
+          this.isSubmitting = false;
+          this.closeMailoverlay();
+          this.showPreview = false;
+          this.selectedFiles=[];
+          this.loadClosedAndEscalatedDetails();
+          this.preloadClosedCounts();
+          
+        } else {
+          this.showToast("error", "Something went wrong", "Failed!");
+          this.isSubmitting = false;
+        }
+      },(error:any)=>{
+         this.isSubmitting = false;
+          this.showToast("error", "Something went wrong", "Failed!");
+      });
+  }
 
+  selectedFiles: File[] = [];
+  showPreview: boolean = false;
+  onFilesSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+
+    const allowedTypes = ["image/", "video/"];
+    const filesArray = Array.from(input.files);
+
+    const validFiles: File[] = [];
+    const invalidFiles: File[] = [];
+
+    filesArray.forEach((file) => {
+      if (allowedTypes.some((type) => file.type.startsWith(type))) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(file);
+      }
+    });
+
+    // Add valid files
+    this.selectedFiles = [...this.selectedFiles, ...validFiles];
+
+    // 🔴 Show toast if invalid files found
+    if (invalidFiles.length) {
+      this.showToast(
+        "error",
+        "Upload Failed",
+        "Only images and videos allowed.",
+      );
+    }
+
+    // Reset input so same file can be selected again
+    input.value = "";
+  }
+
+  removeFile(index: number, fileInput: HTMLInputElement) {
+    this.selectedFiles.splice(index, 1);
+
+    // reset actual input so filename disappears
+    fileInput.value = "";
+  }
+
+  action: any;
+  resolution: any;
   emailObject: any;
   emailData: any;
   smsDetails: any;
@@ -1496,37 +1586,29 @@ export class EventsComponent {
       hour: this.eventsService.getHour(this.mailselectitem?.timezone),
       currentTime: this.mailselectitem?.eventStartTime,
     };
-    
+
     this.isMediaLoading = true;
 
-      this.eventsService.getEmailDataForVMSEvents(this.emailObject).subscribe({
-        next: (res: any) => {
-          if (res.statusCode === 200) {
-            this.emailData = res.emailDetails;
-            this.smsDetails = res.smsDetails;
-            this.isMediaLoading = false;
-          }
-          else{
-             this.isMediaLoading = false;
-          }
-        },
-        error: (err) => {
-
+    this.eventsService.getEmailDataForVMSEvents(this.emailObject).subscribe({
+      next: (res: any) => {
+        if (res.statusCode === 200) {
+          this.emailData = res.emailDetails;
+          this.smsDetails = res.smsDetails;
           this.isMediaLoading = false;
-           this.showToast(
-          "error",
-          "Connection Failed",
-          "Something went wrong!"
-        );
+        } else {
+          this.isMediaLoading = false;
         }
-      });
-    
+      },
+      error: (err) => {
+        this.isMediaLoading = false;
+        this.showToast("error", "Connection Failed", "Something went wrong!");
+      },
+    });
   }
-
 
   mailselectitem: any;
   openMailTooltip(event: MouseEvent, params: any) {
-    console.log(params);
+    console.log(params.data);
     this.mailselectitem = params.data;
     this.getEmailDataForVMSEvents();
     this.mailoverlay.show(event);
@@ -1675,7 +1757,10 @@ export class EventsComponent {
 
   closeMailoverlay() {
     this.mailoverlay.hide();
-    this.emailData=null;
+    this.emailData = null;
+    this.selectedFiles=[];
+    this.action=null;
+    this.resolution=null;
   }
 
   closePlayPopup(): void {
@@ -2633,17 +2718,43 @@ export class EventsComponent {
           // justifyContent: "center",
           // alignItems: "center",
         },
-        cellRenderer: () =>
-          `
-        <span class="material-symbols-outlined  mail" style="color:green;margin-right:8px;cursor:pointer;">
-                mail
-              </span>
-        <span class="play-icon" style="margin-right:8px;">
-            <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
-          </span>
-          <span class="info-icon">
-            <img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/>
-          </span>`,
+        cellRenderer: (params: any) => {
+          let color = "black";
+          let tooltip = "";
+
+          let disableClick = "";
+          if (params.data?.mailColour === 1) {
+            tooltip = "Mail already sent";
+            color = "blue";
+
+            disableClick = 'onclick="event.stopPropagation(); return false;"';
+          } else if (params.data?.mailColour === null) {
+            tooltip = "Event already closed";
+            color = "gray";
+
+            disableClick = 'onclick="event.stopPropagation(); return false;"';
+          } else if (params.data?.mailColour === 0) {
+            color = "green";
+          }
+
+          return `
+    <span class="material-symbols-outlined mail" title="${tooltip}" ${disableClick}   cursor:${params.data?.mailColour === 1 ? "not-allowed" : "pointer"};
+          opacity:${params.data?.mailColour === 1 ? "0.5" : "1"}
+          style="color:${color} !important; margin-right:8px;">
+      mail
+    </span>
+
+    <span class="play-icon" style="margin-right:8px;">
+      <img src="assets/play-circle-icon.svg"
+           style="width:20px; margin-top:10px; height:20px; cursor:pointer;" />
+    </span>
+
+    <span class="info-icon">
+      <img src="assets/information-icon.svg"
+           style="width:20px; margin-top:10px; height:20px; cursor:pointer;" />
+    </span>
+  `;
+        },
       },
     ];
 
@@ -2881,5 +2992,14 @@ export class EventsComponent {
         this.spinexcel = false;
       },
     );
+  }
+}
+
+import { Pipe, PipeTransform } from "@angular/core";
+
+@Pipe({ name: "filePreview", standalone: true })
+export class FilePreviewPipe implements PipeTransform {
+  transform(file: File): string {
+    return URL.createObjectURL(file);
   }
 }

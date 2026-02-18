@@ -456,76 +456,321 @@
 
 
 
-<p-overlayPanel #mailoverlay [dismissable]="true" appendTo="body" styleClass="play-tooltip-left">
-  <div class="play-popup-content">
-    <div class="play-popup-header">
-      <div class="play-popup-header-content">
-        <p class="play-text">{{ mailselectitem?.siteId }}</p>
-        <p class="play-text1">
-          {{ mailselectitem?.siteName }} |
-          {{ mailselectitem?.cameraId }}
-        </p>
+<p-overlayPanel #mailoverlay [dismissable]="false" appendTo="body" styleClass="play-tooltip-left">
+
+
+
+  <div class="button-close-email">
+
+    <button type="button" class="icon-btn" (click)="closeMailoverlay()" title="Close">
+      <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+    </button>
+
+  </div>
+
+  <div class="email-wrapper">
+    <div class="email-container">
+
+      <!-- ================= EMAIL PREVIEW ================= -->
+      <div class="email-logo">
+        <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
       </div>
 
-      <div class="play-popup-actions">
-        <button type="button" class="icon-btn" (click)="closeMailoverlay()" title="Close">
-          <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
-        </button>
+      <div class="email-site">
+        <div class="site-name">{{ mailselectitem?.siteName }}</div>
+      </div>
+
+      <div class="email-alert">
+        ⚠️ {{ emailData?.alertTag }} ⚠️
+      </div>
+
+      <div class="email-body-section">
+
+        <table class="email-table">
+
+          <tr>
+            <td class="label">To</td>
+            <td class="value">
+              {{
+              emailData?.recipientEmails?.length
+              ? emailData.recipientEmails.join(", ")
+              : "-"
+              }}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label">Cc</td>
+            <td class="value">
+              {{
+              emailData?.Cc?.length
+              ? emailData.Cc.join(", ")
+              : "-"
+              }}
+            </td>
+          </tr>
+
+          <tr>
+            <td class="label">Bcc</td>
+            <td class="value">
+              {{
+              emailData?.BCC?.length
+              ? emailData.BCC.join(", ")
+              : "-"
+              }}
+            </td>
+          </tr>
+          <tr>
+            <td class="label">Date & Time</td>
+            <td class="value">
+              {{ emailData?.emailFields?.DATE }} -
+              {{ emailData?.emailFields?.TIME }}
+            </td>
+          </tr>
+        </table>
+
+        <hr class="divider" />
+
+        <table class="email-table">
+          <tr>
+            <td class="label">Description</td>
+            <td class="value description">
+              {{ emailData?.emailBody }}
+            </td>
+          </tr>
+        </table>
+
+        <table class="email-table">
+          <tr>
+            <td class="label">Camera</td>
+            <td class="value">{{ mailselectitem?.cameraId }}</td>
+          </tr>
+        </table>
+
+        <!-- <hr class="divider" />
+
+       <table class="email-table">
+        <tr>
+          <td class="label">Action's Taken</td>
+          <td class="value">{{ action }}</td>
+        </tr>
+      </table>
+
+        <table class="email-table">
+        <tr>
+          <td class="label">Notes</td>
+          <td class="value">{{ resolution }}</td>
+        </tr>
+      </table> -->
+
+        <div class="email-footer-text">
+          Please review the information above.<br /><br />
+          Call <b>(844) 438-4847 (ext. 1)</b> or email
+          <b>{{ 'support@ivisecurity.com' }}</b>
+        </div>
+
+      </div>
+
+      <div class="email-gradient"></div>
+
+      <!-- ================= ACTION FORM ================= -->
+      <div class="action-section">
+
+        <h3 class="action-title">Resolution Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Action’s Taken</label>
+            <input type="text" [(ngModel)]="action" placeholder="Describe action taken" />
+          </div>
+
+          <div class="form-group">
+            <label>Notes</label>
+            <input type="text" [(ngModel)]="resolution" placeholder="Additional notes" />
+          </div>
+        </div>
+
+        <!-- ===== FILE UPLOAD ===== -->
+        <div class="upload-box">
+          <input #fileInput type="file" multiple (change)="onFilesSelected($event)" accept="image/*,video/*" />
+          <p>Click to upload images</p>
+        </div>
+
+        <!-- ===== FILE LIST ===== -->
+        <div *ngIf="selectedFiles.length" class="file-list">
+          <div *ngFor="let file of selectedFiles; let i = index" class="file-chip">
+            {{ file.name }}
+            <button (click)="removeFile(i, fileInput)">✕</button>
+          </div>
+        </div>
+
+
+        <div class="preview-actions">
+          <button class="btn-preview" (click)="showPreview = true">Preview</button>
+          <button class="btn-submit" (click)="submitResolution()" [disabled]="isSubmitting">
+            
+             Submit
+
+              <span *ngIf="isSubmitting" class="spinner1"></span>
+        
+          </button>
+
+        </div>
+
       </div>
     </div>
-
-    <div class="popup-body-email" style="position: relative">
-
-        <ng-container *ngIf="isMediaLoading">
-                <div class="spinner" style="position: absolute; top: 40%; left: 40%"></div>
-              </ng-container>
-
-              <!-- NO IMAGES -->
-              <ng-container *ngIf="!isMediaLoading &&  !emailData">
-                <p>No Data</p>
-              </ng-container>
-
-            <div class="email-card" *ngIf="emailData">
-
-  <!-- Header -->
-  <div class="email-header">
-    <h3 class="subject">{{ emailData.emailSubject }}</h3>
-    <p class="meta">
-      <strong>From:</strong> {{ emailData.senderEmail }}
-    </p>
   </div>
 
-  <!-- Recipients -->
-  <div class="email-section">
-    <p><strong>To:</strong> {{ emailData.recipientEmails?.join(', ') || '—' }}</p>
-    <p><strong>Cc:</strong> {{ emailData.Cc?.join(', ') || '—' }}</p>
-    <p><strong>Bcc:</strong> {{ emailData.BCC?.join(', ') || '—' }}</p>
-  </div>
 
-  <!-- Alert Info -->
-  <div class="email-section alert-info">
-    <span class="tag">{{ emailData.alertTag }}</span>
-    <div class="fields">
-      <p><strong>Location:</strong> {{ emailData.emailFields?.LOCATION }}</p>
-      <p><strong>Date:</strong> {{ emailData.emailFields?.DATE }}</p>
-      <p><strong>Time:</strong> {{ emailData.emailFields?.TIME }}</p>
-    </div>
-  </div>
-
-  <!-- Body -->
-  <div class="email-body">
-    {{ emailData.emailBody }}
-  </div>
-
-  <!-- Footer -->
-  <div class="email-footer">
-    {{ emailData.emailFooter }}
-  </div>
-
-</div>
-
-
-
-    </div>
-  </div>
 </p-overlayPanel>
+
+
+
+
+
+
+
+<!-- ================= PREVIEW POPUP ================= -->
+<div class="preview-overlay" *ngIf="showPreview">
+  <div class="preview-popup">
+
+    <!-- Close -->
+    <button class="close-preview" (click)="showPreview = false">✕</button>
+
+
+
+    <!-- ===== EMAIL TEMPLATE ===== -->
+    <div class="email-wrapper">
+      <div class="email-container">
+
+        <div class="email-logo">
+          <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
+        </div>
+
+        <div class="email-site">
+          <div class="site-name">{{ mailselectitem?.siteName }}</div>
+        </div>
+
+        <div class="email-alert">
+          ⚠️ {{ emailData?.alertTag }} ⚠️
+        </div>
+
+        <!-- ===== EMAIL TABLE ===== -->
+        <div class="email-body-section">
+
+          <table class="email-table">
+
+            <tr>
+              <td class="label">To</td>
+              <td class="value">
+                {{
+                emailData?.recipientEmails?.length
+                ? emailData.recipientEmails.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Cc</td>
+              <td class="value">
+                {{
+                emailData?.Cc?.length
+                ? emailData.Cc.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Bcc</td>
+              <td class="value">
+                {{
+                emailData?.BCC?.length
+                ? emailData.BCC.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+            <tr>
+              <td class="label">Date & Time</td>
+              <td class="value">
+                {{ emailData?.emailFields?.DATE }} -
+                {{ emailData?.emailFields?.TIME }}
+              </td>
+            </tr>
+          </table>
+
+          <hr class="divider" />
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Description</td>
+              <td class="value description">
+                {{ emailData?.emailBody }}
+              </td>
+            </tr>
+          </table>
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Camera</td>
+              <td class="value">{{ mailselectitem?.cameraId }}</td>
+            </tr>
+          </table>
+
+          <hr class="divider" />
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Action's Taken</td>
+              <td class="value">{{ action || "-" }}</td>
+            </tr>
+          </table>
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Notes</td>
+              <td class="value">{{ resolution || "-"}} </td>
+            </tr>
+          </table>
+
+          <div class="email-footer-text">
+            Please review the information above.<br /><br />
+            Call <b>(844) 438-4847 (ext. 1)</b> or email
+            <b>{{ 'support@ivisecurity.com' }}</b>
+          </div>
+
+        </div>
+
+        <div class="email-gradient"></div>
+
+        <!-- ================= GMAIL-STYLE ATTACHMENTS ================= -->
+        <div *ngIf="selectedFiles.length" class="gmail-attachments">
+
+          <h4>Attachments</h4>
+
+          <div class="attachment-list">
+
+            <div *ngFor="let file of selectedFiles" class="attachment-card">
+
+              <!-- IMAGE PREVIEW -->
+              <img *ngIf="file.type.startsWith('image')" [src]="file | filePreview" class="attachment-preview" />
+
+              <!-- VIDEO PREVIEW -->
+              <video *ngIf="file.type.startsWith('video')" [src]="file | filePreview" autoplay [muted]="true" loop
+                controls class="attachment-preview">
+              </video>
+
+              <div class="attachment-name">{{ file.name }}</div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
