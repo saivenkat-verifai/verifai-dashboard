@@ -1501,6 +1501,7 @@ export class EventsComponent {
       .sendResolution({
         ...this.mailselectitem,
         ...this.emailData,
+        alertTagId1:this.mailselectitem.alertTagId,
         selectedFiles: this.selectedFiles,
         action: this.action,
         resolution: this.resolution,

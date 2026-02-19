@@ -253,7 +253,7 @@ export class EventsService {
     formData.append("eventId", payload?.eventId);
     formData.append("createdBy", user?.UserId);
 
-    formData.append("alerTagId", payload?.alertTagId);
+    formData.append("alerTagId", payload?.alertTagId1);
     formData.append("subAlertTagId", payload?.subAlertTagId);
 
     formData.append("timeZone", payload?.timezone);
