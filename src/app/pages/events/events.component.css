@@ -117,7 +117,6 @@
   flex: 1;
   overflow-y: auto;
   height: 300px;
- 
 }
 .popup-body-email {
   padding: 10px;
@@ -2001,53 +2000,6 @@ input:checked + .slider:before {
   color: green;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ===== ACTION SECTION ===== */
 
 .preview-actions {
@@ -2086,9 +2038,9 @@ input:checked + .slider:before {
   color: #fff;
   box-shadow: 0 4px 12px rgba(228, 30, 38, 0.3);
 
-    display: flex;
+  display: flex;
   align-items: center;
-gap: 2px;
+  gap: 2px;
 }
 
 .btn-submit:hover {
@@ -2101,22 +2053,22 @@ gap: 2px;
   transform: scale(0.97);
 }
 
-
 .email-wrapper {
-  background: #f5f5f5;
+  /* background: #f5f5f5; */
   padding: 10px;
-
 }
 
-.email-container {
+/* .email-container {
   max-width: 900px;
+
   margin: auto;
-  height: 700px;
+  max-height: 900px;
+
   overflow-y: auto;
   background: #fff;
   border: 1px solid #dcdcdc;
-  font-family: Arial, Helvetica, sans-serif;
-}
+} */
+
 
 /* LOGO */
 .email-logo {
@@ -2324,7 +2276,6 @@ gap: 2px;
 .btn-loader {
   display: flex;
   align-items: center;
-
 }
 
 @keyframes spin {
@@ -2333,25 +2284,11 @@ gap: 2px;
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* ===== PREVIEW OVERLAY ===== */
 .preview-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2381,7 +2318,7 @@ gap: 2px;
 /* ===== ATTACHMENTS ===== */
 .gmail-attachments {
   margin-top: 20px;
-  padding:8px;
+  padding: 8px;
 }
 
 .attachment-list {
@@ -2413,12 +2350,7 @@ gap: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.button-close-email{
+.button-close-email {
   display: flex;
   justify-content: end;
 }
-
-
-
-
-

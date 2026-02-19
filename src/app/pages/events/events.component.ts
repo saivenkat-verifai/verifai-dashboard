@@ -1581,9 +1581,9 @@ export class EventsComponent {
       subTypeId: this.mailselectitem?.subAlertTagId,
       cameraId: this.mailselectitem?.cameraId,
       day: this.eventsService.weekdays[
-        this.eventsService.getDay(this.mailselectitem?.timezone)
+       this.mailselectitem.eventStartTime ? new Date(this.mailselectitem.eventStartTime).getDay() : 0
       ],
-      hour: this.eventsService.getHour(this.mailselectitem?.timezone),
+      hour: this.mailselectitem.eventStartTime ? new Date(this.mailselectitem.eventStartTime).getHours() : 0,
       currentTime: this.mailselectitem?.eventStartTime,
     };
 
