@@ -1174,7 +1174,11 @@ export class EventsComponent {
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- Cell click handlers -------------------- */
+
+
   onCellClicked(event: any): void {
+
+
     if (event.colDef.field !== "more") return;
 
     const target = event.event.target as HTMLElement;
@@ -2726,7 +2730,7 @@ export class EventsComponent {
           let disableClick = "";
           if (params.data?.mailColour === 1) {
             tooltip = "Mail already sent";
-            color = "blue";
+            color = "#1955af";
 
             disableClick = 'onclick="event.stopPropagation(); return false;"';
           } else if (params.data?.mailColour === null) {
@@ -2735,7 +2739,7 @@ export class EventsComponent {
 
             disableClick = 'onclick="event.stopPropagation(); return false;"';
           } else if (params.data?.mailColour === 0) {
-            color = "green";
+            color = "#2ea321";
           }
 
           return `

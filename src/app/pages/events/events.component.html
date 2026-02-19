@@ -388,7 +388,7 @@
               [enableRangeSelection]="true" [copyHeadersToClipboard]="true"
               [quickFilterMatcher]="pendingQuickFilterMatcher" [paginationPageSizeSelector]="[15, 20, 50, 100]"
               (gridReady)="onGridReady($event)" [icons]="gridIcons" (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()">
+              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()" [rowSelection]="'single'">
             </ag-grid-angular>
           </div>
         </div>
@@ -402,13 +402,13 @@
                 ? { height: 'calc(100vh - 370px)' }
                 : { height: 'calc(100vh - 270px)' }
             ">
-            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="closedDisplayRows"
+            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="closedDisplayRows" 
               [columnDefs]="closedColumnDefs" [defaultColDef]="defaultColDef" [pagination]="true"
               [enableCellTextSelection]="true" [enableRangeSelection]="true" [copyHeadersToClipboard]="true"
-              [paginationPageSize]="15" [rowHeight]="40" [paginationPageSizeSelector]="[15, 20, 50, 100]"
+              [paginationPageSize]="15" [rowHeight]="40" [paginationPageSizeSelector]="[15, 20, 50, 100]" 
               [localeText]="localeText" [quickFilterMatcher]="closedQuickFilterMatcher"
               (gridReady)="onGridReady($event)" [icons]="gridIcons" (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()">
+              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()" [rowSelection]="'single'">
             </ag-grid-angular>
           </div>
         </div>
