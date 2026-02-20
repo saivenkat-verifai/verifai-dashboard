@@ -2115,6 +2115,7 @@ input:checked + .slider:before {
 .email-table {
   width: 100%;
   border-collapse: collapse;
+  
 }
 
 .email-table .label {
@@ -2122,11 +2123,14 @@ input:checked + .slider:before {
   font-weight: bold;
   color: #555;
   padding: 8px;
+ vertical-align: top; 
+
 }
 
 .email-table .value {
   font-weight: bold;
   padding: 8px;
+ vertical-align: top; 
 }
 
 .divider {
@@ -2290,6 +2294,7 @@ input:checked + .slider:before {
 .preview-overlay {
   position: fixed;
   inset: 0;
+
   background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
@@ -2299,23 +2304,15 @@ input:checked + .slider:before {
 
 .preview-popup {
   width: 750px;
-  max-height: 90vh;
-  overflow-y: auto;
+  /* max-height: 90vh; */
+  /* overflow-y: auto; */
   background: #fff;
   border-radius: 12px;
   padding: 20px;
   position: relative;
 }
 
-.close-preview {
-  position: absolute;
-  right: 15px;
-  top: 10px;
-  border: none;
-  background: none;
-  font-size: 20px;
-  cursor: pointer;
-}
+
 
 /* ===== ATTACHMENTS ===== */
 .gmail-attachments {

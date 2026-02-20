@@ -158,7 +158,7 @@
         </div>
 
         <app-events-filter-panel *ngIf="isFilterOpen" [showDateRange]="selectedFilter === 'CLOSED'"
-          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked" [cities]="cities" [sites]="filterLists.sites"
+          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked" [cities]="cities" [sites]="filterLists.sites" [timezones]="filterLists.timezones"
           [cameras]="filterLists.cameras" [actionTags]="actionTags" [eventTypes]="filterLists.eventTypes"
           [employees]="filterLists.userLevels" [consoleTypes]="filterLists.consoleTypes"
           [queues]="filterLists.queueNames" [queueLevels]="filterLists.queueLevels"
@@ -486,7 +486,7 @@
           <div class="site-name">{{ mailselectitem?.siteName }}</div>
         </div>
         <div class="email-alert">
-          ⚠️ {{ emailData?.alertTag }} ⚠️
+           {{ emailData?.emailSubject }} 
         </div>
         <div class="email-body-section">
           <table class="email-table">
@@ -613,16 +613,22 @@
 
 <!-- ================= PREVIEW POPUP ================= -->
 <div class="preview-overlay" *ngIf="showPreview">
+
   <div class="preview-popup">
-
-    <!-- Close -->
-    <button class="close-preview" (click)="showPreview = false">✕</button>
-
+  
+  <div class="button-close-email" style="position: sticky;top: 0;">
+    <button type="button" class="icon-btn" (click)="showPreview = false" title="Close">
+      <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+    </button>
+  </div>
+  
+  
+  
 
 
     <!-- ===== EMAIL TEMPLATE ===== -->
     <div class="email-wrapper">
-      <div class="email-container">
+      <div style="overflow-y: auto;max-height: 80vh;">
 
         <div class="email-logo">
           <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
@@ -633,7 +639,7 @@
         </div>
 
         <div class="email-alert">
-          ⚠️ {{ emailData?.alertTag }} ⚠️
+          {{ emailData?.emailSubject }} 
         </div>
 
         <!-- ===== EMAIL TABLE ===== -->

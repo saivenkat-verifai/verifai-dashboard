@@ -231,7 +231,7 @@ export class EventsComponent {
 
       if (
         criteria.timeZone !== null &&
-        row.timezone !== criteria.timeZone.timezoneValue
+        row.timezone !== criteria.timeZone
       )
         return false;
 
@@ -305,6 +305,8 @@ export class EventsComponent {
       this.currentFilter = { ...this.currentFilter, camera: "All" };
     }
 
+
+
     // ✅ optional: same for queueName / queueLevel
     if (
       this.currentFilter.queueName !== "All" &&
@@ -334,6 +336,9 @@ export class EventsComponent {
         siteRows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
       ).values(),
     );
+
+       const timeZoneRows = this.filterRowsForOptions(rows, "timezone");
+ this.filterLists.timezones = this.uniq(timeZoneRows.map((r) => r.timezone));
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
     this.filterLists.cameras = this.uniq(cameraRows.map((r) => r.cameraId));
@@ -380,6 +385,7 @@ export class EventsComponent {
     rows: any[],
     ignoreField:
       | "site"
+      | "timezone"
       | "camera"
       | "employee"
       | "eventType"
@@ -581,6 +587,7 @@ export class EventsComponent {
   filterLists = {
     cities: [] as string[],
     sites: [] as any[],
+    timezones:[] as any[],
     cameras: [] as string[],
     actionTags: ["Suspicious", "False", "Event_Wall", "Manual_Wall"],
     eventTypes: ["Event_Wall", "Manual_Wall", "Timed_Out"],
@@ -593,6 +600,9 @@ export class EventsComponent {
 
   get cities() {
     return this.filterLists.cities;
+  }
+    get timezones() {
+    return this.filterLists.timezones;
   }
   get sites() {
     return this.filterLists.sites;
@@ -2288,7 +2298,8 @@ export class EventsComponent {
             device: e?.unitId,
             cameraId: e?.cameraId,
             duration: e?.eventDuration,
-            timezone: e?.timezoneValue,
+            // timezone: e?.timezoneValue,
+            timezone: e?.timezone,
             eventStartTime: e?.eventStartTime,
             actionTag: e?.actionTag ?? e?.subActionTag,
             subActionTag: e?.subActionTag ?? e?.actionTag,
@@ -2517,6 +2528,9 @@ export class EventsComponent {
     const rows = this.pendingRowData || [];
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
+
+     this.filterLists.timezones = this.uniq(rows.map((r) => r.timezone));
+     
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // ✅ Queue Names dropdown values
@@ -2540,6 +2554,10 @@ export class EventsComponent {
         rows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
       ).values(),
     );
+
+      
+ this.filterLists.timezones = this.uniq(rows.map((r) => r.timezone));
+
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // 🔁 Use levels instead of names
