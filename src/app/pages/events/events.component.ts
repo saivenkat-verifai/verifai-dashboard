@@ -125,6 +125,8 @@ export class EventsComponent {
 
   filterPanelVisible = false;
 
+
+
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
   }
@@ -145,6 +147,7 @@ export class EventsComponent {
   }
 
   /** --------------- Filter sidebar state --------------- */
+  
   isFilterOpen = false;
 
   openFilter() {
@@ -1174,6 +1177,7 @@ export class EventsComponent {
   }
 
   onFilterTextBoxChanged(): void {
+ 
     this.gridApi?.setGridOption("quickFilterText", this.searchTerm);
   }
 
@@ -2530,7 +2534,7 @@ export class EventsComponent {
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
 
      this.filterLists.timezones = this.uniq(rows.map((r) => r.timezone));
-     
+
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // ✅ Queue Names dropdown values
