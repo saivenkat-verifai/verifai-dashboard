@@ -2,11 +2,17 @@ import { Injectable } from "@angular/core";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
+import * as moment from "moment";
+import { DatePipe } from "@angular/common";
 
 @Injectable({
   providedIn: "root",
 })
 export class EventsService {
+  constructor(
+    private datePipe: DatePipe,
+    private http: HttpClient,
+  ) {}
 
   // 🔹 events data endpoints
   private readonly eventReportFullData = `${environment.eventDataUrl}/getEventReportFullData_1_0`;
@@ -31,8 +37,6 @@ export class EventsService {
   private readonly consolePendingMessagesUrl = `${environment.mqApiBaseUrl}/getConsolePendingMessages_1_0`;
 
   private readonly pendingEventsCountsUrl = `${environment.mqApiBaseUrl}/getPendingEventsCounts_1_0`;
-
-  constructor(private http: HttpClient) { }
 
   getSuspiciousEvents(
     actionTag: number,
@@ -70,36 +74,44 @@ export class EventsService {
     startDate?: string,
     endDate?: string,
     suspiciouscheck?: boolean,
-    falsecheck?:boolean,
+    falsecheck?: boolean,
 
-    filter?:any
+    filter?: any,
   ): Observable<any> {
-
     const url =
       `${this.eventReportCountsForActionTag}?fromDate=${startDate}` +
       `&toDate=${endDate}&falseActionTag=${falsecheck}&suspiciousActionTag=${suspiciouscheck}`;
-
 
     let params = new HttpParams();
 
     // if (actionTag) {
     //   params = params.set("actionTag", actionTag);
     // }
-    if (filter.timeZone !== null && filter.timeZone !== "All" && filter.timeZone !== "") {
+    if (
+      filter.timeZone !== null &&
+      filter.timeZone !== "All" &&
+      filter.timeZone !== ""
+    ) {
       params = params.set("timezone", filter.timeZone.timezoneCode);
     }
 
-    if(filter.site !== null){
+    if (filter.site !== null) {
       params = params.set("siteId", filter.site.siteId);
     }
 
-  if(filter.camera !== null && filter.camera!== "" && filter.camera!== "All"){
-
+    if (
+      filter.camera !== null &&
+      filter.camera !== "" &&
+      filter.camera !== "All"
+    ) {
       params = params.set("cameraId", filter.camera);
     }
-    
-      if(filter.consoleType !== null && filter.consoleType!== "" && filter.consoleType!== "All"){
 
+    if (
+      filter.consoleType !== null &&
+      filter.consoleType !== "" &&
+      filter.consoleType !== "All"
+    ) {
       params = params.set("EventType", filter.consoleType);
     }
 
@@ -159,5 +171,93 @@ export class EventsService {
       params,
       responseType: "arraybuffer" as "json",
     });
+  }
+
+  weekdays = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+  getHour(timezone: string) {
+    return moment().tz(timezone).hours();
+  }
+  getDay(timezone: string) {
+    return moment().tz(timezone).day();
+  }
+
+  getEmailDataForVMSEvents(payload: any) {
+    let url = `${environment.guard_monitoring_url}/getEmailDataForClosedEvent_1_0`;
+
+    let params = new HttpParams();
+    params = params.set("siteId", payload?.siteId);
+    params = params.set("siteName", payload?.siteName);
+    params = params.set("cameraId", payload?.cameraId);
+    params = params.set("alertTypeId", payload?.alertTypeId);
+    params = params.set("subTypeId", payload?.subTypeId);
+    params = params.set("day", payload?.day);
+    params = params.set("hour", payload?.hour);
+    params = params.set(
+      "currentTime",
+      this.datePipe.transform(payload?.currentTime, "yyyy-MM-dd HH:mm:ss")!,
+    );
+
+    return this.http.get(url, { params: params });
+  }
+
+  sendResolution(payload: any) {
+    let url = `${environment.guard_monitoring_url}/sendResolutionEmail_1_0`;
+
+    // let url = `http://192.168.0.125:3009/sendResolutionEmail_1_0`;
+
+    const userString = sessionStorage.getItem("verifai_user");
+    const user = userString ? JSON.parse(userString) : null;
+
+    const formData = new FormData();
+
+    formData.append("senderEmail", payload?.senderEmail);
+
+    formData.append(
+      "recipientEmails",
+      JSON.stringify(payload?.recipientEmails ?? []),
+    );
+    formData.append("bcc", JSON.stringify(payload?.BCC ?? []));
+    formData.append("cc", JSON.stringify(payload?.Cc ?? []));
+
+    formData.append("subject", payload?.emailSubject);
+    formData.append("body", payload?.emailBody);
+
+    if (payload?.selectedFiles?.length) {
+      payload.selectedFiles.forEach((file: File) => {
+        formData.append("files", file);
+      });
+    }
+
+    // formData.append(
+    //   'files',
+    //   JSON.stringify(payload?.selectedFiles)
+    // );
+
+    formData.append("fields", JSON.stringify(payload?.emailFields));
+
+    formData.append("siteId", payload?.siteId);
+    formData.append("cameraId", payload?.cameraId);
+    // formData.append('cameraName', payload?.cameraName );
+
+    formData.append("actionsTaken", payload?.action);
+    formData.append("notes", payload?.resolution);
+
+    formData.append("eventId", payload?.eventId);
+    formData.append("createdBy", user?.UserId);
+
+    formData.append("alerTagId", payload?.alertTagId1);
+    formData.append("subAlertTagId", payload?.subAlertTagId);
+
+    formData.append("timeZone", payload?.timezone);
+
+    return this.http.post(url, formData);
   }
 }

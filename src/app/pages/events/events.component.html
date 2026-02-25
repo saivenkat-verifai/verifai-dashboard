@@ -6,16 +6,10 @@
         <h2>EVENTS</h2>
         <!-- Filter Buttons -->
         <div class="filters">
-          <button
-            [class.active]="selectedFilter === 'CLOSED'"
-            (click)="setFilter('CLOSED')"
-          >
+          <button [class.active]="selectedFilter === 'CLOSED'" (click)="setFilter('CLOSED')">
             CLOSED
           </button>
-          <button
-            [class.active]="selectedFilter === 'PENDING'"
-            (click)="setFilter('PENDING')"
-          >
+          <button [class.active]="selectedFilter === 'PENDING'" (click)="setFilter('PENDING')">
             PENDING
           </button>
         </div>
@@ -34,11 +28,8 @@
 
         <div class="escalated-section">
           <div>
-            <app-calendar
-              *ngIf="selectedFilter === 'CLOSED'"
-              variant="events"
-              (dateRangeSelected)="onDateRangeSelected($event)"
-            ></app-calendar>
+            <app-calendar *ngIf="selectedFilter === 'CLOSED'" variant="events"
+              (dateRangeSelected)="onDateRangeSelected($event)"></app-calendar>
 
             <!-- Show current datetime if PENDING -->
             <div *ngIf="selectedFilter === 'PENDING'" class="current-datetime">
@@ -49,15 +40,14 @@
           <div style="display: flex; gap: 20px">
             <!-- CLOSED filter toggles -->
             <div class="filter" *ngIf="selectedFilter === 'CLOSED'">
+
+
+
               <div class="filter-item">
                 <h3 class="filters-title">SUSPICIOUS</h3>
                 <label class="switch">
-                  <input
-                    type="checkbox"
-                    name="closedSuspicious"
-                    [(ngModel)]="suspiciousChecked"
-                    (change)="onClosedTogglesChanged()"
-                  />
+                  <input type="checkbox" name="closedSuspicious" [(ngModel)]="suspiciousChecked"
+                    (change)="onClosedTogglesChanged()" />
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -65,12 +55,8 @@
               <div class="filter-item">
                 <h3 class="filters-title">FALSE</h3>
                 <label class="switch">
-                  <input
-                    type="checkbox"
-                    name="closedFalse"
-                    [(ngModel)]="falseChecked"
-                    (change)="onClosedTogglesChanged()"
-                  />
+                  <input type="checkbox" name="closedFalse" [(ngModel)]="falseChecked"
+                    (change)="onClosedTogglesChanged()" />
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -81,12 +67,8 @@
               <div class="filter-item">
                 <h3 class="filters-title">CONSOLES</h3>
                 <label class="switch">
-                  <input
-                    type="checkbox"
-                    name="pendingConsoles"
-                    [(ngModel)]="consolesChecked"
-                    (change)="onPendingTogglesChanged()"
-                  />
+                  <input type="checkbox" name="pendingConsoles" [(ngModel)]="consolesChecked"
+                    (change)="onPendingTogglesChanged()" />
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -94,12 +76,8 @@
               <div class="filter-item">
                 <h3 class="filters-title">QUEUES</h3>
                 <label class="switch">
-                  <input
-                    type="checkbox"
-                    name="pendingQueues"
-                    [(ngModel)]="queuesChecked"
-                    (change)="onPendingTogglesChanged()"
-                  />
+                  <input type="checkbox" name="pendingQueues" [(ngModel)]="queuesChecked"
+                    (change)="onPendingTogglesChanged()" />
                   <span class="slider round"></span>
                 </label>
               </div>
@@ -107,25 +85,11 @@
             <!-- ===================== Search + Filter Panel ===================== -->
 
             <div class="search-wrapper">
-              <input
-                type="text"
-                placeholder="Search here"
-                [(ngModel)]="searchTerm"
-                class="search-input"
-                (input)="onFilterTextBoxChanged()"
-              />
+              <input type="text" placeholder="Search here" [(ngModel)]="searchTerm" class="search-input"
+                (input)="onFilterTextBoxChanged()" />
 
-              <button
-                type="button"
-                class="filter-toggle-btn"
-                (click)="openFilter()"
-                aria-label="Open filters"
-              >
-                <img
-                  src="assets/filter-icon.png"
-                  alt="filter"
-                  class="filter-toggle-icon"
-                />
+              <button type="button" class="filter-toggle-btn" (click)="openFilter()" aria-label="Open filters">
+                <img src="assets/filter-icon.png" alt="filter" class="filter-toggle-icon" />
               </button>
             </div>
           </div>
@@ -139,11 +103,7 @@
         <div class="right-tablepopup" *ngIf="isTablePopupVisible">
           <div class="popup-header">
             <div class="popup-header-content">
-              <img
-                *ngIf="selectedItem?.iconPath"
-                [src]="selectedItem.iconPath"
-                alt="icon"
-              />
+              <img *ngIf="selectedItem?.iconPath" [src]="selectedItem.iconPath" alt="icon" />
               <div class="icon-info">
                 <p class="label">ESCALATION DETAILS</p>
               </div>
@@ -153,14 +113,9 @@
 
           <div class="popup-body">
             <div class="escalated-content-section">
-              <app-escalation-popup
-                [isVisible]="isTablePopupVisible"
-                [selectedItem]="selectedItem"
-                [selectedDate]="selectedDate"
-                (close)="closePopup()"
-                (refreshMoreInfo)="onRefreshMoreInfo($event)"
-                (addCommentClicked)="openAddCommentPopup()"
-              ></app-escalation-popup>
+              <app-escalation-popup [isVisible]="isTablePopupVisible" [selectedItem]="selectedItem"
+                [selectedDate]="selectedDate" (close)="closePopup()" (refreshMoreInfo)="onRefreshMoreInfo($event)"
+                (addCommentClicked)="openAddCommentPopup()"></app-escalation-popup>
             </div>
           </div>
         </div>
@@ -186,66 +141,34 @@
             <!-- Comment -->
             <div class="form-group">
               <label class="form-label">Comment</label>
-              <textarea
-                class="textarea-input"
-                rows="6"
-                placeholder="Text Here"
-                [(ngModel)]="addCommentForm.notes"
-                name="commentNotes"
-              ></textarea>
+              <textarea class="textarea-input" rows="6" placeholder="Text Here" [(ngModel)]="addCommentForm.notes"
+                name="commentNotes"></textarea>
             </div>
 
             <!-- Buttons -->
             <div class="add-comment-actions">
-              <button
-                class="btn btn-outline"
-                type="button"
-                (click)="cancelAddComment()"
-              >
+              <button class="btn btn-outline" type="button" (click)="cancelAddComment()">
                 CANCEL
               </button>
-              <button
-                class="btn btn-primary"
-                type="button"
-                (click)="submitAddComment()"
-              >
+              <button class="btn btn-primary" type="button" (click)="submitAddComment()">
                 ADD
               </button>
             </div>
           </div>
         </div>
 
-        <app-events-filter-panel
-          *ngIf="isFilterOpen"
-          [showDateRange]="selectedFilter === 'CLOSED'"
-          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked"
-          [cities]="cities"
-          [sites]="filterLists.sites"
-          [cameras]="filterLists.cameras"
-          [actionTags]="actionTags"
-          [eventTypes]="filterLists.eventTypes"
-          [employees]="filterLists.userLevels"
-          [consoleTypes]="filterLists.consoleTypes"
-          [queues]="filterLists.queueNames"
-          [queueLevels]="filterLists.queueLevels"
-          (criteriaChange)="onFilterCriteriaChange($event)"
-          [consolesChecked]="consolesChecked"
-          [queuesChecked]="queuesChecked"
-          [filter]="currentFilter"
-          (close)="onFilterClose()"
-          (reset)="onFilterReset()"
-          (apply)="onFilterApply($event)"
-          (consolesToggle)="onconsolesToggle()"
-          (queuesToggle)="onqueuesToggle()"
-        ></app-events-filter-panel>
+        <app-events-filter-panel *ngIf="isFilterOpen" [showDateRange]="selectedFilter === 'CLOSED'"
+          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked" [cities]="cities" [sites]="filterLists.sites" [timezones]="filterLists.timezones"
+          [cameras]="filterLists.cameras" [actionTags]="actionTags" [eventTypes]="filterLists.eventTypes"
+          [employees]="filterLists.userLevels" [consoleTypes]="filterLists.consoleTypes"
+          [queues]="filterLists.queueNames" [queueLevels]="filterLists.queueLevels"
+          (criteriaChange)="onFilterCriteriaChange($event)" [consolesChecked]="consolesChecked"
+          [queuesChecked]="queuesChecked" [filter]="currentFilter" (close)="onFilterClose()" (reset)="onFilterReset()"
+          (apply)="onFilterApply($event)" (consolesToggle)="onconsolesToggle()"
+          (queuesToggle)="onqueuesToggle()"></app-events-filter-panel>
 
         <!-- ===================== Centered Play Popup ===================== -->
-        <p-overlayPanel
-          #playOverlay
-          [dismissable]="true"
-          appendTo="body"
-          styleClass="play-tooltip-left"
-        >
+        <p-overlayPanel #playOverlay [dismissable]="true" appendTo="body" styleClass="play-tooltip-left">
           <div class="play-popup-content">
             <div class="play-popup-header">
               <div class="play-popup-header-content">
@@ -258,68 +181,35 @@
 
               <div class="play-popup-actions">
                 <!-- Download all images -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="downloadAllImages($event)"
-                  [disabled]="isDownloadingImages"
-                  title="Download all images"
-                >
+                <button type="button" class="icon-btn" (click)="downloadAllImages($event)"
+                  [disabled]="isDownloadingImages" title="Download all images">
                   <ng-container *ngIf="!isDownloadingImages; else openLoading">
-                    <img
-                      src="assets/Dounload.svg"
-                      alt="download"
-                      class="escalated-icon"
-                    />
+                    <img src="assets/Dounload.svg" alt="download" class="escalated-icon" />
                   </ng-container>
                 </button>
 
                 <!-- Open all images in new tabs -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="openAllImagesInNewTabs($event)"
-                  [disabled]="isOpeningImages"
-                  title="Open all images"
-                >
+                <button type="button" class="icon-btn" (click)="openAllImagesInNewTabs($event)"
+                  [disabled]="isOpeningImages" title="Open all images">
                   <ng-container *ngIf="!isOpeningImages; else openLoading">
-                    <img
-                      src="assets/expand.png"
-                      alt="open in new tab"
-                      class="escalated-icon"
-                    />
+                    <img src="assets/expand.png" alt="open in new tab" class="escalated-icon" />
                   </ng-container>
 
                   <ng-template #openLoading>
-                    <div
-                      class="spinner"
-                      style="width: 25px; height: 25px"
-                    ></div>
+                    <div class="spinner" style="width: 25px; height: 25px"></div>
                   </ng-template>
                 </button>
 
                 <!-- Close popup -->
-                <button
-                  type="button"
-                  class="icon-btn"
-                  (click)="closePlayPopup()"
-                  title="Close"
-                >
-                  <img
-                    src="assets/close-filled-black.svg"
-                    alt="close"
-                    class="escalated-icon"
-                  />
+                <button type="button" class="icon-btn" (click)="closePlayPopup()" title="Close">
+                  <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
                 </button>
               </div>
             </div>
 
             <div class="popup-body" style="position: relative">
               <ng-container *ngIf="isMediaLoading">
-                <div
-                  class="spinner"
-                  style="position: absolute; top: 40%; left: 40%"
-                ></div>
+                <div class="spinner" style="position: absolute; top: 40%; left: 40%"></div>
               </ng-container>
 
               <!-- NO IMAGES -->
@@ -330,25 +220,12 @@
               <!-- MEDIA -->
               <ng-container *ngIf="!isMediaLoading && validImages.length">
                 <ng-container *ngIf="getCurrentImageUrl() as media">
-                  <div
-                    class="media-wrapper"
-                    (mouseenter)="stopImageLoop()"
-                    (mouseleave)="startImageLoop()"
-                  >
+                  <div class="media-wrapper" (mouseenter)="stopImageLoop()" (mouseleave)="startImageLoop()">
                     <!-- IMAGE -->
-                    <img
-                      *ngIf="media.type === 'image'"
-                      class="play-image"
-                      [src]="media.url"
-                    />
+                    <img *ngIf="media.type === 'image'" class="play-image" [src]="media.url" />
 
                     <!-- VIDEO -->
-                    <video
-                      *ngIf="media.type === 'video'"
-                      class="play-image"
-                      controls
-                      autoplay
-                    >
+                    <video *ngIf="media.type === 'video'" class="play-image" controls autoplay>
                       <source [src]="media.url" />
                     </video>
                   </div>
@@ -359,11 +236,7 @@
         </p-overlayPanel>
 
         <!-- ===================== Calendar Popup ===================== -->
-        <div
-          class="calendar-popup-overlay"
-          *ngIf="isCalendarPopupOpen"
-          (click)="closeCalendarPopup()"
-        ></div>
+        <div class="calendar-popup-overlay" *ngIf="isCalendarPopupOpen" (click)="closeCalendarPopup()"></div>
         <div class="calendar-popup" *ngIf="isCalendarPopupOpen">
           <div class="popup-header">
             <h3>Calendar</h3>
@@ -372,10 +245,7 @@
             </button>
           </div>
           <div class="popup-content">
-            <mat-calendar
-              [(selected)]="selectedDate"
-              (selectedChange)="onDateSelected($event)"
-            ></mat-calendar>
+            <mat-calendar [(selected)]="selectedDate" (selectedChange)="onDateSelected($event)"></mat-calendar>
           </div>
         </div>
       </div>
@@ -406,10 +276,7 @@
 
                 <ng-template #colorDot>
                   <div class="ec-dot-wrap">
-                    <span
-                      class="ec-dot"
-                      [style.background-color]="e.iconcolor"
-                    ></span>
+                    <span class="ec-dot" [style.background-color]="e.iconcolor"></span>
                     <span class="ec-dot-value">{{ e.value }}</span>
                   </div>
                 </ng-template>
@@ -417,18 +284,12 @@
             </div>
 
             <!-- DOWNLOAD BUTTON -->
-            <div
-              class="ec-download"
-              *ngIf="
+            <div class="ec-download" *ngIf="
                 selectedFilter === 'CLOSED' &&
                 (suspiciousChecked || falseChecked)
-              "
-            >
-              <button
-                style="background: transparent; border: none"
-                (click)="downloadExcel()"
-                pTooltip="generate Excel Report"
-              >
+              ">
+              <button style="background: transparent; border: none" (click)="downloadExcel()"
+                pTooltip="generate Excel Report">
                 <ng-container *ngIf="!spinexcel; else openLoading">
                   <img src="assets/icons/logo.png" alt="download" width="24" />
                 </ng-container>
@@ -450,16 +311,11 @@
       <div class="m-t-20" *ngIf="showMore">
         <!-- CLOSED More Section -->
         <ng-container *ngIf="selectedFilter === 'CLOSED'">
-          <ng-container
-            *ngIf="escalatedDetailsCombined.length != 0; else noClosedData"
-          >
+          <ng-container *ngIf="escalatedDetailsCombined.length != 0; else noClosedData">
             <div class="closed-wrapper">
               <div class="closed-body">
                 <div class="closed-scroll-row">
-                  <div
-                    class="closed-card"
-                    *ngFor="let e of escalatedDetailsCombined"
-                  >
+                  <div class="closed-card" *ngFor="let e of escalatedDetailsCombined">
                     <div class="closed-card-header">
                       <h4 [title]="e.label">{{ e.label }}</h4>
                       <h4 [title]="e.value">{{ e.value }}</h4>
@@ -467,23 +323,14 @@
 
                     <div class="closed-card-footer">
                       <div class="closed-dots" *ngIf="e.colordot">
-                        <div
-                          class="closed-icon-item"
-                          *ngFor="let dot of e.colordot"
-                        >
-                          <span
-                            class="dot"
-                            [style.background]="dot.iconcolor"
-                          ></span>
+                        <div class="closed-icon-item" *ngFor="let dot of e.colordot">
+                          <span class="dot" [style.background]="dot.iconcolor"></span>
                           <span class="dot-count">{{ dot.count }}</span>
                         </div>
                       </div>
 
                       <div class="closed-icons" *ngIf="e.icons">
-                        <div
-                          class="closed-icon-item"
-                          *ngFor="let icon of e.icons"
-                        >
+                        <div class="closed-icon-item" *ngFor="let icon of e.icons">
                           <img [src]="icon.iconPath" />
                           <span>{{ icon.count }}</span>
                         </div>
@@ -503,10 +350,7 @@
         <ng-container *ngIf="selectedFilter === 'PENDING'">
           <div class="pending-wrapper">
             <div class="pending-row">
-              <div
-                class="pending-card"
-                *ngFor="let e of escalatedDetailsPending"
-              >
+              <div class="pending-card" *ngFor="let e of escalatedDetailsPending">
                 <div class="pending-header">
                   <h4 class="pending-label" [title]="e.label">
                     {{ e.label }}
@@ -533,36 +377,18 @@
       <!-- PENDING Table -->
       <div class="m-t-20" *ngIf="selectedFilter === 'PENDING'">
         <div class="escalated-content-section">
-          <div
-            class="ag-grid-wrapper"
-            [ngStyle]="
+          <div class="ag-grid-wrapper" [ngStyle]="
               showMore
                 ? { height: 'calc(100vh - 370px)' }
                 : { height: 'calc(100vh - 270px)' }
-            "
-          >
-            <ag-grid-angular
-              style="height: 100%"
-              theme="legacy"
-              class="ag-theme-alpine"
-              [rowData]="pendingDisplayRows"
-              [columnDefs]="pendingColumnDefs"
-              [defaultColDef]="defaultColDef"
-              [pagination]="true"
-              [paginationPageSize]="15"
-              [rowHeight]="40"
-              [headerHeight]="30"
-              [enableCellTextSelection]="true"
-              [enableRangeSelection]="true"
-              [copyHeadersToClipboard]="true"
-              [quickFilterMatcher]="pendingQuickFilterMatcher"
-              [paginationPageSizeSelector]="[15, 20, 50, 100]"
-              (gridReady)="onGridReady($event)"
-              [icons]="gridIcons"
-              (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar"
-              (firstDataRendered)="onFirstDataRendered()"
-            >
+            ">
+            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="pendingDisplayRows"
+              [columnDefs]="pendingColumnDefs" [defaultColDef]="defaultColDef" [pagination]="true"
+              [paginationPageSize]="15" [rowHeight]="40" [headerHeight]="30" [enableCellTextSelection]="true"
+              [enableRangeSelection]="true" [copyHeadersToClipboard]="true"
+              [quickFilterMatcher]="pendingQuickFilterMatcher" [paginationPageSizeSelector]="[15, 20, 50, 100]"
+              (gridReady)="onGridReady($event)" [icons]="gridIcons" (cellClicked)="onCellClicked($event)"
+              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()" [rowSelection]="'single'">
             </ag-grid-angular>
           </div>
         </div>
@@ -571,36 +397,18 @@
       <!-- CLOSED Table -->
       <div class="m-t-20" *ngIf="selectedFilter === 'CLOSED'">
         <div class="escalated-content-section">
-          <div
-            class="ag-grid-wrapper"
-            [ngStyle]="
+          <div class="ag-grid-wrapper" [ngStyle]="
               showMore
                 ? { height: 'calc(100vh - 370px)' }
                 : { height: 'calc(100vh - 270px)' }
-            "
-          >
-            <ag-grid-angular
-              style="height: 100%"
-              theme="legacy"
-              class="ag-theme-alpine"
-              [rowData]="closedDisplayRows"
-              [columnDefs]="closedColumnDefs"
-              [defaultColDef]="defaultColDef"
-              [pagination]="true"
-              [enableCellTextSelection]="true"
-              [enableRangeSelection]="true"
-              [copyHeadersToClipboard]="true"
-              [paginationPageSize]="15"
-              [rowHeight]="40"
-              [paginationPageSizeSelector]="[15, 20, 50, 100]"
-              [localeText]="localeText"
-              [quickFilterMatcher]="closedQuickFilterMatcher"
-              (gridReady)="onGridReady($event)"
-              [icons]="gridIcons"
-              (cellClicked)="onCellClicked($event)"
-              [statusBar]="statusBar"
-              (firstDataRendered)="onFirstDataRendered()"
-            >
+            ">
+            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="closedDisplayRows" 
+              [columnDefs]="closedColumnDefs" [defaultColDef]="defaultColDef" [pagination]="true"
+              [enableCellTextSelection]="true" [enableRangeSelection]="true" [copyHeadersToClipboard]="true"
+              [paginationPageSize]="15" [rowHeight]="40" [paginationPageSizeSelector]="[15, 20, 50, 100]" 
+              [localeText]="localeText" [quickFilterMatcher]="closedQuickFilterMatcher"
+              (gridReady)="onGridReady($event)" [icons]="gridIcons" (cellClicked)="onCellClicked($event)"
+              [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()" [rowSelection]="'single'">
             </ag-grid-angular>
           </div>
         </div>
@@ -608,11 +416,7 @@
 
       <!-- ========= Hidden template for pagination toolbar (cloned into .ag-paging-panel) ========= -->
 
-      <div
-        #paginationControls
-        class="pagination-controls"
-        style="display: none"
-      >
+      <div #paginationControls class="pagination-controls" style="display: none">
         <div class="legend-group">
           <div class="dot-eventwall"></div>
           <label class="event-wall-label">Event Console</label>
@@ -621,23 +425,17 @@
           <!-- Timed-Out only for PENDING; we'll hide via TS for CLOSED -->
 
           @if (selectedFilter === "CLOSED") {
-            <div class="dot-manualevent"></div>
-            <label class="manual-wall-label">Manual Event</label>
+          <div class="dot-manualevent"></div>
+          <label class="manual-wall-label">Manual Event</label>
           }
           @if (selectedFilter != "CLOSED") {
-            <div class="dot-timedOutWallCount" data-type="timed"></div>
-            <label class="timedOut-wall-label" data-type="timed"
-              >Timed-Out</label
-            >
+          <div class="dot-timedOutWallCount" data-type="timed"></div>
+          <label class="timedOut-wall-label" data-type="timed">Timed-Out</label>
           }
         </div>
         <div class="refresh-group">
           <button class="refreshbutton" type="button">
-            <img
-              src="assets/refresh-circle-sharp.svg"
-              alt="icon"
-              class="escalated-icon refresh-icon"
-            />
+            <img src="assets/refresh-circle-sharp.svg" alt="icon" class="escalated-icon refresh-icon" />
             Refresh
           </button>
           <select class="refresh-interval-select">
@@ -652,5 +450,314 @@
 
       <!-- ========================================================================= -->
     </div>
+  </div>
+</div>
+
+
+
+
+<p-overlayPanel #mailoverlay [dismissable]="false" appendTo="body" styleClass="play-tooltip-left">
+  <div class="button-close-email">
+    <button type="button" class="icon-btn" (click)="closeMailoverlay()" title="Close">
+      <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+    </button>
+  </div>
+
+  <ng-container *ngIf="isMediaLoading">
+    <div class="spinner" style="position: absolute; top: 40%; left: 40%"></div>
+  </ng-container>
+
+  <ng-container *ngIf="!isMediaLoading && !emailData">
+    <p>No Data</p>
+  </ng-container>
+
+
+  <div class="email-wrapper">
+    <div style="overflow-y: auto; height: 50vh;width: 50vw;">
+      
+      <ng-container *ngIf="!isMediaLoading && emailData">
+        
+        <!-- ================= EMAIL PREVIEW ================= -->
+        <div class="email-logo">
+          <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
+        </div>
+  
+        <div class="email-site">
+          <div class="site-name">{{ mailselectitem?.siteName }}</div>
+        </div>
+        <div class="email-alert">
+           {{ emailData?.emailSubject }} 
+        </div>
+        <div class="email-body-section">
+          <table class="email-table">
+            <tr>
+              <td class="label">To</td>
+              <td class="value">
+                {{
+                emailData?.recipientEmails?.length
+                ? emailData.recipientEmails.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Cc</td>
+              <td class="value">
+                {{
+                emailData?.Cc?.length
+                ? emailData.Cc.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Bcc</td>
+              <td class="value">
+                {{
+                emailData?.BCC?.length
+                ? emailData.BCC.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+            <tr>
+              <td class="label">Date & Time</td>
+              <td class="value">
+                {{ emailData?.emailFields?.DATE }} -
+                {{ emailData?.emailFields?.TIME }}
+              </td>
+            </tr>
+          </table>
+
+          <hr class="divider" />
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Description</td>
+              <td class="value description">
+                {{ emailData?.emailBody }}
+              </td>
+            </tr>
+          </table>
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Camera</td>
+              <td class="value">{{ mailselectitem?.cameraId }}</td>
+            </tr>
+          </table>
+
+
+          <div class="email-footer-text">
+            Please review the information above.<br /><br />
+            Call <b>(844) 438-4847 (ext. 1)</b> or email
+            <b>{{ 'support@ivisecurity.com' }}</b>
+          </div>
+
+        </div>
+        <div class="email-gradient"></div>
+        <div class="action-section">
+          <h3 class="action-title">Resolution Details</h3>
+  
+          <div class="form-row">
+            <div class="form-group">
+              <label>Action’s Taken</label>
+              <input type="text" [(ngModel)]="action" placeholder="Describe action taken" />
+            </div>
+  
+            <div class="form-group">
+              <label>Notes</label>
+              <input type="text" [(ngModel)]="resolution" placeholder="Additional notes" />
+            </div>
+          </div>
+  
+          <!-- ===== FILE UPLOAD ===== -->
+          <div class="upload-box">
+            <input #fileInput type="file" multiple (change)="onFilesSelected($event)" accept="image/*,video/*" />
+            <p>Click to upload images</p>
+          </div>
+  
+          <!-- ===== FILE LIST ===== -->
+          <div *ngIf="selectedFiles.length" class="file-list">
+            <div *ngFor="let file of selectedFiles; let i = index" class="file-chip">
+              {{ file.name }}
+              <button (click)="removeFile(i, fileInput)">✕</button>
+            </div>
+          </div>
+  
+  
+          <div class="preview-actions">
+            <button class="btn-preview" (click)="showPreview = true">Preview</button>
+            <button class="btn-submit" (click)="submitResolution()" [disabled]="isSubmitting">
+              Submit
+              <span *ngIf="isSubmitting" class="spinner1"></span>
+            </button>
+          </div>
+  
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+
+
+</p-overlayPanel>
+
+
+
+
+
+
+
+<!-- ================= PREVIEW POPUP ================= -->
+<div class="preview-overlay" *ngIf="showPreview">
+
+  <div class="preview-popup">
+  
+  <div class="button-close-email" style="position: sticky;top: 0;">
+    <button type="button" class="icon-btn" (click)="showPreview = false" title="Close">
+      <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+    </button>
+  </div>
+  
+  
+  
+
+
+    <!-- ===== EMAIL TEMPLATE ===== -->
+    <div class="email-wrapper">
+      <div style="overflow-y: auto;max-height: 80vh;">
+
+        <div class="email-logo">
+          <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
+        </div>
+
+        <div class="email-site">
+          <div class="site-name">{{ mailselectitem?.siteName }}</div>
+        </div>
+
+        <div class="email-alert">
+          {{ emailData?.emailSubject }} 
+        </div>
+
+        <!-- ===== EMAIL TABLE ===== -->
+        <div class="email-body-section">
+
+          <table class="email-table">
+
+            <tr>
+              <td class="label">To</td>
+              <td class="value">
+                {{
+                emailData?.recipientEmails?.length
+                ? emailData.recipientEmails.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Cc</td>
+              <td class="value">
+                {{
+                emailData?.Cc?.length
+                ? emailData.Cc.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+
+            <tr>
+              <td class="label">Bcc</td>
+              <td class="value">
+                {{
+                emailData?.BCC?.length
+                ? emailData.BCC.join(", ")
+                : "-"
+                }}
+              </td>
+            </tr>
+            <tr>
+              <td class="label">Date & Time</td>
+              <td class="value">
+                {{ emailData?.emailFields?.DATE }} -
+                {{ emailData?.emailFields?.TIME }}
+              </td>
+            </tr>
+          </table>
+
+          <hr class="divider" />
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Description</td>
+              <td class="value description">
+                {{ emailData?.emailBody }}
+              </td>
+            </tr>
+          </table>
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Camera</td>
+              <td class="value">{{ mailselectitem?.cameraId }}</td>
+            </tr>
+          </table>
+
+          <hr class="divider" />
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Action's Taken</td>
+              <td class="value">{{ action || "-" }}</td>
+            </tr>
+          </table>
+
+          <table class="email-table">
+            <tr>
+              <td class="label">Notes</td>
+              <td class="value">{{ resolution || "-"}} </td>
+            </tr>
+          </table>
+
+          <div class="email-footer-text">
+            Please review the information above.<br /><br />
+            Call <b>(844) 438-4847 (ext. 1)</b> or email
+            <b>{{ 'support@ivisecurity.com' }}</b>
+          </div>
+
+        </div>
+
+        <div class="email-gradient"></div>
+
+        <!-- ================= GMAIL-STYLE ATTACHMENTS ================= -->
+        <div *ngIf="selectedFiles.length" class="gmail-attachments">
+
+          <h4>Attachments</h4>
+
+          <div class="attachment-list">
+
+            <div *ngFor="let file of selectedFiles" class="attachment-card">
+
+              <!-- IMAGE PREVIEW -->
+              <img *ngIf="file.type.startsWith('image')" [src]="file | filePreview" class="attachment-preview" />
+
+              <!-- VIDEO PREVIEW -->
+              <video *ngIf="file.type.startsWith('video')" [src]="file | filePreview" autoplay [muted]="true" loop
+                controls class="attachment-preview">
+              </video>
+
+              <div class="attachment-name">{{ file.name }}</div>
+
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 </div>

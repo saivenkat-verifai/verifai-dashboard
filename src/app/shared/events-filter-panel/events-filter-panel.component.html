@@ -97,7 +97,7 @@
      <label class="events-filter-label">Select Timezone</label>
           <select class="events-filter-select" [(ngModel)]="model.timeZone" (ngModelChange)="onCriteriaChanged()" [compareWith]="compareTimezones">
             <option [ngValue]="null">All</option>
-            <option *ngFor="let item of timezones" [ngValue]="item">   {{ item.timezoneValue }} - {{item.timezoneCode}}</option>
+            <option *ngFor="let item of timezones" [ngValue]="item">   {{ item }}</option>
           </select>
         </div>
 

@@ -61,6 +61,8 @@ export class EventsFilterPanelComponent {
 
   @Input() consoleTypes: string[] = [];
 
+  @Input() timezones:any[]=[];
+
   /** PENDING tab toggles */
   @Input() consolesChecked = true;
   @Input() queuesChecked = false;
@@ -109,27 +111,28 @@ export class EventsFilterPanelComponent {
 today: any;
   ngOnInit() {
     this.onReset();
-    this.timezoneDropdown();
+   
+    // this.timezoneDropdown();
     this.today = new Date().toISOString().split('T')[0];
   }
 
 
 
-  timezones: any;
-  timezoneDropdown() {
-    this.eventService.timezoneDropdown().subscribe((res: any) => {
-      this.timezones = res.timezones;
+  // timezones: any;
+  // timezoneDropdown() {
+  //   this.eventService.timezoneDropdown().subscribe((res: any) => {
+  //     this.timezones = res.timezones;
 
-    })
-  }
+  //   })
+  // }
 
   compareSites = (a: any, b: any): boolean => {
     return a && b ? a.siteId === b.siteId : a === b;
   };
 
-  compareTimezones = (a: any, b: any): boolean => {
-    return a && b ? a.timezoneValue === b.timezoneValue : a === b;
-  };
+ compareTimezones = (a: string | null, b: string | null): boolean => {
+  return a === b;
+};
 
   onCriteriaChanged(): void {
     this.criteriaChange.emit({ ...this.model });

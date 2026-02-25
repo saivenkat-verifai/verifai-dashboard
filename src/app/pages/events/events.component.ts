@@ -1,10 +1,10 @@
-
 import {
   Component,
   OnInit,
   OnDestroy,
   ViewChild,
   ElementRef,
+  forwardRef,
 } from "@angular/core";
 import {
   GridApi,
@@ -18,7 +18,7 @@ import {
 } from "ag-grid-community";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
-import { MatNativeDateModule } from "@angular/material/core";
+import { MatNativeDateModule, MatOption } from "@angular/material/core";
 import { MatDatepickerModule } from "@angular/material/datepicker";
 import { EscalationPopupComponent } from "src/app/shared/escalation-popup/escalation-popup.component";
 import { AgGridModule } from "ag-grid-angular";
@@ -51,6 +51,13 @@ import { NgZone } from "@angular/core";
 import { RefreshStatusPanelComponent } from "./refresh-status-panel.component";
 import { ImagePipe } from "src/app/shared/image.pipe"; // adjust path
 import { IdleService } from "src/Services/idle.service";
+import {
+  MatFormField,
+  MatFormFieldModule,
+  MatLabel,
+} from "@angular/material/form-field";
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from "@angular/material/select";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([QuickFilterModule, AllCommunityModule]);
@@ -98,7 +105,12 @@ interface SecondEscalatedDetail {
     CalendarComponent,
     OverlayPanelModule,
     EventsFilterPanelComponent,
-
+    MatLabel,
+    MatOption,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    forwardRef(() => FilePreviewPipe),
   ],
 })
 export class EventsComponent {
@@ -109,7 +121,11 @@ export class EventsComponent {
   paginationControls!: ElementRef<HTMLDivElement>;
   @ViewChild("playOverlay") playOverlay!: OverlayPanel;
 
+  @ViewChild("mailoverlay") mailoverlay!: OverlayPanel;
+
   filterPanelVisible = false;
+
+
 
   toggleFilterPanel() {
     this.filterPanelVisible = !this.filterPanelVisible;
@@ -131,6 +147,7 @@ export class EventsComponent {
   }
 
   /** --------------- Filter sidebar state --------------- */
+  
   isFilterOpen = false;
 
   openFilter() {
@@ -179,8 +196,7 @@ export class EventsComponent {
   }
 
   onFilterApply(criteria: EventsFilterCriteria) {
-
-    this.preloadClosedCounts()
+    this.preloadClosedCounts();
     const base =
       this.selectedFilter === "PENDING" ? this.pendingRowData : this.rowData;
 
@@ -216,7 +232,10 @@ export class EventsComponent {
       if (criteria.site !== null && row.siteName !== criteria.site.site)
         return false;
 
-      if (criteria.timeZone !== null && row.timezone !== criteria.timeZone.timezoneValue)
+      if (
+        criteria.timeZone !== null &&
+        row.timezone !== criteria.timeZone
+      )
         return false;
 
       if (criteria.camera !== "All" && row.cameraId !== criteria.camera)
@@ -289,6 +308,8 @@ export class EventsComponent {
       this.currentFilter = { ...this.currentFilter, camera: "All" };
     }
 
+
+
     // ✅ optional: same for queueName / queueLevel
     if (
       this.currentFilter.queueName !== "All" &&
@@ -315,12 +336,12 @@ export class EventsComponent {
     const siteRows = this.filterRowsForOptions(rows, "site");
     this.filterLists.sites = Array.from(
       new Map(
-        siteRows.map(r => [
-          r.siteId,
-          { siteId: r.siteId, site: r.siteName }
-        ])
-      ).values()
+        siteRows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
+      ).values(),
     );
+
+       const timeZoneRows = this.filterRowsForOptions(rows, "timezone");
+ this.filterLists.timezones = this.uniq(timeZoneRows.map((r) => r.timezone));
 
     const cameraRows = this.filterRowsForOptions(rows, "camera");
     this.filterLists.cameras = this.uniq(cameraRows.map((r) => r.cameraId));
@@ -367,6 +388,7 @@ export class EventsComponent {
     rows: any[],
     ignoreField:
       | "site"
+      | "timezone"
       | "camera"
       | "employee"
       | "eventType"
@@ -378,7 +400,11 @@ export class EventsComponent {
 
     return rows.filter((row) => {
       // Site
-      if (ignoreField !== "site" && c.site !== null && row.siteName !== c.site.site)
+      if (
+        ignoreField !== "site" &&
+        c.site !== null &&
+        row.siteName !== c.site.site
+      )
         return false;
 
       // Camera
@@ -516,7 +542,7 @@ export class EventsComponent {
   closedColumnDefs: ColDef[] = [];
   pendingColumnDefs: ColDef[] = [];
 
-  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true, };
+  defaultColDef: ColDef = { flex: 1, minWidth: 120, resizable: true };
 
   /** Minimal locale text to hide AG Grid labels we don't use */
   localeText = {
@@ -564,6 +590,7 @@ export class EventsComponent {
   filterLists = {
     cities: [] as string[],
     sites: [] as any[],
+    timezones:[] as any[],
     cameras: [] as string[],
     actionTags: ["Suspicious", "False", "Event_Wall", "Manual_Wall"],
     eventTypes: ["Event_Wall", "Manual_Wall", "Timed_Out"],
@@ -576,6 +603,9 @@ export class EventsComponent {
 
   get cities() {
     return this.filterLists.cities;
+  }
+    get timezones() {
+    return this.filterLists.timezones;
   }
   get sites() {
     return this.filterLists.sites;
@@ -611,10 +641,8 @@ export class EventsComponent {
     private http: HttpClient,
     private notification: NotificationService,
     private zone: NgZone,
-    private idelService: IdleService
-  ) { }
-
-
+    private idelService: IdleService,
+  ) {}
 
   /** -------------------- Lifecycle -------------------- */
   ngOnInit(): void {
@@ -706,21 +734,31 @@ export class EventsComponent {
       return;
     }
 
-
     const start = this.formatDateTimeFull(this.selectedStartDate);
     const end = this.formatDateTimeFull(this.selectedEndDate);
 
-
-
-    this.actionTagCountsclosed(start, end, this.suspiciousChecked, this.falseChecked);
-
+    this.actionTagCountsclosed(
+      start,
+      end,
+      this.suspiciousChecked,
+      this.falseChecked,
+    );
   }
 
-  actionTagCountsclosed(start: any, end: any, suspiciouscheck: any, falsecheck: any) {
-
-
+  actionTagCountsclosed(
+    start: any,
+    end: any,
+    suspiciouscheck: any,
+    falsecheck: any,
+  ) {
     this.eventsService
-      .getEventReportCountsForActionTag(start, end, suspiciouscheck, falsecheck, this.currentFilter)
+      .getEventReportCountsForActionTag(
+        start,
+        end,
+        suspiciouscheck,
+        falsecheck,
+        this.currentFilter,
+      )
       .subscribe({
         next: (res) => {
           const counts = res?.counts || [];
@@ -757,15 +795,9 @@ export class EventsComponent {
             });
           });
 
-
-
-
           this.EscalatedDetailCombined = result;
-
-
         },
         error: () => {
-
           this.EscalatedDetailCombined = [];
         },
       });
@@ -774,8 +806,6 @@ export class EventsComponent {
   get escalatedDetailsCombined(): EscalatedDetail[] {
     return this.EscalatedDetailCombined;
   }
-
-
 
   private readonly DOT_IMAGES_BASE =
     "https://usstaging.ivisecurity.com/dotimages/";
@@ -893,7 +923,6 @@ export class EventsComponent {
     this.stopImageLoop();
   }
 
-
   /** -------------------- Toast helpers (PrimeNG) -------------------- */
   private showSuccess(summary: string, detail?: string) {
     this.notification.success(summary, detail);
@@ -951,8 +980,6 @@ export class EventsComponent {
     this.loadClosedAndEscalatedDetails();
     this.preloadClosedCounts();
     // this.loadEscalatedDetails();
-
-
   }
 
   /** PENDING: when either Consoles/Queues checkbox changes */
@@ -1103,7 +1130,7 @@ export class EventsComponent {
 
       // ✅ clone your hidden template div
       const tplRef = this.paginationControls;
-      const clone = tplRef.nativeElement.cloneNode(true) as HTMLElement;
+      const clone = tplRef.nativeElement?.cloneNode(true) as HTMLElement;
 
       // ✅ mark it so we can find/remove next time
       clone.classList.add("custom-pagination-toolbar");
@@ -1150,6 +1177,7 @@ export class EventsComponent {
   }
 
   onFilterTextBoxChanged(): void {
+ 
     this.gridApi?.setGridOption("quickFilterText", this.searchTerm);
   }
 
@@ -1160,13 +1188,23 @@ export class EventsComponent {
     quickFilterParts.every((part) => new RegExp(part, "i").test(rowText));
 
   /** -------------------- Cell click handlers -------------------- */
+
+
   onCellClicked(event: any): void {
+
+
     if (event.colDef.field !== "more") return;
 
     const target = event.event.target as HTMLElement;
 
+    if (target.closest(".mail")) {
+      this.openMailTooltip(event.event as MouseEvent, event);
+      return;
+    }
+
     if (target.closest(".play-icon")) {
       this.openPlayTooltip(event.event as MouseEvent, event);
+      return;
     }
 
     if (target.closest(".info-icon")) {
@@ -1332,24 +1370,23 @@ export class EventsComponent {
       const url = new URL(input);
 
       // Case 1: ?assetName=
-      const assetName = url.searchParams.get('assetName');
+      const assetName = url.searchParams.get("assetName");
       if (assetName) {
         return assetName;
       }
 
       // Case 2: /dotimages/filename
-      if (url.pathname.includes('/dotimages/')) {
-        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      if (url.pathname.includes("/dotimages/")) {
+        return url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
       }
 
       // Case 3: /images/filename
-      if (url.pathname.includes('/images/')) {
-        return url.pathname.substring(url.pathname.lastIndexOf('/') + 1);
+      if (url.pathname.includes("/images/")) {
+        return url.pathname.substring(url.pathname.lastIndexOf("/") + 1);
       }
 
       // Case 4: nothing matched → return full URL
       return input;
-
     } catch (e) {
       // Invalid or non-standard URL
       return input;
@@ -1377,7 +1414,6 @@ export class EventsComponent {
       Authorization: `Bearer ${token}`,
     });
 
-
     this.http.get(url, { headers, responseType: "blob" }).subscribe({
       next: (blob) => {
         if (blob.type === "application/json") {
@@ -1385,13 +1421,11 @@ export class EventsComponent {
           return;
         }
 
-        const fileName = this.extractAssetNameOrUrl(url)
+        const fileName = this.extractAssetNameOrUrl(url);
 
         const objectUrl = URL.createObjectURL(blob);
 
-
         if (isDownload) {
-
           const a = document.createElement("a");
           a.href = objectUrl;
           a.download = fileName;
@@ -1400,7 +1434,6 @@ export class EventsComponent {
           document.body.removeChild(a);
           URL.revokeObjectURL(objectUrl);
         } else {
-
           window.open(objectUrl, "_blank");
           setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
         }
@@ -1465,6 +1498,141 @@ export class EventsComponent {
     }
   }
 
+  isSubmitting = false;
+  submitResolution() {
+    if (
+      !this.action?.trim() ||
+      !this.resolution?.trim() ||
+      !this.emailData?.recipientEmails?.length ||
+      !this.selectedFiles.length
+    ) {
+      this.showToast(
+        "error",
+        "Failed",
+        "Action Taken, Notes,Files and Recipient Email are mandatory.",
+      );
+
+      return;
+    }
+    this.isSubmitting = true;
+    this.eventsService
+      .sendResolution({
+        ...this.mailselectitem,
+        ...this.emailData,
+        alertTagId1:this.mailselectitem.alertTagId,
+        selectedFiles: this.selectedFiles,
+        action: this.action,
+        resolution: this.resolution,
+      })
+      .subscribe((res: any) => {
+        if (res.statusCode == 200) {
+          this.showToast("success", "Successfully completed", "");
+          this.isSubmitting = false;
+          this.closeMailoverlay();
+          this.showPreview = false;
+          this.selectedFiles=[];
+          this.loadClosedAndEscalatedDetails();
+          this.preloadClosedCounts();
+          
+        } else {
+          this.showToast("error", "Something went wrong", "Failed!");
+          this.isSubmitting = false;
+        }
+      },(error:any)=>{
+         this.isSubmitting = false;
+          this.showToast("error", "Something went wrong", "Failed!");
+      });
+  }
+
+  selectedFiles: File[] = [];
+  showPreview: boolean = false;
+  onFilesSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files) return;
+
+    const allowedTypes = ["image/", "video/"];
+    const filesArray = Array.from(input.files);
+
+    const validFiles: File[] = [];
+    const invalidFiles: File[] = [];
+
+    filesArray.forEach((file) => {
+      if (allowedTypes.some((type) => file.type.startsWith(type))) {
+        validFiles.push(file);
+      } else {
+        invalidFiles.push(file);
+      }
+    });
+
+    // Add valid files
+    this.selectedFiles = [...this.selectedFiles, ...validFiles];
+
+    // 🔴 Show toast if invalid files found
+    if (invalidFiles.length) {
+      this.showToast(
+        "error",
+        "Upload Failed",
+        "Only images and videos allowed.",
+      );
+    }
+
+    // Reset input so same file can be selected again
+    input.value = "";
+  }
+
+  removeFile(index: number, fileInput: HTMLInputElement) {
+    this.selectedFiles.splice(index, 1);
+
+    // reset actual input so filename disappears
+    fileInput.value = "";
+  }
+
+  action: any;
+  resolution: any;
+  emailObject: any;
+  emailData: any;
+  smsDetails: any;
+  getEmailDataForVMSEvents() {
+    this.emailObject = {
+      siteId: this.mailselectitem?.siteId,
+      siteName: this.mailselectitem?.siteName,
+      alertTypeId: this.mailselectitem?.alertTagId,
+      subTypeId: this.mailselectitem?.subAlertTagId,
+      cameraId: this.mailselectitem?.cameraId,
+      day: this.eventsService.weekdays[
+       this.mailselectitem.eventStartTime ? new Date(this.mailselectitem.eventStartTime).getDay() : 0
+      ],
+      hour: this.mailselectitem.eventStartTime ? new Date(this.mailselectitem.eventStartTime).getHours() : 0,
+      currentTime: this.mailselectitem?.eventStartTime,
+    };
+
+    this.isMediaLoading = true;
+
+    this.eventsService.getEmailDataForVMSEvents(this.emailObject).subscribe({
+      next: (res: any) => {
+        if (res.statusCode === 200) {
+          this.emailData = res.emailDetails;
+          this.smsDetails = res.smsDetails;
+          this.isMediaLoading = false;
+        } else {
+          this.isMediaLoading = false;
+        }
+      },
+      error: (err) => {
+        this.isMediaLoading = false;
+        this.showToast("error", "Connection Failed", "Something went wrong!");
+      },
+    });
+  }
+
+  mailselectitem: any;
+  openMailTooltip(event: MouseEvent, params: any) {
+    console.log(params.data);
+    this.mailselectitem = params.data;
+    this.getEmailDataForVMSEvents();
+    this.mailoverlay.show(event);
+  }
+
   validImages: any[] = [];
   isMediaLoading = false;
 
@@ -1473,7 +1641,6 @@ export class EventsComponent {
 
     const item = params.data;
     const media: string[] = this.resolveMediaUrls(item);
-
 
     console.log("DEBUG media:", media);
 
@@ -1557,8 +1724,6 @@ export class EventsComponent {
       }),
       catchError(() => of(null)),
     );
-
-
   }
 
   //  downloaddisplayimage(
@@ -1609,7 +1774,13 @@ export class EventsComponent {
   //   );
   // }
 
-
+  closeMailoverlay() {
+    this.mailoverlay.hide();
+    this.emailData = null;
+    this.selectedFiles=[];
+    this.action=null;
+    this.resolution=null;
+  }
 
   closePlayPopup(): void {
     this.stopImageLoop();
@@ -1639,9 +1810,6 @@ export class EventsComponent {
   }
 
   getCurrentImageUrl() {
-
-
-
     if (!this.validImages.length) return null;
     return this.validImages[this.currentSlideIndex] ?? this.validImages[0];
   }
@@ -1948,10 +2116,10 @@ export class EventsComponent {
               row.employee ??
               (empName
                 ? {
-                  name: empName,
-                  level: empLevel,
-                  profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
-                }
+                    name: empName,
+                    level: empLevel,
+                    profileImage: empProfileImage, // 👈 used by ProfileImageRendererComponent
+                  }
                 : undefined),
           };
         });
@@ -2134,7 +2302,8 @@ export class EventsComponent {
             device: e?.unitId,
             cameraId: e?.cameraId,
             duration: e?.eventDuration,
-            timezone: e?.timezoneValue,
+            // timezone: e?.timezoneValue,
+            timezone: e?.timezone,
             eventStartTime: e?.eventStartTime,
             actionTag: e?.actionTag ?? e?.subActionTag,
             subActionTag: e?.subActionTag ?? e?.actionTag,
@@ -2224,14 +2393,10 @@ export class EventsComponent {
   //   // CLOSED
   //   // if (this.selectedFilter === "CLOSED") {
 
-
   //   //   const start = this.formatDateTimeFull(this.selectedStartDate!);
   //   //   const end = this.formatDateTimeFull(this.selectedEndDate!);
 
-
-
   //   //   // this.actionTagCountsclosed(start, end, this.suspiciousChecked,this.falseChecked);
-
 
   //   // }
 
@@ -2367,6 +2532,9 @@ export class EventsComponent {
     const rows = this.pendingRowData || [];
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = this.uniq(rows.map((r) => r.siteName));
+
+     this.filterLists.timezones = this.uniq(rows.map((r) => r.timezone));
+
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // ✅ Queue Names dropdown values
@@ -2387,12 +2555,13 @@ export class EventsComponent {
     this.filterLists.cities = this.uniq(rows.map((r) => r.cityName ?? r.city));
     this.filterLists.sites = Array.from(
       new Map(
-        rows.map(r => [
-          r.siteId,
-          { siteId: r.siteId, site: r.siteName }
-        ])
-      ).values()
+        rows.map((r) => [r.siteId, { siteId: r.siteId, site: r.siteName }]),
+      ).values(),
     );
+
+      
+ this.filterLists.timezones = this.uniq(rows.map((r) => r.timezone));
+
     this.filterLists.cameras = this.uniq(rows.map((r) => r.cameraId));
 
     // 🔁 Use levels instead of names
@@ -2409,13 +2578,6 @@ export class EventsComponent {
     // const colIds = cols.map((c: Column) => c.getColId());
     // this.gridApi.autoSizeColumns(colIds, skipHeader);
   }
-
-
-
-
-
-
-
 
   /** -------------------- Column definitions -------------------- */
   setupColumnDefs(): void {
@@ -2496,16 +2658,17 @@ export class EventsComponent {
         },
         cellClassRules: {
           // 🔴 Red when actionTag = Suspicious and checkbox checked
-          'alert-red': (params) =>
-            this.suspiciousChecked && this.falseChecked &&
+          "alert-red": (params) =>
+            this.suspiciousChecked &&
+            this.falseChecked &&
             params.data?.actionTagId === 2,
 
           // 🟢 Green when actionTag = False and checkbox checked
-          'alert-green': (params) =>
-            this.falseChecked && this.suspiciousChecked &&
-            params.data?.actionTagId === 1
-
-        }
+          "alert-green": (params) =>
+            this.falseChecked &&
+            this.suspiciousChecked &&
+            params.data?.actionTagId === 1,
+        },
       },
       {
         headerName: "ALERT",
@@ -2582,13 +2745,43 @@ export class EventsComponent {
           // justifyContent: "center",
           // alignItems: "center",
         },
-        cellRenderer: () =>
-          `<span class="play-icon" style="margin-right:8px;">
-            <img src="assets/play-circle-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Play"/>
-          </span>
-          <span class="info-icon">
-            <img src="assets/information-icon.svg" style="width:20px; margin-top:10px; height:20px; cursor:pointer;" alt="Info"/>
-          </span>`,
+        cellRenderer: (params: any) => {
+          let color = "black";
+          let tooltip = "";
+
+          let disableClick = "";
+          if (params.data?.mailColour === 1) {
+            tooltip = "Mail already sent";
+            color = "#1955af";
+
+            disableClick = 'onclick="event.stopPropagation(); return false;"';
+          } else if (params.data?.mailColour === null) {
+            tooltip = "Event already closed";
+            color = "gray";
+
+            disableClick = 'onclick="event.stopPropagation(); return false;"';
+          } else if (params.data?.mailColour === 0) {
+            color = "#2ea321";
+          }
+
+          return `
+    <span class="material-symbols-outlined mail" title="${tooltip}" ${disableClick}   cursor:${params.data?.mailColour === 1 ? "not-allowed" : "pointer"};
+          opacity:${params.data?.mailColour === 1 ? "0.5" : "1"}
+          style="color:${color} !important; margin-right:8px;">
+      mail
+    </span>
+
+    <span class="play-icon" style="margin-right:8px;">
+      <img src="assets/play-circle-icon.svg"
+           style="width:20px; margin-top:10px; height:20px; cursor:pointer;" />
+    </span>
+
+    <span class="info-icon">
+      <img src="assets/information-icon.svg"
+           style="width:20px; margin-top:10px; height:20px; cursor:pointer;" />
+    </span>
+  `;
+        },
       },
     ];
 
@@ -2826,5 +3019,14 @@ export class EventsComponent {
         this.spinexcel = false;
       },
     );
+  }
+}
+
+import { Pipe, PipeTransform } from "@angular/core";
+
+@Pipe({ name: "filePreview", standalone: true })
+export class FilePreviewPipe implements PipeTransform {
+  transform(file: File): string {
+    return URL.createObjectURL(file);
   }
 }

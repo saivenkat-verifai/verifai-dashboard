@@ -24,3 +24,12 @@
      height: 0.7rem !important;
 
 }
+
+::ng-deep .p-dialog.p-confirm-dialog .p-confirm-dialog-message{
+
+  width: 200px !important;
+}
+::ng-deep .p-button-label{
+
+  font-weight: 500 !important;
+}
