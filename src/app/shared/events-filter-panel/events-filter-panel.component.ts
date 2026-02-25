@@ -61,7 +61,7 @@ export class EventsFilterPanelComponent {
 
   @Input() consoleTypes: string[] = [];
 
-  @Input() timezones:any[]=[];
+  @Input() timezones: any[] = [];
 
   /** PENDING tab toggles */
   @Input() consolesChecked = true;
@@ -108,10 +108,10 @@ export class EventsFilterPanelComponent {
   constructor(private eventService: EventsService) {
 
   }
-today: any;
+  today: any;
   ngOnInit() {
     this.onReset();
-   
+
     // this.timezoneDropdown();
     this.today = new Date().toISOString().split('T')[0];
   }
@@ -130,9 +130,9 @@ today: any;
     return a && b ? a.siteId === b.siteId : a === b;
   };
 
- compareTimezones = (a: string | null, b: string | null): boolean => {
-  return a === b;
-};
+  compareTimezones = (a: string | null, b: string | null): boolean => {
+    return a === b;
+  };
 
   onCriteriaChanged(): void {
     this.criteriaChange.emit({ ...this.model });
