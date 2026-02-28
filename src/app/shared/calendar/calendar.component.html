@@ -53,8 +53,8 @@
       class="selected-range font-Neometric-Bold"
       (click)="op.toggle($event); dashboard_service.isTimeSelected = false"
     >
-      {{ startDate | date : "dd MMM, yyyy HH:mm:ss " | uppercase }} -
-      {{ endDate | date : "dd MMM, yyyy HH:mm:ss " | uppercase }}
+      {{ startDate | date: "dd MMM, yyyy HH:mm:ss " | uppercase }} -
+      {{ endDate | date: "dd MMM, yyyy HH:mm:ss " | uppercase }}
     </span>
 
     <button
@@ -219,12 +219,12 @@
             <div class="left">
               <i class="pi pi-calendar"></i>
               <span>
-                {{ startDate | date : "dd MMM, yyyy" }}
+                {{ startDate | date: "dd MMM, yyyy" }}
               </span>
             </div>
             <div class="right">
               <i class="pi pi-clock"></i>
-              <span>{{ startDate | date : "HH:mm" }}</span>
+              <span>{{ startDate | date: "HH:mm" }}</span>
             </div>
           </div>
         </div>
@@ -240,12 +240,12 @@
             <div class="left">
               <i class="pi pi-calendar"></i>
               <span>
-                {{ endDate | date : "dd MMM, yyyy" }}
+                {{ endDate | date: "dd MMM, yyyy" }}
               </span>
             </div>
             <div class="right">
               <i class="pi pi-clock"></i>
-              <span>{{ endDate | date : "HH:mm" }}</span>
+              <span>{{ endDate | date: "HH:mm" }}</span>
             </div>
           </div>
         </div>
