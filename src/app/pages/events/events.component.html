@@ -158,14 +158,14 @@
         </div>
 
         <app-events-filter-panel *ngIf="isFilterOpen" [showDateRange]="selectedFilter === 'CLOSED'"
-          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked" [cities]="cities" [sites]="filterLists.sites" [timezones]="filterLists.timezones"
-          [cameras]="filterLists.cameras" [actionTags]="actionTags" [eventTypes]="filterLists.eventTypes"
-          [employees]="filterLists.userLevels" [consoleTypes]="filterLists.consoleTypes"
-          [queues]="filterLists.queueNames" [queueLevels]="filterLists.queueLevels"
-          (criteriaChange)="onFilterCriteriaChange($event)" [consolesChecked]="consolesChecked"
-          [queuesChecked]="queuesChecked" [filter]="currentFilter" (close)="onFilterClose()" (reset)="onFilterReset()"
-          (apply)="onFilterApply($event)" (consolesToggle)="onconsolesToggle()"
-          (queuesToggle)="onqueuesToggle()"></app-events-filter-panel>
+          [queuesChecked]="selectedFilter === 'PENDING' && queuesChecked" [cities]="cities" [sites]="filterLists.sites"
+          [timezones]="filterLists.timezones" [cameras]="filterLists.cameras" [actionTags]="actionTags"
+          [eventTypes]="filterLists.eventTypes" [employees]="filterLists.userLevels"
+          [consoleTypes]="filterLists.consoleTypes" [queues]="filterLists.queueNames"
+          [queueLevels]="filterLists.queueLevels" (criteriaChange)="onFilterCriteriaChange($event)"
+          [consolesChecked]="consolesChecked" [queuesChecked]="queuesChecked" [filter]="currentFilter"
+          (close)="onFilterClose()" (reset)="onFilterReset()" (apply)="onFilterApply($event)"
+          (consolesToggle)="onconsolesToggle()" (queuesToggle)="onqueuesToggle()"></app-events-filter-panel>
 
         <!-- ===================== Centered Play Popup ===================== -->
         <p-overlayPanel #playOverlay [dismissable]="true" appendTo="body" styleClass="play-tooltip-left">
@@ -402,10 +402,10 @@
                 ? { height: 'calc(100vh - 370px)' }
                 : { height: 'calc(100vh - 270px)' }
             ">
-            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="closedDisplayRows" 
+            <ag-grid-angular style="height: 100%" theme="legacy" class="ag-theme-alpine" [rowData]="closedDisplayRows"
               [columnDefs]="closedColumnDefs" [defaultColDef]="defaultColDef" [pagination]="true"
               [enableCellTextSelection]="true" [enableRangeSelection]="true" [copyHeadersToClipboard]="true"
-              [paginationPageSize]="15" [rowHeight]="40" [paginationPageSizeSelector]="[15, 20, 50, 100]" 
+              [paginationPageSize]="15" [rowHeight]="40" [paginationPageSizeSelector]="[15, 20, 50, 100]"
               [localeText]="localeText" [quickFilterMatcher]="closedQuickFilterMatcher"
               (gridReady)="onGridReady($event)" [icons]="gridIcons" (cellClicked)="onCellClicked($event)"
               [statusBar]="statusBar" (firstDataRendered)="onFirstDataRendered()" [rowSelection]="'single'">
@@ -463,20 +463,62 @@
     </button>
   </div>
 
-  <ng-container *ngIf="isMediaLoading">
+
+
+<!-- <div style="display: flex; gap:20px;">
+
+  <div class="col-lg-6 col-md-6 col-sm-12">
+    <div class="custom-select-wrapper">
+      <label class="form-label">Alert Type</label>
+
+      <select class="custom-select1"
+              [(ngModel)]="alert"
+              (change)="onAlertChange()">
+        <option value="">Select Alert Type</option>
+        <option *ngFor="let item of alertTypes"
+                [value]="item.guardAlertTypeId">
+          {{ item.guardAlertType }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="col-lg-6 col-md-6 col-sm-12">
+    <div class="custom-select-wrapper">
+      <label class="form-label">Alert Sub Type</label>
+
+      <select class="custom-select1" 
+              [(ngModel)]="subalert">
+        <option value="">Select Sub Alert Type</option>
+        <option *ngFor="let item of alertSubTypes"
+                [value]="item.guardSubAlertTypeId">
+          {{ item.guardSubAlertType }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+</div> -->
+
+
+
+
+
+
+  <ng-container *ngIf="isMediaLoading" >
     <div class="spinner" style="position: absolute; top: 40%; left: 40%"></div>
   </ng-container>
-
-  <ng-container *ngIf="!isMediaLoading && !emailData">
+  
+  <ng-container *ngIf="!isMediaLoading && !emailData" >
     <p>No Data</p>
   </ng-container>
-
-
-  <div class="email-wrapper">
+  
+  
+  <div class="email-wrapper" >
     <div style="overflow-y: auto; height: 50vh;width: 50vw;">
-      
-      <ng-container *ngIf="!isMediaLoading && emailData">
-        
+  
+      <ng-container *ngIf="!isMediaLoading && emailData ">
+  
         <!-- ================= EMAIL PREVIEW ================= -->
         <div class="email-logo">
           <img src="https://usstaging.ivisecurity.com/images/ivis.png" />
@@ -486,7 +528,7 @@
           <div class="site-name">{{ mailselectitem?.siteName }}</div>
         </div>
         <div class="email-alert">
-           {{ emailData?.emailSubject }} 
+          {{ emailData?.emailSubject }}
         </div>
         <div class="email-body-section">
           <table class="email-table">
@@ -500,7 +542,7 @@
                 }}
               </td>
             </tr>
-
+  
             <tr>
               <td class="label">Cc</td>
               <td class="value">
@@ -511,7 +553,7 @@
                 }}
               </td>
             </tr>
-
+  
             <tr>
               <td class="label">Bcc</td>
               <td class="value">
@@ -530,9 +572,9 @@
               </td>
             </tr>
           </table>
-
+  
           <hr class="divider" />
-
+  
           <table class="email-table">
             <tr>
               <td class="label">Description</td>
@@ -541,21 +583,21 @@
               </td>
             </tr>
           </table>
-
+  
           <table class="email-table">
             <tr>
               <td class="label">Camera</td>
               <td class="value">{{ mailselectitem?.cameraId }}</td>
             </tr>
           </table>
-
-
+  
+  
           <div class="email-footer-text">
             Please review the information above.<br /><br />
             Call <b>(844) 438-4847 (ext. 1)</b> or email
             <b>{{ 'support@ivisecurity.com' }}</b>
           </div>
-
+  
         </div>
         <div class="email-gradient"></div>
         <div class="action-section">
@@ -598,9 +640,11 @@
   
         </div>
       </ng-container>
-
+  
     </div>
   </div>
+
+
 
 
 </p-overlayPanel>
@@ -615,15 +659,15 @@
 <div class="preview-overlay" *ngIf="showPreview">
 
   <div class="preview-popup">
-  
-  <div class="button-close-email" style="position: sticky;top: 0;">
-    <button type="button" class="icon-btn" (click)="showPreview = false" title="Close">
-      <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
-    </button>
-  </div>
-  
-  
-  
+
+    <div class="button-close-email" style="position: sticky;top: 0;">
+      <button type="button" class="icon-btn" (click)="showPreview = false" title="Close">
+        <img src="assets/close-filled-black.svg" alt="close" class="escalated-icon" />
+      </button>
+    </div>
+
+
+
 
 
     <!-- ===== EMAIL TEMPLATE ===== -->
@@ -639,7 +683,7 @@
         </div>
 
         <div class="email-alert">
-          {{ emailData?.emailSubject }} 
+          {{ emailData?.emailSubject }}
         </div>
 
         <!-- ===== EMAIL TABLE ===== -->

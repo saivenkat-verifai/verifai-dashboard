@@ -2353,3 +2353,49 @@ input:checked + .slider:before {
   display: flex;
   justify-content: end;
 }
+
+
+
+
+
+
+.custom-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-weight: 500;
+  font-size: 14px;
+  color: #444;
+}
+
+.custom-select1 {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  width: 350px;
+  padding: 12px 40px 12px 14px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 1px solid #dcdcdc;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%23666' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.custom-select1:hover {
+  border-color: #cc1414;
+}
+
+.custom-select1:focus {
+  outline: none;
+  border-color: #d21919;
+
+}

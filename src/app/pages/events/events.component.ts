@@ -1177,7 +1177,7 @@ export class EventsComponent {
   }
 
   onFilterTextBoxChanged(): void {
- 
+
     this.gridApi?.setGridOption("quickFilterText", this.searchTerm);
   }
 
@@ -1498,18 +1498,36 @@ export class EventsComponent {
     }
   }
 
+  alert:any;
+subalert:any;
+alertTypes: any = [];
+alertSubTypes: any = [];
+
+
+   getCurrentSiteAlerts(){
+
+    this.eventsService.getAlertCategoriesForSiteId(this.mailselectitem).subscribe((res:any)=>{
+     this.alertTypes=res;
+    })
+  }
+
+    onAlertChange() {
+    console.log(this.alert)
+    const selectedAlert = this.alertTypes.find((a:any) => a.guardAlertTypeId == this.alert);
+    this.alertSubTypes = selectedAlert ? selectedAlert.subAlerts : [];
+    console.log(this.alertSubTypes)
+  }
+
   isSubmitting = false;
   submitResolution() {
     if (
-      !this.action?.trim() ||
-      !this.resolution?.trim() ||
       !this.emailData?.recipientEmails?.length ||
       !this.selectedFiles.length
     ) {
       this.showToast(
         "error",
         "Failed",
-        "Action Taken, Notes,Files and Recipient Email are mandatory.",
+        "Files and Recipient Email are mandatory.",
       );
 
       return;
@@ -1627,8 +1645,11 @@ export class EventsComponent {
 
   mailselectitem: any;
   openMailTooltip(event: MouseEvent, params: any) {
-    console.log(params.data);
+  
     this.mailselectitem = params.data;
+
+    this.getCurrentSiteAlerts();
+
     this.getEmailDataForVMSEvents();
     this.mailoverlay.show(event);
   }
@@ -2604,6 +2625,7 @@ export class EventsComponent {
         headerClass: "custom-header",
         cellClass: "custom-cell",
         suppressHeaderMenuButton: true,
+        getQuickFilterText: params => params.data.siteName
       },
       {
         headerName: "DEVICE",
@@ -2754,12 +2776,12 @@ export class EventsComponent {
             tooltip = "Mail already sent";
             color = "#1955af";
 
-            disableClick = 'onclick="event.stopPropagation(); return false;"';
+            // disableClick = 'onclick="event.stopPropagation(); return false;"';
           } else if (params.data?.mailColour === null) {
             tooltip = "Event already closed";
             color = "gray";
 
-            disableClick = 'onclick="event.stopPropagation(); return false;"';
+            // disableClick = 'onclick="event.stopPropagation(); return false;"';
           } else if (params.data?.mailColour === 0) {
             color = "#2ea321";
           }
