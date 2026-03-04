@@ -287,6 +287,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
 
         if (newId) {
           this.selectedQueueId = newId;
+  //        
+        
+
           this.loadGroups(newId);
         } else {
           this.loadGroups(this.selectedQueueId ?? undefined);
@@ -304,6 +307,9 @@ export class GroupsComponent implements OnInit, OnDestroy {
       },
     });
   }
+
+
+
 
 
   onAddClick() {
@@ -433,6 +439,8 @@ export class GroupsComponent implements OnInit, OnDestroy {
   onCellClicked(event: any) {
     if (!event?.data) return;
 
+
+
     const target = event.event?.target as HTMLElement | null;
     const clickedMoreIcon = !!target?.closest(".info-icon");
 
@@ -445,8 +453,11 @@ export class GroupsComponent implements OnInit, OnDestroy {
     }
 
     // Always load details on any cell click
+  
     this.loadGroupDetails(event.data.id);
   }
+
+
 
   users: any[] = [];
   selectedUserIds: number[] = [];
