@@ -1,0 +1,105 @@
+.unified-filter-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  height: 100vh;
+  background: white;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+  padding: 24px;
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.filter-title {
+  font-family: 'Neometric-Bold', sans-serif;
+  font-size: 18px;
+  color: #333;
+  letter-spacing: 1px;
+}
+
+.filter-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #888;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.filter-body {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.filter-group {
+  margin-bottom: 24px;
+}
+
+.filter-label {
+  display: block;
+  font-family: 'Neometric-Medium', sans-serif;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.filter-dropdown .p-dropdown,
+.filter-multiselect .p-multiselect {
+  width: 100%;
+}
+
+.filter-input-text {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #E0E0E0;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #F0F0F0;
+}
+
+.filter-btn {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: 'Neometric-Bold', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.reset-btn {
+  background: #F5F5F5;
+  color: #666;
+}
+
+.apply-btn {
+  background: #D32F2F;
+  color: white;
+}
+
+.apply-btn:hover {
+  background: #B71C1C;
+}
+
+.reset-btn:hover {
+  background: #EEEEEE;
+}

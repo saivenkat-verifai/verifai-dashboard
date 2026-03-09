@@ -1,0 +1,49 @@
+<!-- <div class="loader-overlay" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <p class="font-Neometric-Medium">Loading data...</p>
+</div> -->
+
+<div class="dashboard-container">
+  <div class="dashboard-content">
+
+    <div class="main-content-wrapper">
+      <!-- Header Section -->
+      <div class="dashboard-content-section">
+        <div class="section-header">
+          <div class="header-left-group flex-col-mobile gap-mobile-10">
+            <h2 class="text-header-lg">ITEMS</h2>
+            <!-- Tab Navigation -->
+            <div class="tabs-nav-standard w-full-mobile flex-wrap-mobile">
+              <button class="tab-pill-standard" [class.active]="activeTab === 'all'" (click)="switchTab('all')">
+                LIST VIEW
+              </button>
+              <button class="tab-pill-standard" [class.active]="activeTab === 'masters'" (click)="switchTab('masters')">
+                MASTERS
+              </button>
+            </div>
+          </div>
+          <div class="header-buttons-group w-full-mobile flex-col-mobile gap-mobile-10" *ngIf="activeTab === 'masters'">
+            <button class="create-button font-Neometric-Medium w-full-mobile" (click)="openCreateModal()">CREATE NEW
+              ITEM</button>
+            <button class="create-button font-Neometric-Medium w-full-mobile" (click)="openAddModelModal()">ADD NEW
+              MODEL</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ALL Tab -->
+    <app-items-all-tab *ngIf="activeTab === 'all'" [reloadTrigger]="reloadTrigger"
+      (viewItem)="openAllItemModal($event)"></app-items-all-tab>
+
+    <!-- MASTERS Tab -->
+    <app-items-masters-tab *ngIf="activeTab === 'masters'" [reloadTrigger]="reloadTrigger"
+      (viewItem)="openViewModal($event)"></app-items-masters-tab>
+  </div>
+</div>
+
+<!-- Items Modal -->
+<app-items-modal *ngIf="showModal" [mode]="modalMode" [item]="selectedItem" (close)="closeModal()"
+  (save)="closeModal()">
+</app-items-modal>

@@ -1,6 +1,6 @@
 <header class="header">
   <!-- Logo Section -->
-  <a >
+  <a>
     <img src="assets/dashboard-logo.png" alt="VERIFAI Logo" class="logo-img" />
   </a>
 
@@ -10,55 +10,67 @@
   <!-- Navigation Menu -->
   <div class="header-section nav">
     <nav>
-      <a
-        routerLink="/dashboard"
-        routerLinkActive="active"
-        #rlaDashboard="routerLinkActive"
-      >
-        <img
-          [src]="
+      <a routerLink="/dashboard" routerLinkActive="active" #rlaDashboard="routerLinkActive">
+        <img [src]="
             rlaDashboard.isActive
               ? 'assets/headericons/dashboard-icon-active.svg'
               : 'assets/headericons/dashboard-icon.svg'
-          "
-          alt="Dashboard"
-          class="nav-icon"
-        />
+          " alt="Dashboard" class="nav-icon" />
         DASHBOARD
       </a>
 
-      <a
-        routerLink="/events"
-        routerLinkActive="active"
-        #rlaEvents="routerLinkActive"
-      >
-        <img
-          [src]="
+      <a routerLink="/events" routerLinkActive="active" #rlaEvents="routerLinkActive">
+        <img [src]="
             rlaEvents.isActive
               ? 'assets/headericons/events-icon-active.svg'
               : 'assets/headericons/events-icon.svg'
-          "
-          alt="Events"
-          class="nav-icon"
-        />
+          " alt="Events" class="nav-icon" />
         EVENTS
       </a>
 
-      <a
-        routerLink="/groups"
-        routerLinkActive="active"
-        #rlaGroups="routerLinkActive"
-      >
-        <img
-          [src]="
+      <a routerLink="/groups" routerLinkActive="active" #rlaGroups="routerLinkActive">
+        <img [src]="
             rlaGroups.isActive
               ? 'assets/headericons/groups-icon-active.svg'
               : 'assets/headericons/groups-icon.svg'
-          "
-          alt="Groups"
-          class="nav-icon"
-        />
+          " alt="Groups" class="nav-icon" />
         QUEUES
+      </a>
+
+      <a routerLink="/inventory" routerLinkActive="active" #rlaInventory="routerLinkActive">
+        <img [src]="
+            rlaInventory.isActive
+              ? 'assets/headericons/items-icon-active.svg'
+              : 'assets/headericons/items-icon.svg'
+          " alt="Inventory" class="nav-icon" />
+        INVENTORY
+      </a>
+
+      <a routerLink="/items" routerLinkActive="active" #rlaItems="routerLinkActive">
+        <img [src]="
+            rlaItems.isActive
+              ? 'assets/headericons/items-icon-active.svg'
+              : 'assets/headericons/items-icon.svg'
+          " alt="Items" class="nav-icon" />
+        Items
+      </a>
+
+      <a routerLink="/products" routerLinkActive="active" #rlaProducts="routerLinkActive">
+        <img [src]="
+            rlaProducts.isActive
+              ? 'assets/headericons/product-icon-active.svg'
+              : 'assets/headericons/product-icon.svg'
+          " alt="Products" class="nav-icon" />
+        Products
+      </a>
+
+      <a routerLink="/invsites" routerLinkActive="active" #rlaInvsites="routerLinkActive">
+        <img [src]="
+            rlaInvsites.isActive
+              ? 'assets/headericons/product-icon-active.svg'
+              : 'assets/headericons/product-icon.svg'
+          " alt="Products" class="nav-icon" />
+        Inventory Sites
       </a>
 
       <!-- <a
@@ -120,9 +132,9 @@
             Clear
           </button>
           <!-- NEW CLOSE BUTTON -->
-      <button class="close-btn" (click)="closeNotifications()">
-        ✕
-      </button>
+          <button class="close-btn" (click)="closeNotifications()">
+            ✕
+          </button>
         </div>
 
         <div class="ticket-popup-body">
@@ -186,9 +198,7 @@
       > -->
 
       <div class="user-card-footer">
-        <span class="user-card-version"
-          >Version : {{ userProfile.version }}</span
-        >
+        <span class="user-card-version">Version : {{ userProfile.version }}</span>
         <button class="logout-btn" (click)="logout()">Logout</button>
       </div>
     </div>

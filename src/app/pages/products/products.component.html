@@ -1,0 +1,52 @@
+<div class="dashboard-container">
+    <div class="dashboard-content">
+
+        <div class="main-content-wrapper">
+            <!-- Header Section -->
+            <div class="dashboard-content-section">
+                <div class="section-header">
+                    <div class="header-left-group flex-col-mobile gap-mobile-10">
+                        <h2 class="text-header-lg">PRODUCTS</h2>
+                        <!-- Tab Navigation -->
+                        <div class="tabs-nav-standard w-full-mobile flex-wrap-mobile">
+                            <button class="tab-pill-standard" [class.active]="activeTab === 'all'"
+                                (click)="switchTab('all')">
+                                ALL
+                            </button>
+                            <button class="tab-pill-standard" [class.active]="activeTab === 'masters'"
+                                (click)="switchTab('masters')">
+                                MASTERS
+                            </button>
+                        </div>
+                    </div>
+                    <div class="header-buttons-group w-full-mobile flex-col-mobile gap-mobile-10"
+                        *ngIf="activeTab === 'masters'">
+                        <button class="create-button font-Neometric-Medium w-full-mobile"
+                            (click)="openCreateModal()">CREATE
+                            PRODUCT</button>
+                    </div>
+                    <div class="header-buttons-group w-full-mobile flex-col-mobile gap-mobile-10"
+                        *ngIf="activeTab === 'all'">
+                        <button class="create-button font-Neometric-Medium w-full-mobile"
+                            (click)="openAddProductModal()">ADD NEW
+                            PRODUCT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALL Tab Sub-component -->
+        <app-products-all-tab *ngIf="activeTab === 'all'" [reloadTrigger]="reloadTrigger"
+            (viewProduct)="openAllProductModal($event)"></app-products-all-tab>
+
+        <!-- MASTERS Tab Sub-component -->
+        <app-products-masters-tab *ngIf="activeTab === 'masters'" [reloadTrigger]="reloadTrigger"
+            (viewProduct)="openViewModal($event)"></app-products-masters-tab>
+
+    </div>
+</div>
+
+<!-- Products Modal -->
+<app-products-modal *ngIf="showModal" [mode]="modalMode" [product]="selectedProduct" (close)="closeModal()"
+    (save)="closeModal()">
+</app-products-modal>

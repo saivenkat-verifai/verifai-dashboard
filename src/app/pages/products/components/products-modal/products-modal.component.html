@@ -1,0 +1,709 @@
+<div class="custom-modal-overlay" (click)="onOverlayClick($event)">
+    <div class="custom-modal-container">
+        <div class="modal-custom-header">
+            <div class="header-left-content">
+                <button class="back-arrow" (click)="close.emit()">
+                    <img src="assets/arrow-circle-left-groups.svg" alt="←" class="modal-close-icon" />
+                </button>
+                <span class="text-header-md">
+                    {{
+                    isAddProductMode
+                    ? "Add Product"
+                    : showPreview
+                    ? "CREATE NEW PRODUCT PREVIEW"
+                    : mode === "create"
+                    ? "CREATE PRODUCT"
+                    : mode === "listitem"
+                    ? (product.productName || "PRODUCT")
+                    : isEditing
+                    ? "EDIT PRODUCT"
+                    : "PRODUCT - " + (product.productId || "")
+                    }}
+                </span>
+            </div>
+            <button class="modal-close-btn" (click)="close.emit()">
+                <img src="assets/close-filled.svg" alt="x" class="modal-close-icon" />
+            </button>
+        </div>
+
+        <div class="modal-custom-body">
+            <!-- Loader -->
+            <div class="modal-loader" *ngIf="isLoading">
+                <div class="spinner-small"></div>
+            </div>
+
+            <!-- FORM VIEW -->
+            <ng-container *ngIf="!showPreview">
+                <form [formGroup]="productForm">
+                    <!-- ADD PRODUCT MODE -->
+                    <ng-container *ngIf="isAddProductMode">
+                        <!-- Top Row: Product Name, Serial Number, Barcode -->
+                        <div class="form-row-3col">
+                            <div class="field-column">
+                                <label class="field-label">Product Name*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="distinctProductsDropdownList" formControlName="productName"
+                                    optionLabel="label" optionValue="value" placeholder="Select" [filter]="true"
+                                    styleClass="w-full"
+                                    [class.error-border]="hasFieldError('productName')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('productName')">
+                                    {{ getFieldError("productName") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">Serial Number*</label>
+                                <input type="text" class="field-input-text" formControlName="serialNumber"
+                                    placeholder="Enter" [class.error-border]="hasFieldError('serialNumber')" />
+                                <span class="error-message" *ngIf="getFieldError('serialNumber')">
+                                    {{ getFieldError("serialNumber") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">Barcode</label>
+                                <input type="text" class="field-input-text" formControlName="barCode"
+                                    placeholder="Enter" />
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Location, Remarks -->
+                        <div class="form-row-3col" style="margin-top: 20px;">
+                            <div class="field-column">
+                                <label class="field-label">Current Location / Store*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="storesDropdown" formControlName="currentLocationId" optionLabel="label"
+                                    optionValue="value" placeholder="Select" [filter]="true" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('currentLocationId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('currentLocationId')">
+                                    {{ getFieldError("currentLocationId") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">Remarks</label>
+                                <input type="text" class="field-input-text" formControlName="remarks"
+                                    placeholder="Enter" />
+                            </div>
+                        </div>
+
+                        <!-- Hardware Selection Section -->
+                        <div class="hardware-section">
+                            <h3 class="hardware-section-title text-header-sm">SELECT USED HARDWARE IN THE PRODUCT</h3>
+                            <div class="divider hardware-modal-divider"></div>
+
+                            <div class="hardware-static-list">
+                                <div class="form-row-hardware hardware-flex-row" *ngFor="let hw of selectedHardware">
+                                    <div class="field-column hardware-name-col">
+                                        <label class="field-label hardware-label-styled">{{ hw.itemName }} - {{ hw.make
+                                            }} -
+                                            {{ hw.model }} <span style="font-weight:400;color:#888;">({{ hw.quantity }}
+                                                {{ hw.units
+                                                }})</span></label>
+                                        <p-multiSelect appendTo="body" [overlayOptions]="customOverlayOptions"
+                                            [options]="getOptionsForHardware(hw.id)" [(ngModel)]="hw.selectedStockIds"
+                                            [ngModelOptions]="{standalone: true}" optionLabel="label"
+                                            optionValue="value" placeholder="Select units"
+                                            [styleClass]="submitted && (!hw.selectedStockIds || hw.selectedStockIds.length !== hw.quantity) ? 'w-full error-border' : 'w-full'"
+                                            [filter]="true" filterBy="label" [showClear]="true"
+                                            [selectionLimit]="hw.quantity"
+                                            (onChange)="onHardwareStockSelect($event, hw)">
+                                        </p-multiSelect>
+                                    </div>
+
+                                    <div class="field-column hardware-value-col">
+                                        <label class="field-label">Value (With GST)</label>
+                                        <div class="input-with-prefix rel-position">
+                                            <span class="abs-currency-symbol">$</span>
+                                            <input type="number" class="field-input-text padded-input"
+                                                [(ngModel)]="hw.unitPrice" [ngModelOptions]="{standalone: true}"
+                                                placeholder="0" min="0" (keydown)="preventNegative($event)" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Image Section -->
+                        <app-file-upload [multiple]="false" layout="row"
+                            (filesSelected)="onFileUploadChange($event)"></app-file-upload>
+                    </ng-container>
+
+                    <!-- CREATE PRODUCT MODE -->
+                    <ng-container *ngIf="mode === 'create' && !isAddProductMode">
+                        <div class="form-row-3col">
+                            <div class="field-column">
+                                <label class="field-label">Product Name*</label>
+                                <input type="text" class="field-input-text" formControlName="productName"
+                                    placeholder="Enter" [class.error-border]="hasFieldError('productName')" />
+                                <span class="error-message" *ngIf="getFieldError('productName')">
+                                    {{ getFieldError("productName") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">UNITS*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="dropdownArrays.units" formControlName="unitCodeId" optionLabel="name"
+                                    optionValue="id" placeholder="Select" [showClear]="false" [filter]="true"
+                                    filterBy="name" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('unitCodeId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('unitCodeId')">
+                                    {{ getFieldError("unitCodeId") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">RM / SC / CO / FG*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="dropdownArrays.nature" formControlName="natureCodeId" optionLabel="name"
+                                    optionValue="id" placeholder="Select" [showClear]="false" [filter]="true"
+                                    filterBy="name" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('natureCodeId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('natureCodeId')">
+                                    {{ getFieldError("natureCodeId") }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Domain, Made, Part Code -->
+                        <div class="form-row-3col">
+                            <div class="field-column">
+                                <label class="field-label">E/M/A/T/G/S*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="dropdownArrays.domain" formControlName="domainCodeId" optionLabel="name"
+                                    optionValue="id" placeholder="Select" [showClear]="false" [filter]="true"
+                                    filterBy="name" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('domainCodeId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('domainCodeId')">
+                                    {{ getFieldError("domainCodeId") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">CM / RM*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="dropdownArrays.made" formControlName="madeCodeId" optionLabel="name"
+                                    optionValue="id" placeholder="Select" [showClear]="false" [filter]="true"
+                                    filterBy="name" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('madeCodeId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('madeCodeId')">
+                                    {{ getFieldError("madeCodeId") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">PARTCODE*</label>
+                                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                    [options]="dropdownArrays.partcodes" formControlName="partCodeId" optionLabel="name"
+                                    optionValue="id" placeholder="Select" [showClear]="false" [filter]="true"
+                                    filterBy="name" styleClass="w-full"
+                                    [class.error-border]="hasFieldError('partCodeId')"></p-dropdown>
+                                <span class="error-message" *ngIf="getFieldError('partCodeId')">
+                                    {{ getFieldError("partCodeId") }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Make, Model, Published Date -->
+                        <div class="form-row-3col">
+                            <div class="field-column">
+                                <label class="field-label">Make*</label>
+                                <input type="text" class="field-input-text" formControlName="make" placeholder="Enter"
+                                    [class.error-border]="hasFieldError('make')" />
+                                <span class="error-message" *ngIf="getFieldError('make')">
+                                    {{ getFieldError("make") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">Model*</label>
+                                <input type="text" class="field-input-text" formControlName="model" placeholder="Enter"
+                                    [class.error-border]="hasFieldError('model')" />
+                                <span class="error-message" *ngIf="getFieldError('model')">
+                                    {{ getFieldError("model") }}
+                                </span>
+                            </div>
+
+                            <div class="field-column">
+                                <label class="field-label">Published Date</label>
+                                <div class="calendar-wrapper relative-position">
+                                    <p-calendar #calendar formControlName="publishedDate" dateFormat="dd/mm/yy"
+                                        placeholder="-- / -- / ----" styleClass="w-full date-picker-custom"
+                                        inputStyleClass="field-input-text w-full" [showIcon]="false"
+                                        [maxDate]="maxDate"></p-calendar>
+                                    <img src="assets/calender.svg" class="calendar-icon-custom" alt="calendar"
+                                        (click)="calendar.toggle()" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Used For, Product Code -->
+                        <div class="form-row-3col">
+                            <div class="field-column">
+                                <label class="field-label">Used For</label>
+                                <p-multiSelect [options]="dropdownArrays.productStatus" formControlName="usedFor"
+                                    optionLabel="name" optionValue="id" placeholder="Select" [filter]="true"
+                                    filterBy="name" display="chip" styleClass="w-full" appendTo="body"
+                                    [overlayOptions]="customOverlayOptions">
+                                </p-multiSelect>
+                            </div>
+
+                            <div class="field-column item-code-field">
+                                <label class="field-label">PRODUCT CODE</label>
+                                <input class="field-input-text read-only-bg" formControlName="productCode" readonly
+                                    placeholder="Generated automatically..." />
+                            </div>
+
+                            <!-- Empty column for alignment -->
+                            <div class="field-column"></div>
+                        </div>
+
+                        <!-- Hardware Selection Section -->
+                        <div class="hardware-section">
+                            <h3 class="hardware-section-title text-header-sm">DEFINE HARDWARE</h3>
+                            <div class="divider hardware-modal-divider-mb"></div>
+
+                            <!-- Headers -->
+                            <div class="hardware-headers">
+                                <div class="header-item-model">Item With Model</div>
+                                <div class="header-quantity">Quantity</div>
+                            </div>
+
+                            <!-- Input Row -->
+                            <div class="hardware-input-row">
+                                <div class="input-dropdown">
+                                    <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                                        [options]="availableHardware" [(ngModel)]="hardwareDropdown" optionLabel="label"
+                                        optionValue="id" placeholder="Select" [ngModelOptions]="{standalone: true}"
+                                        styleClass="w-full" [showClear]="true" [filter]="true" filterBy="label,name">
+                                    </p-dropdown>
+                                </div>
+
+                                <div class="input-quantity-group">
+                                    <div class="quantity-wrapper">
+                                        <input type="number" class="quantity-input" placeholder="Enter"
+                                            [(ngModel)]="hardwareQuantity" [ngModelOptions]="{standalone: true}" min="1"
+                                            (keydown)="preventNegative($event)" />
+                                        <span class="quantity-unit">No's</span>
+                                    </div>
+                                    <button type="button" class="btn-add-circle" (click)="addHardwareItem()"
+                                        [disabled]="!hardwareDropdown || !hardwareQuantity || hardwareQuantity < 1">
+                                        <i class="pi pi-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="hardware-items-list-create hw-items-list-mt"
+                                *ngIf="selectedHardware.length > 0">
+                                <div class="hardware-list-item"
+                                    *ngFor="let hardware of selectedHardware; let i = index">
+                                    <div class="item-name">{{ hardware.name }}</div>
+                                    <div class="item-right-group">
+                                        <div class="quantity-wrapper qty-wrapper-transparent">
+                                            <span class="qty-val qty-val-flex">{{ hardware.quantity }}</span>
+                                            <span class="quantity-unit">No's</span>
+                                        </div>
+                                        <button type="button" class="btn-remove-circle" (click)="removeHardwareItem(i)">
+                                            <i class="pi pi-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- VIEW MODE (MASTERS Tab) -->
+                    <ng-container *ngIf="mode === 'view' && !isAddProductMode">
+                        <div class="masters-view-grid">
+                            <div class="view-field">
+                                <label class="field-label">PRODUCT NAME</label>
+                                <span class="field-value">{{ product.productName || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">UNITS</label>
+                                <span class="field-value">{{ product.units || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">MAKE</label>
+                                <span class="field-value">{{ product.make || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">MODEL</label>
+                                <span class="field-value">{{ product.model || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">PRODUCT CODE</label>
+                                <span class="field-value">{{ product.productCode || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">USE FOR</label>
+                                <span class="field-value">{{ product.useFor || "-" }}</span>
+                            </div>
+
+                            <div class="view-field">
+                                <label class="field-label">PUBLISHED DATE</label>
+                                <span class="field-value">{{ product.publishedDate || "-" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Hardware Section for Masters View -->
+                        <div class="hardware-section" style="margin-top: 24px;" *ngIf="selectedHardware?.length">
+                            <h3 class="hardware-section-title text-header-sm">PRODUCT HARDWARE</h3>
+                            <div class="divider hardware-modal-divider-mb"
+                                style="margin-bottom: 12px; border-bottom: 1px solid #E0E0E0;"></div>
+
+                            <div class="preview-table-container">
+                                <table class="preview-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-index">S.NO</th>
+                                            <th class="col-name">ITEM NAME</th>
+                                            <th class="col-qty">QUANTITY</th>
+                                            <th class="col-units">UNITS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let hardware of selectedHardware; let i = index">
+                                            <td class="col-index">{{ i + 1 }}</td>
+                                            <td class="col-name">{{ hardware.itemName }} - {{ hardware.make }} - {{
+                                                hardware.model }}</td>
+                                            <td class="col-qty">{{ hardware.quantity }}</td>
+                                            <td class="col-units">{{ hardware.units }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- LIST ITEM VIEW MODE (Products More Info) -->
+                    <ng-container *ngIf="mode === 'listitem'">
+                        <div class="more-info-container padded-container">
+                            <!-- Header Grid -->
+                            <div class="masters-view-grid" style="margin-bottom: 12px;">
+                                <!-- Row 1 -->
+                                <div class="view-field">
+                                    <label class="field-label">Product Name</label>
+                                    <span class="field-value">{{ allDetails?.header?.title || "-" }}</span>
+                                </div>
+                                <div class="view-field">
+                                    <label class="field-label">Serial Number</label>
+                                    <span class="field-value">{{ allDetails?.productDetails?.serialNumber || "-"
+                                        }}</span>
+                                </div>
+                                <div class="view-field" style="grid-column: 3; justify-self: end;">
+                                    <button type="button" class="btn-edit-red" (click)="enableEdit()">
+                                        <img src="assets/icons/edit.svg" alt="edit"
+                                            style="width: 14px; filter: invert(34%) sepia(85%) saturate(2311%) hue-rotate(338deg) brightness(88%) contrast(97%);" />
+                                        EDIT
+                                    </button>
+                                </div>
+
+                                <!-- Row 2 -->
+                                <div class="view-field">
+                                    <label class="field-label">Unit</label>
+                                    <span class="field-value">{{ allDetails?.productDetails?.unit || "-" }}</span>
+                                </div>
+                                <div class="view-field">
+                                    <label class="field-label">Barcode Number</label>
+                                    <span class="field-value">{{ allDetails?.productDetails?.barcode || "-" }}</span>
+                                </div>
+                                <div class="view-field"></div>
+
+                                <!-- Row 3 -->
+                                <div class="view-field">
+                                    <label class="field-label">Make</label>
+                                    <span class="field-value">{{ product?.make || "-" }}</span>
+                                    <!-- API Response doesn't provide Make/Model at top level, using product prop from list row -->
+                                </div>
+                                <div class="view-field">
+                                    <label class="field-label">Use for</label>
+                                    <span class="field-value">{{ allDetails?.productDetails?.status || "-" }}</span>
+                                </div>
+
+                                <div class="view-field"></div>
+
+                                <!-- Row 4 -->
+                                <div class="view-field">
+                                    <label class="field-label">Model</label>
+                                    <span class="field-value">{{ product?.model || "-" }}</span>
+                                </div>
+                                <div class="view-field">
+                                    <label class="field-label">Published Date</label>
+                                    <span class="field-value">{{ allDetails?.productDetails?.publishedDate || "-"
+                                        }}</span>
+                                </div>
+
+                                <div class="view-field"></div>
+
+                                <!-- Row 5 -->
+                                <div class="view-field"></div>
+                                <div class="view-field">
+                                    <label class="field-label">Status</label>
+                                    <span class="status-badge" [ngClass]="{
+                                        'status-bg-sale': allDetails?.productDetails?.status === 'Sale',
+                                        'status-bg-new': allDetails?.productDetails?.status === 'New',
+                                        'status-bg-lease': allDetails?.productDetails?.status === 'Lease',
+                                        'status-bg-used': allDetails?.productDetails?.status === 'Used',
+                                        'status-bg-scrap': allDetails?.productDetails?.status === 'Scrap'
+                                    }">
+                                        {{ (allDetails?.productDetails?.status || "-") | uppercase }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Tabs Section -->
+                            <div class="tabs-section">
+                                <h4 class="more-info-title">MORE INFO</h4>
+                                <div class="tabs-header-row">
+                                    <div class="pill-tabs-container">
+                                        <button type="button" class="pill-tab"
+                                            [class.active]="activeInfoTab === 'progress'"
+                                            (click)="setActiveInfoTab('progress')">
+                                            PROGRESS
+                                        </button>
+                                        <button type="button" class="pill-tab"
+                                            [class.active]="activeInfoTab === 'hardware'"
+                                            (click)="setActiveInfoTab('hardware')">
+                                            HARDWARE
+                                        </button>
+                                    </div>
+
+                                    <div class="manufacturing-cost-group" *ngIf="activeInfoTab === 'hardware'">
+                                        <div class="cost-badge-box">
+                                            <span class="cost-badge-label">Product Manufacturing Cost</span>
+                                            <span class="cost-badge-value">$ {{ allDetails?.manufacturingCost || 0
+                                                }}</span>
+                                        </div>
+                                        <button type="button" class="btn-edit-red" (click)="enableEdit()">
+                                            <img src="assets/icons/edit.svg" alt="edit"
+                                                style="width: 14px; filter: invert(34%) sepia(85%) saturate(2311%) hue-rotate(338deg) brightness(88%) contrast(97%);" />
+                                            EDIT
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="divider hardware-modal-divider-mb"
+                                style="margin-bottom: 12px; border-bottom: 1px solid #F0F0F0;"></div>
+
+
+                            <!-- Hardware Section for List Item View -->
+                            <div class="hardware-section" style="margin-top: 24px;"
+                                *ngIf="activeInfoTab === 'hardware' && allDetails?.hardware?.length">
+                                <div class="preview-table-container">
+                                    <table class="preview-table hardware-list-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="col-index">S.No.</th>
+                                                <th class="col-image">Item Image</th>
+                                                <th class="col-name">Item Name</th>
+                                                <th class="col-qty">Qty.</th>
+                                                <th class="col-units">Units</th>
+                                                <th class="col-price">Price</th>
+                                                <th class="col-link">Purchase Link</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let hw of allDetails!.hardware; let i = index">
+                                                <td class="col-index">{{ i + 1 }}</td>
+                                                <td class="col-image">
+                                                    <div class="hw-img-placeholder" *ngIf="!hw.itemImage">
+                                                        <img src="assets/image-placeholder.svg" alt="img" />
+                                                    </div>
+                                                    <img *ngIf="hw.itemImage" [src]="getImageUrl(hw.itemImage)"
+                                                        alt="Item Image" class="hw-img" />
+                                                </td>
+                                                <td class="col-name">
+                                                    <div class="hw-name">{{ hw.itemName }}</div>
+                                                    <div class="hw-sub">{{ hw.make }} | {{ hw.model }}</div>
+                                                </td>
+                                                <td class="col-qty">{{ hw.qty || '-' }}</td>
+                                                <td class="col-units">{{ hw.units || '-' }}</td>
+                                                <td class="col-price">${{ hw.cost }}</td>
+                                                <td class="col-link"
+                                                    style="display: flex; gap: 8px; align-items: center; justify-content: flex-start; height: 100%; border-bottom: none;">
+                                                    <button type="button" class="btn-link-icon-rect" title="Open Link"
+                                                        (click)="openPurchaseLink(hw.purchaseLink)">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                            stroke="white" stroke-width="2" stroke-linecap="round"
+                                                            stroke-linejoin="round">
+                                                            <path
+                                                                d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71">
+                                                            </path>
+                                                            <path
+                                                                d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71">
+                                                            </path>
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="btn-copy-link" title="Copy Link"
+                                                        (click)="copyPurchaseLink(hw.purchaseLink)">
+                                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                                            stroke="#666" stroke-width="2" stroke-linecap="round"
+                                                            stroke-linejoin="round">
+                                                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2">
+                                                            </rect>
+                                                            <path
+                                                                d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1">
+                                                            </path>
+                                                        </svg>
+                                                        <span class="btn-copy-text"
+                                                            style="font-size: 10px; color: #666;">Copy</span>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Progress Section for List Item View -->
+                            <div class="progress-section" style="margin-top: 24px;"
+                                *ngIf="activeInfoTab === 'progress' && allDetails?.progress?.length">
+                                <div class="progress-list-container">
+                                    <div class="progress-item-row" *ngFor="let prog of allDetails!.progress">
+                                        <div class="prog-date-row">
+                                            {{ prog.date }}
+                                        </div>
+                                        <div class="prog-details-row">
+                                            <div class="prog-col">
+                                                <span class="prog-label">From</span>
+                                                <span class="prog-value">{{ prog.from || "-" }}</span>
+                                            </div>
+                                            <div class="prog-col">
+                                                <span class="prog-label">To</span>
+                                                <span class="prog-value">{{ prog.to || "-" }}</span>
+                                            </div>
+                                            <div class="prog-col prog-col-status">
+                                                <span class="prog-label">Status</span>
+                                                <span class="status-badge" [ngClass]="{
+                                                    'status-bg-sale': prog.action === 'Sale',
+                                                    'status-bg-new': prog.action === 'Published' || prog.action === 'New',
+                                                    'status-bg-lease': prog.action === 'Lease',
+                                                    'status-bg-used': prog.action === 'Used',
+                                                    'status-bg-scrap': prog.action === 'Scrap'
+                                                }">
+                                                    {{ prog.action || "New" }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </ng-container>
+                </form>
+            </ng-container>
+
+            <!-- PREVIEW VIEW -->
+            <ng-container *ngIf="showPreview">
+                <div class="preview-container" style="padding: 10px 20px;">
+
+                    <!-- Product Details Section -->
+                    <div class="preview-details-grid">
+                        <!-- Row 1 -->
+                        <div class="preview-field">
+                            <span class="preview-label">PRODUCT NAME</span>
+                            <span class="preview-value">{{ previewProductName }}</span>
+                        </div>
+                        <div class="preview-field">
+                            <span class="preview-label">MAKE</span>
+                            <span class="preview-value">{{ productForm.get('make')?.value || "-" }}</span>
+                        </div>
+                        <div class="preview-field">
+                            <span class="preview-label">PRODUCT CODE</span>
+                            <span class="preview-value">{{ previewProductCode }}</span>
+                        </div>
+
+                        <!-- Row 2 -->
+                        <div class="preview-field">
+                            <span class="preview-label">UNITS</span>
+                            <span class="preview-value">{{ getDropdownName('units',
+                                productForm.get('unitCodeId')?.value) || "-" }}</span>
+                        </div>
+                        <div class="preview-field">
+                            <span class="preview-label">MODEL</span>
+                            <span class="preview-value">{{ productForm.get('model')?.value || "-" }}</span>
+                        </div>
+                        <div class="preview-field">
+                            <span class="preview-label">USE FOR</span>
+                            <span class="preview-value">{{ getDropdownName('usedFor', productForm.get('usedFor')?.value)
+                                || "-" }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Hardware Section -->
+                    <div class="preview-section-header">DEFINE PRODUCT HARDWARE</div>
+
+                    <div class="preview-table-container">
+                        <table class="preview-table" *ngIf="selectedHardware.length > 0">
+                            <thead>
+                                <tr>
+                                    <th class="col-index">NO</th>
+                                    <th class="col-name">ITEM NAME</th>
+                                    <th class="col-qty">QUANTITY</th>
+                                    <th class="col-units">UNITS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let hardware of selectedHardware; let i = index">
+                                    <td class="col-index">{{ i + 1 }}</td>
+                                    <td class="col-name">{{ hardware.itemName }}</td>
+                                    <td class="col-qty">{{ hardware.quantity }}</td>
+                                    <td class="col-units">{{ hardware.units }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="no-data-msg" *ngIf="selectedHardware.length === 0"
+                            style="text-align: center; padding: 30px; color: #888; font-size: 13px;">
+                            No Hardware Items Selected
+                        </div>
+                    </div>
+
+                </div>
+            </ng-container>
+
+            <!-- Action Buttons (Not for listitem mode) -->
+            <div class="modal-footer" *ngIf="mode !== 'listitem'">
+                <!-- Default Buttons (Edit/Index) -->
+                <ng-container *ngIf="!showPreview">
+                    <ng-container *ngIf="isEditing">
+                        <button class="btn-secondary" (click)="close.emit()" [disabled]="isLoading">
+                            CANCEL
+                        </button>
+                        <button class="btn-primary" (click)="isAddProductMode ? confirmSave() : openPreview()"
+                            [disabled]="isLoading">
+                            {{
+                            isLoading
+                            ? "SAVING..."
+                            : isAddProductMode
+                            ? "CREATE"
+                            : mode === "create"
+                            ? "CREATE"
+                            : "UPDATE"
+                            }}
+                        </button>
+                    </ng-container>
+                </ng-container>
+
+                <!-- Preview Buttons -->
+                <ng-container *ngIf="showPreview">
+                    <button class="btn-secondary" (click)="cancelPreview()" [disabled]="isLoading">
+                        CANCEL
+                    </button>
+                    <button class="btn-primary" (click)="confirmSave()" [disabled]="isLoading">
+                        {{ isLoading ? "SAVING..." : "CONFIRM" }}
+                    </button>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+</div>

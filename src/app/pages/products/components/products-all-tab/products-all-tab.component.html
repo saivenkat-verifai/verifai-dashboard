@@ -1,0 +1,32 @@
+<div class="dashboard-content-section m-t-20">
+    <div class="all-tab-controls flex-col-mobile gap-mobile-10">
+        <!-- Total Count -->
+        <div class="total-count font-Neometric-Medium text-body-sm">
+            TOTAL: {{ allTotalRecords }}
+        </div>
+
+        <div class="search-filter-container w-full-mobile">
+            <div class="input-container w-full-mobile">
+                <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
+                    placeholder="Search here" class="search-input font-Neometric-Medium w-full-mobile" />
+            </div>
+            <button class="filter-toggle-btn">
+                <img src="assets/filter-icon.png" alt="Filter" class="filter-toggle-icon" />
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-content-section m-t-20">
+    <div class="table-wrapper">
+        <ag-grid-angular class="ag-theme-custom" [theme]="'legacy'" [columnDefs]="allColumnDefs"
+            [rowData]="allProductsData" [defaultColDef]="defaultColDef" [gridOptions]="gridOptions"
+            [domLayout]="'normal'" (gridReady)="onGridReady($event)">
+        </ag-grid-angular>
+    </div>
+
+    <app-pagination [currentPage]="allCurrentPage" [totalItems]="allTotalRecords" [pageSize]="allPageSize"
+        (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)"
+        [pageSizeOptions]="[10, 15, 20, 50]">
+    </app-pagination>
+</div>

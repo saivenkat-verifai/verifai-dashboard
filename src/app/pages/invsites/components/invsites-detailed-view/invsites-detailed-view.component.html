@@ -1,0 +1,38 @@
+<div class="detailed-view-container">
+    <div *ngFor="let section of detailedViewData" class="detail-section">
+        <div class="detail-header">
+            <span class="detail-date font-Neometric-Bold">{{ section.date }}</span>
+            <span class="status-badge font-Neometric-Medium" [ngClass]="'status-' + section.status.toLowerCase()">
+                {{ section.status }}
+            </span>
+        </div>
+
+        <table class="items-table font-Neometric-Medium">
+            <thead>
+                <tr>
+                    <th class="sno-col">S.No.</th>
+                    <th>Item / Product Name</th>
+                    <th class="store-col">Store</th>
+                    <th class="online-col">Online</th>
+                    <th class="qty-col">Total Qty.</th>
+                    <th class="units-col">Units</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let item of section.items">
+                    <td>{{ item.sNo }}</td>
+                    <td>
+                        <div class="product-name-cell">
+                            <div class="product-name-main">{{ item.itemProductName }}</div>
+                            <div class="product-name-desc" *ngIf="item.itemProductDesc">{{ item.itemProductDesc }}</div>
+                        </div>
+                    </td>
+                    <td>{{ item.store }}</td>
+                    <td>{{ item.online }}</td>
+                    <td>{{ item.totalQty }}</td>
+                    <td>{{ item.units }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

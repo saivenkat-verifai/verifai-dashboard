@@ -1,0 +1,285 @@
+/* ========================================
+   PRODUCT LINKS - PILL ROWS (view mode)
+   ======================================== */
+.links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.link-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: #F7F7F7;
+  border: 1px solid #E8E8E8;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #333;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
+}
+
+.link-pill:hover {
+  background: #FFF5F5;
+  border-color: #ED3237;
+  color: #ED3237;
+}
+
+.link-pill span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* Edit Mode Links */
+.links-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.link-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.link-input {
+  flex: 1;
+  height: 38px;
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+  border-radius: 4px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #333;
+}
+
+.link-input:focus {
+  outline: none;
+  border-color: #ED3237;
+}
+
+.link-input[readonly] {
+  background: #F9F9F9;
+  color: #666;
+  cursor: default;
+}
+
+.btn-add-circle,
+.btn-remove-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.btn-add-circle {
+  background-color: #ED3237;
+}
+
+.btn-remove-circle {
+  background-color: #ED3237;
+  opacity: 0.9;
+}
+
+.btn-add-circle:hover:not(:disabled),
+.btn-remove-circle:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.btn-add-circle:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.pi {
+  font-family: 'primeicons';
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pi-plus:before {
+  content: "\e90d";
+}
+
+.pi-times:before {
+  content: "\e90b";
+}
+
+/* ========================================
+   REMARKS SECTION (Edit Mode)
+   ======================================== */
+.remarks-section {
+  display: flex;
+  flex-direction: column;
+  margin-top: 25px;
+}
+
+.add-model-form {
+  margin-top: 20px;
+}
+
+.padded-container {
+  padding: 20px;
+}
+
+/* ========================================
+   PROGRESS SECTION (Timeline)
+   ======================================== */
+.mt-30 {
+  margin-top: 30px;
+}
+
+.mb-15 {
+  margin-bottom: 15px;
+}
+
+.section-title {
+  color: #333;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-date {
+  font-family: 'Neometric Bold', sans-serif;
+  font-size: 13px;
+  color: #000;
+}
+
+.progress-card {
+  background: #FFFFFF;
+  border: 1px solid #EAEAEA;
+  border-radius: 4px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.progress-details {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1.5fr;
+  flex: 1;
+  gap: 20px;
+}
+
+.detail-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-label {
+  font-family: 'Neometric Medium', sans-serif;
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-family: 'Neometric Bold', sans-serif;
+  font-size: 13px;
+  color: #000;
+}
+
+.progress-action {
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+.action-badge {
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'Neometric Bold', sans-serif;
+  color: #fff;
+  text-transform: uppercase;
+  display: inline-block;
+  min-width: 90px;
+  text-align: center;
+}
+
+.action-purchased {
+  background-color: #53BF8B;
+}
+
+.action-issued {
+  background-color: #ED3237;
+}
+
+/* ========================================
+   COST BADGE OUTLINE RED
+   ======================================== */
+.cost-badge-row {
+  display: flex;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid #F0F0F0;
+}
+
+.w-50 {
+  width: 50%;
+  max-width: 400px;
+}
+
+.cost-badge-box.outline-red {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  border: 1px solid #ED3237 !important;
+  border-radius: 4px;
+  background-color: #FFF0F0 !important;
+}
+
+.cost-badge-box.outline-red .cost-badge-label {
+  color: #ED3237;
+  font-family: 'Neometric Regular', sans-serif;
+  font-size: 11px;
+  margin-bottom: 0;
+}
+
+.cost-badge-box.outline-red .cost-badge-value {
+  color: #ED3237;
+  font-family: 'Neometric Bold', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Fix gap in Info Grid for this mode */
+.masters-view-grid.custom-gap {
+  gap: 25px;
+  margin-bottom: 0px;
+}

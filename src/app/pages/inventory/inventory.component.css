@@ -1,0 +1,8 @@
+/* Styles are now handled globally in src/styles.css to ensure consistency across the application. */
+
+.store-dropdown-style {
+    min-width: 140px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+}

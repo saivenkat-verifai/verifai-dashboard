@@ -1,0 +1,41 @@
+<div class="product-image-section">
+    <label class="field-label">{{ label | uppercase }}</label>
+    <div class="divider file-upload-divider"></div>
+
+    <div class="upload-wrapper upload-section-wrapper" [ngClass]="'layout-' + layout">
+        <!-- Drop Zone -->
+        <div class="drop-zone" (dragover)="$event.preventDefault()" (drop)="onFileDropped($event)">
+            <div class="upload-content">
+                <div class="upload-info">
+                    <img src="assets/icons/upload-icon.svg" alt="Upload" class="upload-cloud-icon" />
+                    <span class="drag-text">Drag and Drop files here</span>
+                </div>
+                <span class="or-divider">(OR)</span>
+                <label class="btn-browse-file">
+                    Browse Files
+                    <input type="file" (change)="onFileSelected($event)" hidden [accept]="accept"
+                        [multiple]="multiple" />
+                </label>
+            </div>
+        </div>
+
+        <!-- File List -->
+        <div class="upload-status-box" *ngIf="selectedFiles.length > 0">
+            <label class="field-label">UPLOADED FILE{{ multiple ? 'S' : '' }}</label>
+
+            <div class="file-card" *ngFor="let file of selectedFiles; let i = index">
+                <div class="file-card-header">
+                    <span class="file-name-label">
+                        {{ file.name }} ({{ uploadProgress }}%)
+                    </span>
+                    <button class="remove-btn" (click)="removeFile(i)">
+                        ×
+                    </button>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill" [style.width.%]="uploadProgress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

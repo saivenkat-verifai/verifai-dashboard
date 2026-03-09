@@ -1,0 +1,84 @@
+<div class="loader-overlay" *ngIf="isLoading">
+  <div class="spinner"></div>
+  <p class="font-Neometric-Medium">Loading data...</p>
+</div>
+
+<div class="dashboard-container">
+  <div class="dashboard-content">
+
+    <div class="main-content-wrapper">
+      <!-- Header Section -->
+      <div class="dashboard-content-section">
+        <div class="section-header">
+          <div class="header-left-group flex-col-mobile gap-mobile-10">
+            <h2 class="text-header-lg">INVENTORY</h2>
+
+            <!-- Store Dropdown -->
+            <div class="store-select-wrapper m-l-20 ml-mobile-0 w-full-mobile">
+              <p-dropdown [options]="stores" [(ngModel)]="selectedStore" optionLabel="name" [filter]="true"
+                filterBy="name" filterPlaceholder="Search stores"
+                styleClass="custom-store-dropdown store-dropdown-style" appendTo="body"
+                [overlayOptions]="customOverlayOptions">
+              </p-dropdown>
+            </div>
+
+            <!-- Tab Navigation -->
+            <div class="tabs-nav-standard m-l-20 ml-mobile-0 w-full-mobile">
+              <button class="tab-pill-standard" [class.active]="activeTab === 'stock'"
+                (click)="setActiveTab('stock')">STOCK</button>
+              <button class="tab-pill-standard" [class.active]="activeTab === 'purchase'"
+                (click)="setActiveTab('purchase')">PURCHASE</button>
+              <button class="tab-pill-standard" [class.active]="activeTab === 'issued'"
+                (click)="setActiveTab('issued')">ISSUED</button>
+              <button class="tab-pill-standard" [class.active]="activeTab === 'return'"
+                (click)="setActiveTab('return')">RETURN</button>
+            </div>
+          </div>
+
+          <div class="header-buttons-group w-full-mobile flex-col-mobile gap-mobile-10">
+            <button *ngIf="activeTab === 'purchase'" class="create-button font-Neometric-Medium w-full-mobile"
+              (click)="openActionModal('add-purchase')">
+              + ADD INVOICE
+            </button>
+            <button *ngIf="activeTab === 'issued'" class="create-button font-Neometric-Medium w-full-mobile"
+              (click)="openActionModal('stock-send')">
+              + SEND TO
+            </button>
+            <button *ngIf="activeTab === 'return'" class="create-button font-Neometric-Medium w-full-mobile"
+              (click)="openActionModal('stock-return')">
+              + RETURN
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab contents -->
+    <app-inventory-stock-tab *ngIf="activeTab === 'stock'" [selectedStore]="selectedStore"
+      (viewClosingStatement)="openClosingStatementModal($event)">
+    </app-inventory-stock-tab>
+
+    <app-inventory-purchase-tab *ngIf="activeTab === 'purchase'" [reloadTrigger]="reloadTrigger"
+      (viewPurchase)="openPurchaseViewModal($event)" (loadingChange)="onLoadingChange($event)">
+    </app-inventory-purchase-tab>
+
+    <app-inventory-issued-tab *ngIf="activeTab === 'issued'" [reloadTrigger]="reloadTrigger"
+      (viewStockSend)="openStockSendViewModal($event)">
+    </app-inventory-issued-tab>
+
+    <app-inventory-return-tab *ngIf="activeTab === 'return'" [reloadTrigger]="reloadTrigger"
+      (viewReturn)="openReturnViewModal($event)">
+    </app-inventory-return-tab>
+
+  </div>
+
+  <app-inventory-actions-modal *ngIf="showActionModal" [mode]="modalMode" [data]="selectedActionData"
+    [isLoading]="isLoading" (close)="closeActionModal()" (submit)="handleModalSubmit($event)"
+    (openCreateItem)="openItemModal('create')" (openAddItemModel)="openItemModal('addModel')">
+  </app-inventory-actions-modal>
+
+  <!-- Items Modal -->
+  <app-items-modal *ngIf="showItemModal" [mode]="itemModalMode" (close)="closeItemModal()" (save)="closeItemModal()">
+  </app-items-modal>
+  <p-toast></p-toast>
+</div>

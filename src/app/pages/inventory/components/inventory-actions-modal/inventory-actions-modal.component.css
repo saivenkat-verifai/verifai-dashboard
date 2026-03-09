@@ -1,0 +1,441 @@
+.items-section-container {
+  margin-top: 30px;
+}
+
+.items-section-header {
+  font-size: 12px;
+  color: #333333;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+  letter-spacing: 0.5px;
+}
+
+/* Refactored Inline Styles */
+
+.flex-end-col {
+  justify-content: flex-end;
+}
+
+/* Closing Statement Refactored Styles */
+.closing-statement-wrapper {
+  grid-column: 1 / -1;
+  padding: 20px;
+}
+
+.transaction-group-item {
+  margin-bottom: 25px;
+}
+
+.trans-date-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.trans-card-grid {
+  margin-bottom: 10px;
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr 1fr 120px;
+  gap: 15px;
+  align-items: center;
+}
+
+/* STOCK SEND & RETURN PREVIEW STYLES (Existing) */
+.trans-badge-end {
+  justify-self: end;
+}
+
+/* ==========================================================================
+   PURCHASE INDIVIDUAL INFO VIEW STYLES
+   ========================================================================== */
+
+.view-purchase-container {
+  padding: 10px;
+}
+
+/* Vendor with Icon */
+.vendor-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Status Edit Wrapper */
+.status-edit-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Reuse standard status badges (base class .status-badge is in styles.css) */
+
+.status-badge-green {
+  background-color: #53BF8B;
+}
+
+.status-badge-red {
+  background-color: #ED3237;
+}
+
+.status-badge-gray {
+  background-color: #999;
+}
+
+.status-badge-black {
+  background-color: #000;
+  color: #fff;
+}
+
+
+.btn-edit-outline {
+  border: 1px solid #D0D0D0;
+  background: #FFFFFF;
+  border-radius: 4px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-edit-outline i {
+  font-size: 11px;
+  color: #ED3237;
+}
+
+/* Stock Info View Overrides for Tighter Layout */
+.stock-info-view .masters-view-grid {
+  gap: 15px 30px;
+  margin-bottom: 20px;
+}
+
+.stock-info-view .view-field {
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+
+.stock-info-view .view-field .field-label {
+  min-width: 120px !important;
+  width: 120px !important;
+}
+
+/* 2. Items Table Section */
+.view-items-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.view-items-header {
+  display: grid;
+  grid-template-columns: 1fr 2.2fr 1fr 1.2fr 1.2fr;
+  gap: 15px;
+  padding: 12px 0;
+  border-bottom: 1px solid #E0E0E0;
+  color: #888888;
+  font-size: 11px;
+  font-family: 'Neometric Medium', sans-serif;
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Purchase Details Custom 2-row List */
+.purchase-details-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.purchase-details-header {
+  border-bottom: 1px solid #E0E0E0;
+  padding: 12px 0 15px 0;
+}
+
+.purchase-details-header-row {
+  display: grid;
+  grid-template-columns: 40px 2.5fr 1.3fr 1.3fr 60px 1.8fr 110px;
+  gap: 15px;
+  color: #888888;
+  font-size: 11px;
+  font-family: 'Neometric Medium', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.purchase-details-item-wrapper {
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.purchase-details-data-row {
+  display: grid;
+  grid-template-columns: 40px 2.5fr 1.3fr 1.3fr 60px 1.8fr 110px;
+  gap: 15px;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #000;
+}
+
+
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+
+
+.view-item-row {
+  display: grid;
+  grid-template-columns: 1fr 2.2fr 1fr 1.2fr 1.2fr;
+  gap: 15px;
+  padding: 15px 0;
+  border-bottom: 1px solid #f0f0f0;
+  align-items: flex-start;
+  font-size: 12px;
+  color: #000;
+}
+
+
+
+.item-name-text {
+  font-weight: 700;
+  color: #ED3237;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.item-sub-text {
+  font-size: 11px;
+  color: #666;
+  font-weight: 500;
+}
+
+.damaged-badge {
+  display: inline-block;
+  background: #FFEBEB;
+  border: 1px solid #FFEBEB;
+  color: #000;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.col-price b {
+  display: block;
+  font-size: 13px;
+}
+
+.price-breakup {
+  color: #999;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.col-status {
+  font-size: 11px;
+}
+
+.reference-images-section {
+  margin-top: 20px;
+  border-top: 1.5px solid #ED3237;
+  padding-top: 15px;
+}
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.btn-add-sm {
+  border: 1px solid #D0D0D0;
+  background: #FFFFFF;
+  color: #000;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.images-grid {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.ref-image-card {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #eee;
+}
+
+.ref-image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 900px) {
+
+  .view-items-header,
+  .purchase-details-header {
+    display: none;
+  }
+
+  .view-item-row,
+  .purchase-details-item-wrapper {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+  }
+
+  .purchase-details-data-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .col-no {
+    display: none;
+  }
+}
+
+/* ========================================
+   REFACTORED INLINE STYLES
+   ======================================== */
+
+.modal-section-wrapper {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.input-readonly-wrapper {
+  background: #fcfcfc;
+}
+
+.input-readonly {
+  background: transparent !important;
+}
+
+.icon-expand-toggle {
+  color: #ED3237;
+  cursor: pointer;
+  user-select: none;
+  font-size: 18px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-details-sm {
+  font-size: 11px;
+  color: #999;
+  margin-top: 5px;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.text-red {
+  color: #ED3237;
+}
+
+.text-red-bold {
+  color: #ED3237;
+  font-weight: 700;
+}
+
+.text-bold-black {
+  font-weight: 700;
+  color: #000;
+}
+
+.text-bold-12 {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.btn-icon-only {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.grid-2col-gap-20 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+
+.flex-col-gap-20 {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.flex-align-center-gap-10 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grid-return-entry,
+.grid-return-row {
+  grid-template-columns: 1fr 150px 150px 40px;
+}
+
+
+.product-row-parent {
+  grid-template-columns: 3.2fr 1fr 1.2fr 1.2fr;
+  align-items: center;
+  background: #fff;
+  border-bottom: none;
+  padding-bottom: 5px;
+}
+
+.expand-toggle-btn {
+  color: #ED3237;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.product-row-child {
+  grid-template-columns: 3.2fr 1fr 1.2fr 1.2fr;
+  border-bottom: none;
+  padding-top: 0;
+  padding-bottom: 15px;
+}

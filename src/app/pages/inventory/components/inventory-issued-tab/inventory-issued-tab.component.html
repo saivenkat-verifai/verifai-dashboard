@@ -1,0 +1,39 @@
+<div class="dashboard-content-section m-t-20">
+    <div class="all-tab-controls flex-col-mobile gap-mobile-10">
+        <div class="toolbar-left w-full-mobile">
+            <app-calendar [showViewDropdown]="false" variant="dashboard"
+                (dateRangeSelected)="onDateRangeChange($event)">
+            </app-calendar>
+        </div>
+
+        <div class="search-filter-container w-full-mobile">
+            <div class="input-container">
+                <input type="text" placeholder="Search here" [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
+                    class="search-input font-Neometric-Medium" />
+            </div>
+            <button class="filter-toggle-btn" (click)="toggleFilterPanel()">
+                <img src="assets/filter-icon.png" alt="Filter" class="filter-toggle-icon" />
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-content-section m-t-20">
+    <div class="table-wrapper">
+        <ag-grid-angular class="ag-theme-custom" [theme]="'legacy'" [rowData]="issuedData" [columnDefs]="columnDefs"
+            [gridOptions]="gridOptions" [domLayout]="'normal'" (gridReady)="onGridReady($event)">
+        </ag-grid-angular>
+    </div>
+</div>
+
+<div class="dashboard-content-section">
+    <app-pagination [currentPage]="currentPage" [totalItems]="totalRecords" [pageSize]="pageSize"
+        (pageChange)="onPageChange($event)" (pageSizeChange)="onPageSizeChange($event)">
+    </app-pagination>
+</div>
+
+<!-- Filter Panel -->
+<app-unified-filter-panel *ngIf="showFilterPanel" [fields]="filterFields" [model]="filterCriteria"
+    (apply)="onFilterApply($event)" (reset)="onFilterReset()" (close)="onFilterClose()"
+    (modelChange)="onFilterCriteriaChange($event)">
+</app-unified-filter-panel>

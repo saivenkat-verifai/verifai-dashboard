@@ -1,0 +1,553 @@
+<div class="custom-modal-overlay" (click)="onOverlayClick($event)">
+  <div class="custom-modal-container">
+    <div class="modal-custom-header">
+      <div class="header-left-content">
+        <button class="back-arrow" (click)="close.emit()">
+          <img src="assets/arrow-circle-left-groups.svg" alt="←" class="modal-close-icon" />
+        </button>
+        <span class="text-header-md">
+          {{
+          isAddModelMode
+          ? "ADD NEW MODEL"
+          : mode === "create"
+          ? "CREATE NEW ITEM"
+          : mode === "listitem"
+          ? (inventoryItemDetails?.header?.title ? (inventoryItemDetails?.header?.title + " - " +
+          (inventoryItemDetails?.header?.subtitle || "")) : (item.itemName || "ITEM") + " - " + (item.make || "") + " -
+          "
+          + (item.model || ""))
+          : isEditing
+          ? "EDIT ITEM"
+          : "ITEM - " + (item.id || "")
+          }}
+        </span>
+      </div>
+      <button class="modal-close-btn" (click)="close.emit()">
+        <img src="assets/close-filled.svg" alt="x" class="modal-close-icon" />
+      </button>
+    </div>
+
+    <div class="modal-custom-body">
+      <!-- Loader -->
+      <div class="modal-loader" *ngIf="isLoading">
+        <div class="spinner-small"></div>
+      </div>
+
+      <form [formGroup]="itemForm">
+        <!-- CREATE ITEM MODE -->
+        <ng-container *ngIf="mode === 'create' && !isAddModelMode">
+          <!-- Row 1: Item Name, Units, RM/SC/CO/FG -->
+          <div class="form-row-3col">
+            <div class="field-column">
+              <label class="field-label">Item Name*</label>
+              <input type="text" class="field-input-text" formControlName="itemName" placeholder="Enter"
+                [class.error-border]="hasFieldError('itemName')" />
+              <span class="error-message" *ngIf="getFieldError('itemName')">
+                {{ getFieldError("itemName") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">UNITS*</label>
+              <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions" [options]="dropdownArrays.units"
+                formControlName="unitCodeId" optionLabel="name" optionValue="id" placeholder="Select"
+                [showClear]="false" [filter]="true" filterBy="name" styleClass="w-full"
+                [class.error-border]="hasFieldError('unitCodeId')"></p-dropdown>
+              <span class="error-message" *ngIf="getFieldError('unitCodeId')">
+                {{ getFieldError("unitCodeId") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">RM / SC / CO / FG*</label>
+              <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions" [options]="dropdownArrays.nature"
+                formControlName="natureCodeId" optionLabel="name" optionValue="id" placeholder="Select"
+                [showClear]="false" [filter]="true" filterBy="name" styleClass="w-full"
+                [class.error-border]="hasFieldError('natureCodeId')"></p-dropdown>
+              <span class="error-message" *ngIf="getFieldError('natureCodeId')">
+                {{ getFieldError("natureCodeId") }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Row 2: E/M/A/T/G/S, CM/RM, PARTCODE -->
+          <div class="form-row-3col">
+            <div class="field-column">
+              <label class="field-label">E/M/A/T/G/S*</label>
+              <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions" [options]="dropdownArrays.domain"
+                formControlName="domainCodeId" optionLabel="name" optionValue="id" placeholder="Select"
+                [showClear]="false" [filter]="true" filterBy="name" styleClass="w-full"
+                [class.error-border]="hasFieldError('domainCodeId')"></p-dropdown>
+              <span class="error-message" *ngIf="getFieldError('domainCodeId')">
+                {{ getFieldError("domainCodeId") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">CM / RM*</label>
+              <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions" [options]="dropdownArrays.made"
+                formControlName="madeCodeId" optionLabel="name" optionValue="id" placeholder="Select"
+                [showClear]="false" [filter]="true" filterBy="name" styleClass="w-full"
+                [class.error-border]="hasFieldError('madeCodeId')"></p-dropdown>
+              <span class="error-message" *ngIf="getFieldError('madeCodeId')">
+                {{ getFieldError("madeCodeId") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">PARTCODE*</label>
+              <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions" [options]="dropdownArrays.partcodes"
+                formControlName="partCodeId" optionLabel="name" optionValue="id" placeholder="Select"
+                [showClear]="false" [filter]="true" filterBy="name" styleClass="w-full"
+                [class.error-border]="hasFieldError('partCodeId')"></p-dropdown>
+              <span class="error-message" *ngIf="getFieldError('partCodeId')">
+                {{ getFieldError("partCodeId") }}
+              </span>
+            </div>
+          </div>
+
+
+          <!-- Row 3: Make, Model, Used For -->
+          <div class="form-row-3col">
+            <div class="field-column">
+              <label class="field-label">Make*</label>
+              <input type="text" class="field-input-text" formControlName="make" placeholder="Enter"
+                [class.error-border]="hasFieldError('make')" />
+              <span class="error-message" *ngIf="getFieldError('make')">
+                {{ getFieldError("make") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">Model*</label>
+              <input type="text" class="field-input-text" formControlName="model" placeholder="Enter"
+                [class.error-border]="hasFieldError('model')" />
+              <span class="error-message" *ngIf="getFieldError('model')">
+                {{ getFieldError("model") }}
+              </span>
+            </div>
+
+            <div class="field-column">
+              <label class="field-label">Used For</label>
+              <p-multiSelect [options]="dropdownArrays.usedFor" formControlName="usedFor" optionLabel="name"
+                optionValue="id" placeholder="Select Options" [filter]="true" filterBy="name" display="chip"
+                styleClass="w-full" appendTo="body" [overlayOptions]="customOverlayOptions">
+              </p-multiSelect>
+            </div>
+          </div>
+
+          <!-- Row 4: Combined Item Code, Purchase Link, Radios -->
+          <div class="form-row" style="gap: 20px;">
+            <!-- ITEM CODE -->
+            <div class="field-column" style="flex: 1.5;">
+              <label class="field-label">ITEM CODE</label>
+              <input class="field-input-text read-only-bg" formControlName="itemCode" readonly
+                placeholder="Generated automatically..." />
+            </div>
+
+            <!-- PURCHASE ITEM LINK -->
+            <div class="field-column" style="flex: 1.5;">
+              <label class="field-label">Purchase Item Link</label>
+              <input type="text" class="field-input-text" formControlName="purchaseItemLink" placeholder="Enter"
+                [class.error-border]="hasFieldError('purchaseItemLink')" />
+              <span class="error-message" *ngIf="getFieldError('purchaseItemLink')">
+                {{ getFieldError("purchaseItemLink") }}
+              </span>
+            </div>
+
+            <!-- SERIAL NUMBER MANDATORY -->
+            <div class="field-column" style="flex: 1;">
+              <label class="field-label">Serial Number Mandatory</label>
+              <div class="radio-options" style="margin-top: 0; height: 42px; align-items: center; gap: 20px;">
+                <label class="radio-label">
+                  <input type="radio" value="T" formControlName="serialNumberMandatory" />
+                  <span>YES</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" value="F" formControlName="serialNumberMandatory" />
+                  <span>NO</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- BARCODE MANDATORY -->
+            <div class="field-column" style="flex: 1;">
+              <label class="field-label">Barcode Mandatory</label>
+              <div class="radio-options" style="margin-top: 0; height: 42px; align-items: center; gap: 20px;">
+                <label class="radio-label">
+                  <input type="radio" value="T" formControlName="barcodeMandatory" />
+                  <span>YES</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" value="F" formControlName="barcodeMandatory" />
+                  <span>NO</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- VIEW MODE (MASTERS Tab) - Card Grid Layout -->
+        <ng-container *ngIf="mode === 'view' && !isAddModelMode">
+          <!-- Main Information Grid - 2 Columns -->
+          <div class="masters-view-grid">
+            <div class="view-field">
+              <label class="field-label">ITEM NAME</label>
+              <span class="field-value">{{ item?.itemName || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">MAKE</label>
+              <span class="field-value">{{ item?.make || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">UNIT</label>
+              <span class="field-value">{{ item?.units || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">MODEL</label>
+              <span class="field-value">{{ item?.model || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">RM / SC / CO / FG</label>
+              <span class="field-value">{{ item?.nature || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">ITEM CODE</label>
+              <span class="field-value">{{ item?.itemCode || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">E/M/A/T/G/S</label>
+              <span class="field-value">{{ item?.domain || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">USE FOR</label>
+              <span class="field-value" *ngIf="!isEditing">{{ getUsedForLabels() || "---" }}</span>
+              <p-multiSelect *ngIf="isEditing" [options]="dropdownArrays.usedFor" [(ngModel)]="editUsedForIds"
+                [ngModelOptions]="{standalone: true}" optionLabel="name" optionValue="id" placeholder="Select"
+                display="chip" styleClass="w-full" appendTo="body" [overlayOptions]="customOverlayOptions">
+              </p-multiSelect>
+            </div>
+            <div class="view-field">
+              <label class="field-label">CM / RM</label>
+              <span class="field-value">{{ item?.made || "---" }}</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">ITEM IMAGE</label>
+              <div class="product-image-container" *ngIf="item?.itemImage">
+                <img [src]="getImageUrl(item.itemImage)" alt="Product" class="product-image-thumbnail" />
+              </div>
+              <span class="field-value" *ngIf="!item?.itemImage">---</span>
+            </div>
+            <div class="view-field">
+              <label class="field-label">PART CODE</label>
+              <span class="field-value">{{ item?.partCode || "---" }}</span>
+            </div>
+          </div>
+
+          <!-- Product Links Section -->
+          <div class="product-links-section mb-20" style="margin-bottom: 20px;">
+            <h3 class="section-title text-header-sm">ITEM LINKS</h3>
+
+            <!-- VIEW state -->
+            <div class="links-list" *ngIf="!isEditing">
+              <a class="link-pill" *ngFor="let link of item?.purchaseLinks || item?.purchaseItemLinks || []"
+                [href]="link" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                </svg>
+                <span>{{ link }}</span>
+              </a>
+              <span *ngIf="!(item?.purchaseLinks || item?.purchaseItemLinks)?.length" class="field-value">---</span>
+            </div>
+
+            <!-- EDIT state -->
+            <div class="links-container mt-10" *ngIf="isEditing" style="margin-top: 10px;">
+              <!-- New link input — add icon only -->
+              <div class="link-input-wrapper mb-10" style="margin-bottom: 10px;">
+                <input type="text" class="link-input"
+                  [class.error-border]="newPurchaseLink.trim() && !isValidUrl(newPurchaseLink)"
+                  placeholder="Enter new link..." [(ngModel)]="newPurchaseLink" [ngModelOptions]="{standalone: true}"
+                  (keyup.enter)="addPurchaseLink()" />
+                <button type="button" class="btn-add-circle" (click)="addPurchaseLink()"
+                  [disabled]="!newPurchaseLink.trim() || !isValidUrl(newPurchaseLink)" title="Add link">
+                  <i class="pi pi-plus"></i>
+                </button>
+              </div>
+              <!-- Existing links — remove icon only -->
+              <div class="link-input-wrapper mb-10" *ngFor="let link of editPurchaseLinks; let i = index"
+                style="margin-bottom: 10px;">
+                <input type="text" class="link-input" [value]="link" readonly />
+                <button type="button" class="btn-remove-circle" (click)="removePurchaseLink(i)" title="Remove link">
+                  <i class="pi pi-times"></i>
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Remarks Section -->
+          <div class="view-field remarks-section" style="margin-top: 20px;">
+            <label class="field-label">REMARKS</label>
+            <span class="field-value" *ngIf="!isEditing">{{ item?.remarks || "---" }}</span>
+            <textarea class="remarks-textarea" rows="4" *ngIf="isEditing" [(ngModel)]="item.remarks"
+              [ngModelOptions]="{standalone: true}" placeholder="Enter remarks...">
+            </textarea>
+          </div>
+        </ng-container>
+
+        <!-- LIST ITEM VIEW MODE (ALL Tab) -->
+        <ng-container *ngIf="mode === 'listitem'">
+          <div class="more-info-container padded-container">
+            <!-- Info Grid -->
+            <div class="masters-view-grid custom-gap">
+              <!-- Item Name / Item Code -->
+              <div class="view-field">
+                <label class="field-label">Item Name</label>
+                <span class="field-value">{{ inventoryItemDetails?.header?.title || item?.itemName || "-" }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">ITEM CODE</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.itemCode || item?.itemCode || "-"
+                  }}</span>
+              </div>
+
+              <!-- Unit / Serial Number -->
+              <div class="view-field">
+                <label class="field-label">Unit</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.unit || item?.unit || "-" }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Serial Number</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.serialNumber || item?.serialNumber ||
+                  "-" }}</span>
+              </div>
+
+              <!-- Make / Barcode -->
+              <div class="view-field">
+                <label class="field-label">Make</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.make || item?.make || "-" }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Barcode Number</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.barcode || item?.barcodeNo || "-"
+                  }}</span>
+              </div>
+
+              <!-- Model / Use For -->
+              <div class="view-field">
+                <label class="field-label">Model</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.model || item?.model || "-" }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Use for</label>
+                <span class="field-value">{{ inventoryItemDetails?.itemDetails?.usedFor || item?.usedFor || "-"
+                  }}</span>
+              </div>
+
+              <!-- Empty spacer to align Status properly -->
+              <div class="view-field"></div>
+
+              <!-- Status -->
+              <div class="view-field">
+                <label class="field-label">Status</label>
+                <span class="status-badge" [ngClass]="{
+                            'status-new': (inventoryItemDetails?.itemDetails?.status || item?.status) === 'New',
+                            'status-used': (inventoryItemDetails?.itemDetails?.status || item?.status) === 'Used' || (inventoryItemDetails?.itemDetails?.status || item?.status) === 'Working',
+                            'status-scrap': (inventoryItemDetails?.itemDetails?.status || item?.status) === 'Scrap'
+                        }">
+                  {{ inventoryItemDetails?.itemDetails?.status || item?.status || "-" }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Cost Badge Row -->
+            <div class="cost-badge-row">
+              <div class="cost-badge-box outline-red w-50">
+                <span class="cost-badge-label">Item Cost (With GST)</span>
+                <span class="cost-badge-value">$ {{ inventoryItemDetails?.itemDetails?.itemCostWithGST || "-" }}</span>
+              </div>
+            </div>
+
+            <!-- Timeline Section / Progress -->
+            <div class="timeline-section mt-30" *ngIf="inventoryItemDetails?.timeline?.length">
+              <h3 class="section-title text-header-sm mb-15">PROGRESS</h3>
+              <div class="progress-list">
+
+                <div class="progress-item" *ngFor="let step of inventoryItemDetails?.timeline">
+                  <div class="progress-date">{{ step.date }}</div>
+                  <div class="progress-card">
+
+                    <div class="progress-details">
+                      <!-- From -->
+                      <div class="detail-block" *ngIf="step.from?.locationName">
+                        <span class="detail-label">From</span>
+                        <span class="detail-value">{{ step.from?.entityType ? (step.from?.entityType | uppercase) + ' -
+                          ' : '' }}{{ step.from?.locationName }}</span>
+                      </div>
+                      <div class="detail-block" *ngIf="!step.from?.locationName">
+                        <span class="detail-label">From</span>
+                        <span class="detail-value">-</span>
+                      </div>
+
+                      <!-- To -->
+                      <div class="detail-block" *ngIf="step.to?.locationName">
+                        <span class="detail-label">To</span>
+                        <span class="detail-value">{{ step.to?.entityType ? (step.to?.entityType | uppercase) + ' - ' :
+                          '' }}{{ step.to?.locationName }}</span>
+                      </div>
+                      <div class="detail-block" *ngIf="!step.to?.locationName">
+                        <span class="detail-label">To</span>
+                        <span class="detail-value">-</span>
+                      </div>
+
+                      <!-- Status / Condition -->
+                      <div class="detail-block">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value">{{ step.condition || 'New' }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Action Badge -->
+                    <div class="progress-action">
+                      <span class="action-badge" [ngClass]="{
+                          'action-purchased': step.action === 'Purchased' || step.action === 'Returned',
+                          'action-issued': step.action === 'Issued'
+                      }">{{ step.action }}</span>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- ADD NEW MODEL MODE -->
+        <ng-container *ngIf="isAddModelMode">
+          <div class="add-model-form">
+            <div class="form-row">
+              <div class="form-col-2">
+                <label class="field-label">Item*</label>
+                <p-dropdown appendTo="body" [overlayOptions]="customOverlayOptions"
+                  [options]="distinctItemsDropdownList" formControlName="itemName" optionLabel="value"
+                  optionValue="value" placeholder="Select Item" [filter]="true" styleClass="w-full"
+                  [class.error-border]="hasFieldError('itemName')"></p-dropdown>
+                <span class="error-message" *ngIf="getFieldError('itemName')">
+                  {{ getFieldError("itemName") }}
+                </span>
+              </div>
+              <div class="form-col-2">
+                <label class="field-label">ITEM CODE</label>
+                <input type="text" class="field-input-text read-only-bg" formControlName="itemCode" readonly
+                  placeholder="Code will appear here..." />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col-2">
+                <label class="field-label">Make*</label>
+                <input type="text" class="field-input-text" formControlName="make" placeholder="Enter Make"
+                  [class.error-border]="hasFieldError('make')" />
+                <span class="error-message" *ngIf="getFieldError('make')">
+                  {{ getFieldError("make") }}
+                </span>
+              </div>
+              <div class="form-col-2">
+                <label class="field-label">Model*</label>
+                <input type="text" class="field-input-text" formControlName="model" placeholder="Enter Model"
+                  [class.error-border]="hasFieldError('model')" />
+                <span class="error-message" *ngIf="getFieldError('model')">
+                  {{ getFieldError("model") }}
+                </span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col-2">
+                <label class="field-label">Use For</label>
+                <p-multiSelect [options]="dropdownArrays.usedFor" formControlName="usedFor" optionLabel="name"
+                  optionValue="id" placeholder="Select" display="chip" styleClass="w-full" appendTo="body"
+                  [overlayOptions]="customOverlayOptions"></p-multiSelect>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-col-2 full-width-col">
+                <label class="field-label">Purchase Item Link</label>
+                <input type="text" class="field-input-text" formControlName="purchaseItemLink" placeholder="Enter" />
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </form>
+
+      <!-- Product Image Section -->
+      <div class="product-image-section" *ngIf="mode === 'create' || mode === 'addModel'">
+        <app-file-upload label="ITEM IMAGE" [multiple]="false" layout="row"
+          (filesSelected)="onFileUploadChange($event)"></app-file-upload>
+      </div>
+
+      <!-- Action Buttons (Not for listitem mode) -->
+      <div class="modal-footer" *ngIf="mode !== 'listitem'">
+        <ng-container *ngIf="isEditing; else viewButtons">
+          <button class="btn-secondary" (click)="close.emit()" [disabled]="isLoading">
+            CANCEL
+          </button>
+          <button class="btn-primary" (click)="handleSave()" [disabled]="isLoading">
+            {{
+            isLoading
+            ? "SAVING..."
+            : isAddModelMode
+            ? "CREATE"
+            : mode === "create"
+            ? "CREATE"
+            : "UPDATE"
+            }}
+          </button>
+        </ng-container>
+        <ng-template #viewButtons>
+          <button class="btn-edit-trigger" (click)="enableEdit()">
+            <img src="assets/icons/pencil.svg" alt="" class="edit-icon" />
+            EDIT
+          </button>
+        </ng-template>
+      </div>
+
+      <!-- Note Section (only for Create New Item) -->
+      <div class="info-note-box" *ngIf="mode === 'create'">
+        <h6 class="note-header text-header-sm">NOTE</h6>
+        <div class="note-columns-wrapper">
+          <div class="note-column-text">
+            <p>
+              RM - Raw material ; Digi key comps, transistors, screws, nuts,
+              resistors etc
+            </p>
+            <p>SC - Sub component ; Enclosure, cables, tie rods</p>
+            <p>
+              CO - component ; sensors, power boards, sensor boards, PI,
+              charger, battery, DVR, cameras, server etc
+            </p>
+            <p>FG - Mobile units, IVIS Central Devices etc</p>
+          </div>
+          <div class="note-column-text">
+            <p>
+              E - Electronics and Electrical - capacitors, routers, dongles,
+              power boards, MCB etc
+            </p>
+            <p>M - Mechanical - outdoor boxes, nuts & bolts</p>
+            <p>A - accessories - tapes, glues, cables, connectors etc</p>
+            <p>
+              T - Tools - bosch kits, screwdriver, soldering, equipment,
+              multipmeters, etc.
+            </p>
+            <p>G - laptops, phones, gadgets etc</p>
+            <p>S - all sims if any placed at customer locations</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

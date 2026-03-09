@@ -15,7 +15,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
 import { ToastModule } from 'primeng/toast';
-import { MessageService,ConfirmationService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { routes } from './app/app-routing.module';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -56,7 +56,6 @@ bootstrapApplication(AppComponent, {
     },
     provideRouter(routes, withHashLocation()),
     provideAnimations(),
-    provideRouter(routes),
     importProvidersFrom(
       FormsModule,
       MatDatepickerModule,

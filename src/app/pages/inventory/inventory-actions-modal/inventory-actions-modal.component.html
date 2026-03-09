@@ -1,0 +1,266 @@
+<div class="custom-modal-overlay" (click)="close.emit()">
+  <div class="custom-modal-container" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="modal-custom-header">
+      <div class="header-left-content">
+        <span class="header-title-text">{{ getModalTitle() }}</span>
+      </div>
+      <button class="modal-close-btn" (click)="close.emit()">
+        <img src="assets/close-filled.svg" alt="x" style="width: 18px" />
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-custom-body">
+      <div class="form-grid-layout" [ngSwitch]="mode">
+        
+        <!-- ADD PURCHASE MODE -->
+        <ng-container *ngSwitchCase="'add-purchase'">
+          <!-- Type Toggle + Action Buttons Row -->
+          <div class="type-toggle-row">
+            <label>
+              <input type="radio" name="pType" [(ngModel)]="data.type" value="Online">
+              Online
+            </label>
+            <label>
+              <input type="radio" name="pType" [(ngModel)]="data.type" value="Vendor">
+              Vendor
+            </label>
+            <div class="header-action-btns">
+              <button class="btn-outline-sm">CREATE NEW ITEM</button>
+              <button class="btn-outline-sm">ADD NEW MODEL</button>
+            </div>
+          </div>
+
+          <!-- Form Fields Row -->
+          <div class="field-row-3col">
+            <div class="field-column">
+              <label class="field-label">{{ data.type === 'Online' ? 'Online Platform' : 'Vendor Name' }}</label>
+              <select class="field-input-select" [(ngModel)]="data.platform">
+                <option value="">Select</option>
+                <option *ngIf="data.type === 'Online'" value="Amazon">Amazon</option>
+                <option *ngIf="data.type === 'Online'" value="Flipkart">Flipkart</option>
+                <option *ngIf="data.type === 'Vendor'" value="Planet CCTV">PLANET CCTV TECHNOLOGIES</option>
+              </select>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Invoice No.</label>
+              <input type="text" class="field-input-text" placeholder="Enter" [(ngModel)]="data.invoiceNo">
+            </div>
+            <div class="field-column">
+              <label class="field-label">Invoice Date</label>
+              <input type="date" class="field-input-text" [(ngModel)]="data.invoiceDate">
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- STOCK SEND MODE -->
+        <ng-container *ngSwitchCase="'stock-send'">
+          <div class="field-row-3col">
+            <div class="field-column">
+              <label class="field-label">Send From</label>
+              <select class="field-input-select" [(ngModel)]="data.sendFrom">
+                <option value="Store">Store</option>
+                <option value="Warehouse">Warehouse</option>
+              </select>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Site</label>
+              <select class="field-input-select" [(ngModel)]="data.site">
+                <option value="">Select</option>
+                <option value="Reliance Store - Tadepally">Reliance Store - Tadepally</option>
+                <option value="Samsung Showroom - Tadepally">Samsung Showroom - Tadepally</option>
+              </select>
+            </div>
+            <div class="field-column" style="justify-content: flex-end;">
+              <button class="btn-outline-sm">CREATE PRODUCT</button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- STOCK RETURN MODE -->
+        <ng-container *ngSwitchCase="'stock-return'">
+          <div class="field-row-3col">
+            <div class="field-column">
+              <label class="field-label">Return From</label>
+              <select class="field-input-select" [(ngModel)]="data.returnFrom">
+                <option value="">Select</option>
+                <option value="Reliance Store - Tadepally">Reliance Store - Tadepally</option>
+                <option value="Samsung Showroom - Tadepally">Samsung Showroom - Tadepally</option>
+              </select>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Return To</label>
+              <select class="field-input-select" [(ngModel)]="data.returnTo">
+                <option value="Store">Store</option>
+                <option value="Warehouse">Warehouse</option>
+              </select>
+            </div>
+            <div class="field-column" style="justify-content: flex-end;">
+              <button class="btn-outline-sm">CREATE PRODUCT</button>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- VIEW PURCHASE MODE -->
+        <ng-container *ngSwitchCase="'view-purchase'">
+          <div class="view-header-info">
+            <div class="info-group">
+              <span>Invoice No.</span>
+              <strong>{{data.invoiceNo}}</strong>
+            </div>
+            <div class="info-group">
+              <span>Purchase From</span>
+              <strong>{{data.purchaseFrom}}</strong>
+            </div>
+            <div class="info-group">
+              <span>Status</span>
+              <span class="status-delivered">{{data.status || 'Delivered'}}</span>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Items Section -->
+      <div class="items-section-container">
+        <div class="items-section-header">ITEMS ({{getFilledItemsCount()}})</div>
+
+        <!-- Table Header -->
+        <div class="items-table-header">
+          <span>Item Name</span>
+          <span>Quantity</span>
+          <span *ngIf="mode === 'add-purchase'">Cost Per No.</span>
+          <span *ngIf="mode === 'add-purchase'">GST</span>
+          <span *ngIf="mode === 'add-purchase'">Total Cost</span>
+          <span></span>
+        </div>
+
+        <!-- Items Rows -->
+        <div class="items-list">
+          <div class="item-row-entry" *ngFor="let item of data.items; let i = index; let first = first">
+            <!-- Item Name -->
+            <div class="item-col-main">
+              <select class="field-input-select" [(ngModel)]="item.name" (ngModelChange)="onItemChange(item, i)">
+                <option value="">Select</option>
+                <option value="IP Bullet 1.3 MP Camera-IVIS-IPC-EJ5313PL-IR2">IP Bullet 1.3 MP Camera-IVIS-IPC-EJ5313PL-IR2</option>
+                <option value="HD IP Camera Box Type-IPC-AT5313PL">HD IP Camera Box Type-IPC-AT5313PL</option>
+                <option value="1080P LPR IP Camera-CSK-220CN.IP60">1080P LPR IP Camera-CSK-220CN.IP60</option>
+                <option value="IP Bullet Alphafinity Cameras-J4 33/3-10.5">IP Bullet Alphafinity Cameras-J4 33/3-10.5</option>
+                <option value="IP Fixed E Hawk-CCIP4EV4">IP Fixed E Hawk-CCIP4EV4</option>
+              </select>
+            </div>
+
+            <!-- Quantity -->
+            <div class="item-col-qty">
+  <div class="input-with-suffix">
+    <input type="number" [(ngModel)]="item.qty" placeholder="Enter" (ngModelChange)="calculateTotal(item)">
+    <span class="input-suffix-nos">No's</span>
+  </div>
+</div>
+
+            <!-- Cost (Only for Purchase) -->
+            <div *ngIf="mode === 'add-purchase'" class="item-col-cost">
+              <div class="input-with-prefix">
+                <span class="input-prefix">$</span>
+                <input type="number" [(ngModel)]="item.cost" placeholder="Cost" step="0.01" (ngModelChange)="calculateTotal(item)">
+              </div>
+            </div>
+
+            <!-- GST (Only for Purchase) -->
+            <div *ngIf="mode === 'add-purchase'" class="item-col-gst">
+              <div class="input-with-suffix">
+                <input type="number" [(ngModel)]="item.gst" placeholder="GST" step="0.01" (ngModelChange)="calculateTotal(item)">
+                <span class="input-suffix">%</span>
+              </div>
+            </div>
+
+            <!-- Total Cost (Only for Purchase) -->
+            <div *ngIf="mode === 'add-purchase'" class="item-col-total">
+  <div class="input-with-prefix">
+    <span class="input-prefix" style="color: #ED3237;">$</span>
+    <input type="text" 
+           [value]="calculateItemTotal(item)" 
+           readonly 
+           class="total-cost-input">
+  </div>
+</div>
+
+            <!-- + button on FIRST row only, × on others -->
+            <button *ngIf="isEditing && first" class="add-item-btn-inline" (click)="addItemRow()">+</button>
+            <button *ngIf="isEditing && !first" class="remove-btn" (click)="removeItemRow(i)">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Section (for stock-send mode) -->
+      <div *ngIf="mode === 'stock-send'" class="items-section-container" style="margin-top: 40px;">
+        <div class="items-section-header">PRODUCTS ({{getFilledProductsCount()}})</div>
+
+        <!-- Table Header -->
+        <div class="items-table-header" style="grid-template-columns: 2.2fr 140px 40px;">
+          <span>Product Name</span>
+          <span>Quantity</span>
+          <span></span>
+        </div>
+
+        <!-- Product Rows -->
+        <div class="items-list">
+          <div class="item-row-entry" *ngFor="let product of data.products; let i = index; let first = first" style="grid-template-columns: 2.2fr 140px 40px;">
+            <div class="item-col-main">
+              <select class="field-input-select" [(ngModel)]="product.name" (ngModelChange)="onProductChange(product, i)">
+                <option value="">Select</option>
+                <option value="D110 IR Illuminator | Medium Range Infrared Flood Light for Security Camera Tendelux">D110 IR Illuminator | Medium Range Infrared Flood Light for Security Camera Tendelux</option>
+                <option value="Pole Mount Kit PolyCase | PK-16A">Pole Mount Kit PolyCase | PK-16A</option>
+              </select>
+            </div>
+            <div class="item-col-qty">
+              <input type="number" [(ngModel)]="product.qty" placeholder="Enter" min="0">
+            </div>
+            <button *ngIf="isEditing && first" class="add-item-btn-inline" (click)="addProductRow()">+</button>
+            <button *ngIf="isEditing && !first" class="remove-btn" (click)="removeProductRow(i)">×</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transportation Section (for stock-send mode) -->
+      <div *ngIf="mode === 'stock-send'" class="items-section-container" style="margin-top: 40px;">
+        <div class="items-section-header">TRANSPORTATION</div>
+        <div class="field-row-3col" style="margin-top: 15px;">
+          <div class="field-column">
+            <label class="field-label">Shipping Platform</label>
+            <select class="field-input-select" [(ngModel)]="data.shippingPlatform">
+              <option value="">Select</option>
+              <option value="Fedex">Fedex</option>
+              <option value="DHL">DHL</option>
+              <option value="BlueDart">BlueDart</option>
+            </select>
+          </div>
+          <div class="field-column">
+            <label class="field-label">Tracking ID</label>
+            <input type="text" class="field-input-text" placeholder="Enter" [(ngModel)]="data.trackingId">
+          </div>
+          <div class="field-column">
+            <label class="field-label">Shipment Date</label>
+            <input type="date" class="field-input-text" [(ngModel)]="data.shipmentDate">
+          </div>
+        </div>
+        <div class="field-row-3col" style="margin-top: 15px;">
+          <div class="field-column">
+            <label class="field-label">Delivered Date</label>
+            <input type="date" class="field-input-text" [(ngModel)]="data.deliveredDate">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="close.emit()">CANCEL</button>
+      <button *ngIf="isEditing && mode === 'add-purchase'" class="btn-secondary" (click)="handleSavePreOrder()">SAVE (PRE-ORDER)</button>
+      <button *ngIf="isEditing" class="btn-primary" (click)="handleSave()">
+        {{ mode === 'stock-send' ? 'SEND' : (mode === 'stock-return' ? 'RETURN' : 'SUBMIT') }}
+      </button>
+    </div>
+  </div>
+</div>

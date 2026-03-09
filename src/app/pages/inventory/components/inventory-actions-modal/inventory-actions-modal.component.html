@@ -1,0 +1,1154 @@
+<div class="custom-modal-overlay" (click)="onOverlayClick($event)">
+  <div class="custom-modal-container">
+
+    <!-- Header -->
+    <div class="modal-custom-header">
+      <div class="header-left-content">
+        <span class="text-header-md">{{ getModalTitle() }}</span>
+      </div>
+      <button class="modal-close-btn" (click)="close.emit()">
+        <img src="assets/close-filled.svg" alt="x" class="modal-close-icon" />
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-custom-body">
+      <div>
+
+        <div *ngIf="mode === 'add-purchase' || mode === 'update-purchase'"
+          class="add-purchase-wrapper modal-section-wrapper" [formGroup]="addPurchaseForm">
+
+          <!-- TOP ROW: Country, Store, Action Buttons -->
+          <div class="add-purchase-top-row">
+            <div class="field-column">
+              <label class="field-label">Purchase For Country</label>
+              <p-dropdown [options]="countries" formControlName="purchaseForCountry" [style]="{'width':'100%'}"
+                placeholder="Select" appendTo="body" [filter]="true" [overlayOptions]="customOverlayOptions"
+                [ngClass]="{'dropdown-invalid': submitted && addPurchaseForm.get('purchaseForCountry')?.invalid}"></p-dropdown>
+              <div *ngIf="submitted && addPurchaseForm.get('purchaseForCountry')?.invalid"
+                class="text-red text-xs mt-1">
+                Country is required</div>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Purchase For Store</label>
+              <p-dropdown [options]="stores" formControlName="purchaseForStore" [style]="{'width':'100%'}"
+                placeholder="Select" appendTo="body" [filter]="true" [overlayOptions]="customOverlayOptions"
+                [ngClass]="{'dropdown-invalid': submitted && addPurchaseForm.get('purchaseForStore')?.invalid}"></p-dropdown>
+              <div *ngIf="submitted && addPurchaseForm.get('purchaseForStore')?.invalid" class="text-red text-xs mt-1">
+                Store is required</div>
+            </div>
+            <!-- Item Creation Actions -->
+            <div class="add-purchase-actions">
+              <button class="btn-create-item" (click)="openCreateItem.emit()">CREATE NEW ITEM</button>
+              <button class="btn-create-item" (click)="openAddItemModel.emit()">ADD NEW MODEL</button>
+            </div>
+          </div>
+
+          <div class="form-row-radio m-0" style="align-items: center;"
+            [ngClass]="{'radio-invalid-border': submitted && addPurchaseForm.get('purchaseVia')?.invalid}">
+            <div class="form-row-radio" style="margin: 0;">
+              <label class="radio-label">
+                <input type="radio" formControlName="purchaseVia" value="Online">
+                <span>Online</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" formControlName="purchaseVia" value="Vendor">
+                <span>Vendor</span>
+              </label>
+            </div>
+            <div *ngIf="submitted && addPurchaseForm.get('purchaseVia')?.invalid" class="text-red text-xs m-0">Platform
+              type is required</div>
+          </div>
+
+          <div class="form-row-3col">
+            <div class="field-column">
+              <label class="field-label">{{ addPurchaseForm.get('purchaseVia')?.value === 'Vendor' ? 'Vendor Name' :
+                (addPurchaseForm.get('purchaseVia')?.value === 'Online' ? 'Online Platform' : 'Platform Name')
+                }} </label>
+              <p-dropdown
+                [options]="(addPurchaseForm.get('purchaseVia')?.value === 'Vendor' ? vendorNames : (addPurchaseForm.get('purchaseVia')?.value === 'Online' ? onlinePlatforms : allPlatformsAndVendors))"
+                formControlName="platform" [style]="{'width':'100%'}" placeholder="Select" appendTo="body"
+                optionLabel="label" optionValue="value" [filter]="true" [overlayOptions]="customOverlayOptions"
+                [ngClass]="{'dropdown-invalid': submitted && addPurchaseForm.get('platform')?.invalid}"></p-dropdown>
+              <div *ngIf="submitted && addPurchaseForm.get('platform')?.invalid" class="text-red text-xs mt-1">Platform
+                name is required</div>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Invoice No.</label>
+              <input type="text" class="field-input-text" placeholder="Enter" formControlName="invoiceNo"
+                [ngClass]="{'input-invalid': submitted && addPurchaseForm.get('invoiceNo')?.invalid}">
+              <div *ngIf="submitted && addPurchaseForm.get('invoiceNo')?.invalid" class="text-red text-xs mt-1">Invoice
+                No
+                is required</div>
+            </div>
+            <div class="field-column">
+              <label class="field-label">Invoice Date</label>
+              <div class="calendar-wrapper relative-position"
+                [ngClass]="{'input-invalid-wrapper': submitted && addPurchaseForm.get('invoiceDate')?.invalid}">
+                <p-calendar #invoiceCalendar formControlName="invoiceDate" dateFormat="dd/mm/yy"
+                  placeholder="-- / -- / ----" styleClass="w-full date-picker-custom"
+                  inputStyleClass="field-input-text w-full" [showIcon]="false" [maxDate]="maxDate"></p-calendar>
+                <img src="assets/calender.svg" class="calendar-icon-custom" alt="calendar"
+                  (click)="invoiceCalendar.toggle()" />
+              </div>
+              <div *ngIf="submitted && addPurchaseForm.get('invoiceDate')?.invalid" class="text-red text-xs mt-1">
+                Invoice
+                Date is required</div>
+            </div>
+          </div>
+
+          <!-- ITEMS ENTRY SECTION -->
+          <div class="items-section-container"
+            [ngClass]="{'section-invalid-border': (submitted && purchaseItemsControls.length === 0) || (submitted && isDeliveredSubmit && hasMissingSerials)}">
+            <div class="items-section-header">ITEMS ({{ purchaseItemsControls.length || 0 }}) <span
+                *ngIf="submitted && purchaseItemsControls.length === 0" class="text-red text-xs ml-10">At least 1 item
+                is required</span><span *ngIf="submitted && isDeliveredSubmit && hasMissingSerials"
+                class="text-red text-xs ml-10">All items require a Serial No.</span></div>
+
+            <!-- Entry Form Row 1 -->
+            <div class="purchase-item-entry-grid">
+              <div class="field-column">
+                <label class="field-label">Item Name</label>
+                <p-dropdown [options]="purchaseItemsDropdownOptions" [(ngModel)]="newItem.itemName"
+                  [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select" appendTo="body"
+                  [filter]="true" filterBy="label" optionLabel="label" optionValue="value"
+                  (onChange)="onItemNameChange($event)" [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Quantity</label>
+                <div class="input-group-styled">
+                  <input type="number" placeholder="Enter" [(ngModel)]="newItem.qty"
+                    [ngModelOptions]="{standalone: true}" (change)="calculateNewItemTotal()" min="1"
+                    (keydown)="preventNegative($event)">
+                  <span class="input-group-text suffix-text">No's</span>
+                </div>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Cost Per No.</label>
+                <div class="input-group-styled">
+                  <span class="input-group-text prefix-text">$</span>
+                  <input type="number" placeholder="Enter" [(ngModel)]="newItem.cost"
+                    [ngModelOptions]="{standalone: true}" (change)="calculateNewItemTotal()" min="0"
+                    (keydown)="preventNegative($event)">
+                </div>
+              </div>
+              <div class="field-column">
+                <label class="field-label">GST</label>
+                <div class="input-group-styled">
+                  <input type="number" placeholder="Enter" [(ngModel)]="newItem.gst"
+                    [ngModelOptions]="{standalone: true}" (change)="calculateNewItemTotal()" min="0"
+                    (keydown)="preventNegative($event)">
+                  <span class="input-group-text suffix-text">%</span>
+                </div>
+              </div>
+              <!-- Total Cost -->
+              <div class="field-column">
+                <label class="field-label">Total Cost</label>
+                <div class="input-group-styled input-readonly-wrapper">
+                  <span class="input-group-text prefix-text">$</span>
+                  <input type="text" [value]="newItem.total || ''" readonly class="input-readonly">
+                </div>
+              </div>
+            </div>
+
+            <!-- Entry Form Row 2 (Dynamic Serial Details) -->
+            <div *ngFor="let sd of newItem.serialDetails; let i = index" class="purchase-item-link-grid"
+              [class.mt-10]="i > 0">
+              <div class="field-column">
+                <ng-container *ngIf="i === 0">
+                  <label class="field-label">Purchase Item Link</label>
+                  <div class="input-group-styled">
+                    <input type="text" placeholder="https://..." [(ngModel)]="newItem.link"
+                      [ngModelOptions]="{standalone: true}"
+                      [class.error-border]="newItem.link && !isValidUrl(newItem.link)">
+                    <img src="assets/icons/pencil.svg" alt="Edit" class="icon-edit-sm">
+                  </div>
+                  <span class="error-sm" *ngIf="newItem.link && !isValidUrl(newItem.link)">Invalid URL format</span>
+                </ng-container>
+              </div>
+              <div class="field-column relative-position">
+                <label class="field-label" *ngIf="i === 0">Serial No.</label>
+                <span class="text-xs text-grey" style="position: absolute; left: -25px; bottom: 12px; opacity: 0.6;"
+                  *ngIf="newItem.serialDetails.length > 1">#{{i + 1}}</span>
+                <input type="text" class="field-input-text" placeholder="Enter" [(ngModel)]="sd.serialNo"
+                  [ngModelOptions]="{standalone: true}" [readonly]="isDeliveredUpdate"
+                  [class.read-only]="isDeliveredUpdate" [class.bg-grey-100]="isDeliveredUpdate">
+              </div>
+              <div class="field-column">
+                <label class="field-label" *ngIf="i === 0">Barcode No.</label>
+                <input type="text" class="field-input-text" placeholder="Enter" [(ngModel)]="sd.barcodeNo"
+                  [ngModelOptions]="{standalone: true}" [readonly]="isDeliveredUpdate"
+                  [class.read-only]="isDeliveredUpdate" [class.bg-grey-100]="isDeliveredUpdate">
+              </div>
+              <div class="field-column add-circle-btn-wrapper" *ngIf="i === 0">
+                <button class="btn-add-circle" (click)="addItemToInvoice()"
+                  [disabled]="!newItem.itemName || !newItem.qty || newItem.qty < 1 || (newItem.link && !isValidUrl(newItem.link)) || isDeliveredUpdate">
+                  <i class="pi pi-plus"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Divider between Entry and List -->
+            <div class="section-divider"></div>
+
+            <!-- ADDED ITEMS LIST -->
+            <div class="added-items-list mt-20" formArrayName="purchaseItems">
+              <div *ngFor="let itemCtrl of purchaseItemsControls; let i = index" class="added-item-row-grid"
+                [formGroupName]="i">
+                <div class="expand-icon icon-expand-toggle" (click)="toggleExpanded(i)">
+                  {{ itemCtrl.get('expanded')?.value ? '–' : '+' }}
+                </div>
+                <div class="list-text">
+                  <b>{{ itemCtrl.get('itemNameDisplay')?.value || '&nbsp;' }}</b>
+                  <div *ngIf="itemCtrl.get('expanded')?.value" class="expanded-details-container mt-10"
+                    formArrayName="serialDetails">
+                    <div *ngFor="let sdCtrl of getSerialDetailsControls(i); let j = index" class="text-xs mb-2"
+                      style="color: #999; font-weight: 500; letter-spacing: 0.2px;" [formGroupName]="j">
+                      S.No. {{ sdCtrl.get('serialNo')?.value || '-' }} <span *ngIf="sdCtrl.get('barcodeNo')?.value"
+                        style="margin: 0 5px;">|</span>
+                      <span *ngIf="sdCtrl.get('barcodeNo')?.value">Barcode No. {{ sdCtrl.get('barcodeNo')?.value
+                        }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-text">{{ itemCtrl.get('qty')?.value }} No's</div>
+                <div class="list-text">$ {{ itemCtrl.get('cost')?.value }}</div>
+                <div class="list-text">{{ itemCtrl.get('gst')?.value }}%</div>
+                <div class="list-text text-error-red">$ {{ itemCtrl.get('total')?.value }}</div>
+                <button class="remove-btn btn-icon-only" (click)="removeItemFromInvoice(i)"
+                  [disabled]="isDeliveredUpdate">
+                  <i class="pi pi-times icon-close-bold"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPLOAD SECTIONS -->
+          <div class="mt-30 grid-2col-gap-20">
+            <!-- Invoice Upload -->
+            <div class="upload-section">
+              <app-file-upload label="INVOICE" [multiple]="false"
+                (filesSelected)="onInvoiceUpload($event)"></app-file-upload>
+            </div>
+
+            <!-- Others Upload -->
+            <div class="upload-section">
+              <app-file-upload label="OTHERS" [multiple]="true"
+                (filesSelected)="onOthersUpload($event)"></app-file-upload>
+            </div>
+          </div>
+
+          <div class="modal-footer-sticky"
+            style="display: flex; align-items: center; justify-content: center; gap: 20px;">
+            <button class="btn-edit-outline text-red-bold" (click)="close.emit()" [disabled]="isLoading"
+              style="border-color: #ED3237; font-size: 11px; padding: 10px 40px;">CANCEL</button>
+            <button class="btn-secondary" (click)="handleSavePreOrder()" [disabled]="isLoading"
+              style="background: white; border: 1px solid #ED3237; color: #ED3237; font-weight: bold; font-size: 11px; padding: 10px 40px; border-radius: 4px;">{{
+              isLoading ? 'SAVING...' : 'SAVE (PRE-ORDER)' }}</button>
+            <button class="btn-primary" (click)="handleSave()" [disabled]="isLoading"
+              style="font-size: 11px; padding: 10px 40px;">{{ getSubmitButtonLabel() }}</button>
+          </div>
+
+        </div>
+
+        <ng-container *ngIf="mode === 'view-purchase'">
+          <div class="view-purchase-container modal-section-wrapper">
+            <div class="masters-view-grid">
+              <div class="view-field">
+                <label class="field-label">Invoice No.</label>
+                <span class="field-value">{{ data?.purchase?.invoiceNumber ||
+                  data?.invoiceNumber || '---' }}</span>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Purchase From</label>
+                <div class="field-value vendor-with-icon" style="display: flex; align-items: center; gap: 10px;">
+                  <span>{{ data?.purchase?.purchaseFrom || data?.purchaseFrom || '---' }}</span>
+                </div>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Invoice Date</label>
+                <span class="field-value">{{ data?.purchase?.invoiceDate || data?.invoiceDate || '---'
+                  }}</span>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Delivered at</label>
+                <span class="field-value">{{ data?.purchase?.deliveredTo || data?.deliveredTo || 'Out Store'
+                  }}</span>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Invoice Type</label>
+                <span class="field-value">{{ data?.purchase?.purchaseType || data?.purchaseType || 'Online'
+                  }}</span>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Status</label>
+                <div class="status-edit-wrapper flex-align-center-gap-10">
+                  <span class="status-badge"
+                    [style.backgroundColor]="data?.purchase?.statusColor || data?.statusColor || '#53BF8B'"
+                    style="color: white; border: none;">{{ data?.purchase?.status || data?.status ||
+                    'Delivered' }}</span>
+                  <button class="btn-edit-outline" *ngIf="!isBulkEditingStatus" (click)="enableBulkEdit()">
+                    <img src="assets/icons/pencil.svg" alt="Edit" class="icon-edit-sm">
+                    EDIT
+                  </button>
+                </div>
+              </div>
+
+              <div class="view-field">
+                <label class="field-label">Total Price</label>
+                <div class="field-value">
+                  <div class="cost-badge-box">
+                    <span class="cost-badge-value" style="font-size: 14px;">$ {{ data?.purchase?.totalAmount ||
+                      data?.totalAmount || '0.00' }}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="items-section-container">
+              <div class="items-section-header">LIST OF ITEMS ({{ viewPurchaseItems.length }})</div>
+
+              <div class="purchase-details-list">
+                <div class="purchase-details-header">
+                  <!-- Header -->
+                  <div class="purchase-details-header-row">
+                    <div class="col-no text-uppercase">NO.</div>
+                    <div class="col-name text-uppercase">ITEM NAME</div>
+                    <div class="col-serial text-uppercase">SERIAL NO.</div>
+                    <div class="col-barcode text-uppercase">BARCODE NO.</div>
+                    <div class="col-count text-uppercase">COUNT</div>
+                    <div class="col-price text-uppercase">TOTAL PRICE (RATE + GST PER NO.)</div>
+                    <div class="col-status text-uppercase">STATUS</div>
+                  </div>
+                </div>
+
+                <!-- Rows -->
+                <div *ngFor="let item of viewPurchaseItems; let i = index" class="purchase-details-item-wrapper"
+                  [class.row-returned]="item.status === 'Returned'">
+
+                  <!-- Data Row -->
+                  <div class="purchase-details-data-row">
+                    <div class="col-no">{{ i + 1 }}</div>
+                    <div class="col-name">
+                      <div class="item-name-text">{{ item.itemName }}</div>
+                      <div class="item-sub-text">
+                        {{ item.itemCode || item.code || 'cc-ccc' }}
+                        <span style="color: #ed3237; margin: 0 4px;">|</span>
+                        {{ item.make || 'Make' }}
+                        <span style="color: #ed3237; margin: 0 4px;">|</span>
+                        {{ item.model || 'Model' }}
+                      </div>
+                      <div *ngIf="item.returnReason" class="damaged-badge">{{ item.returnReason }}</div>
+                    </div>
+
+                    <div class="col-serial">
+                      <div *ngIf="!isBulkEditingStatus || !isPreorderInvoice">{{ item.serialNo || '-' }}</div>
+                      <div *ngIf="isBulkEditingStatus && isPreorderInvoice">
+                        <input type="text" class="field-input-text full-width" [(ngModel)]="item.newSerialNumber"
+                          [ngModelOptions]="{standalone: true}" placeholder="Serial No.">
+                        <div *ngIf="isPreorderSubmitAttempted && !item.newSerialNumber" class="text-red text-xs mt-5">
+                          Serial required</div>
+                      </div>
+                    </div>
+
+                    <div class="col-barcode">
+                      <div *ngIf="!isBulkEditingStatus || !isPreorderInvoice">{{ item.barcodeNo || '-' }}</div>
+                      <div *ngIf="isBulkEditingStatus && isPreorderInvoice">
+                        <input type="text" class="field-input-text full-width" [(ngModel)]="item.newBarcode"
+                          [ngModelOptions]="{standalone: true}" placeholder="Barcode No.">
+                      </div>
+                    </div>
+
+                    <div class="col-count"><b>{{ item.count }}</b> No{{ item.count > 1 ? "'s" : "" }}</div>
+
+                    <div class="col-price">
+                      <b>$ {{ item.totalPricePerUnit || item.totalPrice || '0.00' }}</b>
+                      <span class="price-breakup">($ {{ item.unitPrice || item.rate || '0.00' }} + {{ item.gstPercent ||
+                        item.gst || '0' }}%)</span>
+                    </div>
+
+                    <div class="col-status">
+                      <div class="status-view-mode flex-align-center-gap-5 text-uppercase" *ngIf="!isBulkEditingStatus">
+                        <span [style.color]="getItemStatusColor(item.status)"
+                          style="font-weight: 700; font-size: 11px;">
+                          {{ item.status }}
+                        </span>
+                      </div>
+                      <div class="status-edit-mode flex-align-center-gap-5" *ngIf="isBulkEditingStatus"
+                        style="display:flex; flex-direction: column; align-items:flex-start;">
+                        <ng-container *ngIf="isPreorderInvoice">
+                          <span class="text-uppercase" [style.color]="getItemStatusColor(item.newStatus || item.status)"
+                            style="font-weight: 700; font-size: 11px; margin-top: 8px;">
+                            {{ item.newStatus || item.status }}
+                          </span>
+                        </ng-container>
+                        <ng-container *ngIf="!isPreorderInvoice">
+                          <p-dropdown [options]="statusOptions" [(ngModel)]="item.newStatus" optionLabel="label"
+                            optionValue="value" placeholder="Select" appendTo="body" [style]="{'width':'130px'}"
+                            [overlayOptions]="customOverlayOptions" [ngModelOptions]="{standalone: true}"></p-dropdown>
+                          <div *ngIf="item.newStatus === 'RETURNED'" style="margin-top: 5px; width: 100%;">
+                            <input type="text" class="field-input-text full-width" [(ngModel)]="item.returnReason"
+                              [ngModelOptions]="{standalone: true}" placeholder="Return Reason">
+                            <div *ngIf="isReturnSubmitAttempted && !item.returnReason" class="text-red text-xs mt-2">
+                              Reason required</div>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Bulk Save Row -->
+                <div *ngIf="isBulkEditingStatus" class="purchase-details-item-wrapper"
+                  style="border-bottom: none; padding-top: 15px; display: flex; justify-content: flex-end;">
+                  <div style="display: flex; gap: 20px;">
+                    <button class="btn-edit-outline text-red-bold" [disabled]="isLoading"
+                      (click)="isBulkEditingStatus = false; initViewItems()"
+                      style="border-color: #ED3237; font-size: 11px; padding: 10px 40px;">CANCEL</button>
+                    <button class="btn-primary" (click)="saveBulkStatus()" [disabled]="isLoading"
+                      style="font-size: 11px; padding: 10px 40px; width: auto; min-width: 150px;">{{
+                      getSubmitButtonLabel() }}</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Reference Images -->
+            <div class="reference-images-section">
+              <div class="section-header-row">
+                <div class="items-section-header mb-0">REFERENCE IMAGES</div>
+                <button class="btn-add-sm">+ ADD</button>
+              </div>
+              <div class="images-grid" *ngIf="(data?.files?.length || data?.files?.length) > 0">
+                <ng-container *ngFor="let file of (data?.files || data?.files)">
+                  <div class="ref-image-card">
+                    <img [src]="getFileUrl(file.filePath)" alt="Ref">
+                  </div>
+                </ng-container>
+              </div>
+              <div class="images-grid" *ngIf="!(data?.files?.length || data?.files?.length)">
+                <!-- Mock Image -->
+                <div class="ref-image-card">
+                  <img src="assets/mock_cam_check.jpg" alt="Ref">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="mode === 'stock-send'">
+          <!-- INPUT FORM MODE -->
+          <div class="add-purchase-wrapper modal-section-wrapper" [formGroup]="stockSendForm">
+            <!-- Top Row -->
+            <div class="add-purchase-top-row">
+              <div class="field-column">
+                <label class="field-label">Send From</label>
+                <p-dropdown [options]="sendFromOptions" formControlName="sendFrom" optionLabel="label"
+                  optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Site</label>
+                <p-dropdown [options]="siteOptions" formControlName="site" optionLabel="label" optionValue="value"
+                  [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Category</label>
+                <p-dropdown [options]="categoryOptions" formControlName="category" optionLabel="label"
+                  optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Billing Status</label>
+                <p-dropdown [options]="billingStatuses" formControlName="billingStatus" optionLabel="label"
+                  optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+            </div>
+
+            <!-- ITEMS SECTION -->
+            <div class="items-section-container">
+              <div class="items-section-header">ITEMS ({{ stockSendItemsControls.length }})</div>
+
+              <!-- Entry Row -->
+              <div class="stock-entry-grid">
+                <div class="field-column">
+                  <label class="field-label">Item Name</label>
+                  <p-dropdown [options]="itemsDropdownOptions" [(ngModel)]="newStockItem.name"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"
+                    [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Quantity</label>
+                  <div class="input-group-styled">
+                    <input type="number" [(ngModel)]="newStockItem.qty" [ngModelOptions]="{standalone: true}"
+                      placeholder="Enter" min="1" (keydown)="preventNegative($event)">
+                    <span class="input-group-text">No's</span>
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Billing Status</label>
+                  <p-dropdown [options]="billingStatuses" [(ngModel)]="newStockItem.billingStatus" optionLabel="label"
+                    optionValue="value" placeholder="Select" styleClass="w-full" [ngModelOptions]="{standalone: true}">
+                  </p-dropdown>
+                </div>
+                <div class="field-column add-circle-btn-wrapper">
+                  <button class="btn-add-circle" (click)="addStockItem()"
+                    [disabled]="!newStockItem.name || !newStockItem.qty || newStockItem.qty < 1">
+                    <i class="pi pi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+
+              <!-- Added Stock Items List -->
+              <div class="added-items-list mt-20" formArrayName="stockSendItems">
+                <div *ngFor="let itemCtrl of stockSendItemsControls; let i = index" class="stock-send-row-grid"
+                  [formGroupName]="i">
+                  <div class="list-text">
+                    <b>{{ itemCtrl.get('nameDisplay')?.value || '&nbsp;' }}</b>
+                    <div *ngIf="itemCtrl.get('details')?.value" class="expanded-details-text"
+                      style="font-size: 11px; color: #999; margin-top: 5px;">
+                      {{ itemCtrl.get('details')?.value }}
+                    </div>
+                  </div>
+                  <div class="list-text">{{ itemCtrl.get('qty')?.value }} No's</div>
+                  <div class="list-text">{{ itemCtrl.get('billingStatusName')?.value }}</div>
+                  <button class="btn-icon-only" (click)="removeStockItem(i)"
+                    style="background: none; border: none; cursor: pointer;">
+                    <i class="pi pi-times" style="font-size: 14px; color: #000; font-weight: bold;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCTS SECTION -->
+            <div class="items-section-container mt-30">
+              <div class="items-section-header">PRODUCTS ({{ stockSendProductsControls.length }})</div>
+
+              <!-- Entry Row -->
+              <div class="stock-entry-grid">
+                <div class="field-column">
+                  <label class="field-label">Product Name</label>
+                  <p-dropdown [options]="productsDropdownOptions" [(ngModel)]="newStockProduct.name"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"
+                    [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Quantity</label>
+                  <div class="input-group-styled">
+                    <input type="number" [(ngModel)]="newStockProduct.qty" [ngModelOptions]="{standalone: true}"
+                      placeholder="Enter" min="1" (keydown)="preventNegative($event)">
+                    <span class="input-group-text">No's</span>
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Billing Status</label>
+                  <p-dropdown [options]="billingStatuses" [(ngModel)]="newStockProduct.billingStatus"
+                    optionLabel="label" optionValue="value" placeholder="Select" styleClass="w-full"
+                    [ngModelOptions]="{standalone: true}">
+                  </p-dropdown>
+                </div>
+                <div class="field-column add-circle-btn-wrapper">
+                  <button class="btn-add-circle" (click)="addStockProduct()"
+                    [disabled]="!newStockProduct.name || !newStockProduct.qty || newStockProduct.qty < 1">
+                    <i class="pi pi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+
+              <!-- Added Stock Products List -->
+              <div class="added-items-list mt-20" formArrayName="stockSendProducts">
+                <div *ngFor="let prodCtrl of stockSendProductsControls; let i = index" class="stock-send-row-grid"
+                  [formGroupName]="i">
+                  <div class="list-text">
+                    <b>{{ prodCtrl.get('nameDisplay')?.value || '&nbsp;' }}</b>
+                    <div *ngIf="prodCtrl.get('details')?.value" class="expanded-details-text"
+                      style="font-size: 11px; color: #999; margin-top: 5px;">
+                      {{ prodCtrl.get('details')?.value }}
+                    </div>
+                  </div>
+                  <div class="list-text">{{ prodCtrl.get('qty')?.value }} No's</div>
+                  <div class="list-text">{{ prodCtrl.get('billingStatusName')?.value }}</div>
+                  <button class="btn-icon-only" (click)="removeStockProduct(i)"
+                    style="background: none; border: none; cursor: pointer;">
+                    <i class="pi pi-times" style="font-size: 14px; color: #000; font-weight: bold;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- TRANSPORTATION SECTION -->
+            <div class="mt-20">
+              <div class="items-section-header">TRANSPORTATION</div>
+              <div class="grid-4col">
+                <div class="field-column">
+                  <label class="field-label">Shipping Platform*</label>
+                  <p-dropdown [options]="shippingPlatforms" formControlName="transportationPlatform" optionLabel="label"
+                    optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                    filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Tracking ID*</label>
+                  <div class="input-group-styled">
+                    <input type="text" formControlName="trackingId" placeholder="Enter">
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Shipment Date*</label>
+                  <div class="calendar-wrapper relative-position">
+                    <p-calendar #shipmentCalendar formControlName="shipmentDate" dateFormat="dd/mm/yy"
+                      placeholder="-- / -- / ----" styleClass="w-full date-picker-custom"
+                      inputStyleClass="field-input-text w-full" [showIcon]="false" [maxDate]="maxDate"></p-calendar>
+                    <img src="assets/calender.svg" class="calendar-icon-custom" alt="calendar"
+                      (click)="shipmentCalendar.toggle()" />
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Delivered Date*</label>
+                  <div class="calendar-wrapper relative-position">
+                    <p-calendar #deliveredCalendar formControlName="deliveredDate" dateFormat="dd/mm/yy"
+                      placeholder="-- / -- / ----" styleClass="w-full date-picker-custom"
+                      inputStyleClass="field-input-text w-full" [showIcon]="false" [maxDate]="maxDate"></p-calendar>
+                    <img src="assets/calender.svg" class="calendar-icon-custom" alt="calendar"
+                      (click)="deliveredCalendar.toggle()" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="mode === 'stock-return'">
+          <!-- FORM MODE -->
+          <div class="modal-section-wrapper" [formGroup]="stockReturnForm">
+            <div class="add-purchase-top-row">
+              <div class="field-column">
+                <label class="field-label">Return From</label>
+                <p-dropdown [options]="sendFromOptions" formControlName="returnFrom" optionLabel="label"
+                  optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+              <div class="field-column">
+                <label class="field-label">Return To</label>
+                <p-dropdown [options]="returnToOptions" formControlName="returnTo" optionLabel="label"
+                  optionValue="value" [style]="{'width':'100%'}" placeholder="Select" appendTo="body" [filter]="true"
+                  filterPlaceholder="Search..." [overlayOptions]="customOverlayOptions"></p-dropdown>
+              </div>
+            </div>
+
+            <!-- ITEMS SECTION -->
+            <div class="items-section-container">
+              <div class="items-section-header">ITEMS</div>
+
+              <!-- Entry Row -->
+              <div class="stock-entry-grid grid-return-entry">
+                <div class="field-column">
+                  <label class="field-label">Item Name</label>
+                  <p-dropdown [options]="returnItemsDropdownOptions" [(ngModel)]="newReturnItem.name"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"
+                    [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Quantity</label>
+                  <div class="input-group-styled">
+                    <input type="number" [(ngModel)]="newReturnItem.qty" [ngModelOptions]="{standalone: true}"
+                      placeholder="Enter" min="1" (keydown)="preventNegative($event)">
+                    <span class="input-group-text">No's</span>
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Condition</label>
+                  <p-dropdown [options]="returnConditions" [(ngModel)]="newReturnItem.condition"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    appendTo="body" [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column add-circle-btn-wrapper">
+                  <button class="btn-add-circle" (click)="addReturnItem()"
+                    [disabled]="!newReturnItem.name || !newReturnItem.qty || newReturnItem.qty < 1">
+                    <i class="pi pi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- List -->
+              <div class="added-items-list mt-20" formArrayName="stockReturnItems">
+                <div *ngFor="let itemCtrl of stockReturnItemsControls; let i = index"
+                  class="stock-send-row-grid grid-return-row" [formGroupName]="i">
+                  <div class="list-text">
+                    <b>{{ itemCtrl.get('nameDisplay')?.value }}</b>
+                    <div class="expanded-details-text" *ngIf="itemCtrl.get('subtext')?.value"
+                      style="font-size: 11px; color: #999; margin-top: 5px;">{{ itemCtrl.get('subtext')?.value }}</div>
+                  </div>
+                  <div class="list-text">{{ itemCtrl.get('qty')?.value }} No's</div>
+                  <div class="list-text text-uppercase">{{ itemCtrl.get('condition')?.value }}</div>
+                  <button class="btn-icon-only" (click)="removeReturnItem(i)"
+                    style="background: none; border: none; cursor: pointer;">
+                    <i class="pi pi-times" style="font-size: 14px; color: #000; font-weight: bold;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCTS SECTION -->
+            <div class="items-section-container mt-30">
+              <div class="items-section-header">PRODUCTS</div>
+
+              <!-- Entry Row -->
+              <div class="stock-entry-grid grid-return-entry">
+                <div class="field-column">
+                  <label class="field-label">Product Name</label>
+                  <p-dropdown [options]="returnProductsDropdownOptions" [(ngModel)]="newReturnProduct.name"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    [filter]="true" filterBy="label" optionLabel="label" optionValue="value" appendTo="body"
+                    [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Quantity</label>
+                  <div class="input-group-styled">
+                    <input type="number" [(ngModel)]="newReturnProduct.qty" [ngModelOptions]="{standalone: true}"
+                      placeholder="Enter" min="1" (keydown)="preventNegative($event)">
+                    <span class="input-group-text">No's</span>
+                  </div>
+                </div>
+                <div class="field-column">
+                  <label class="field-label">Condition</label>
+                  <p-dropdown [options]="returnConditions" [(ngModel)]="newReturnProduct.condition"
+                    [ngModelOptions]="{standalone: true}" [style]="{'width':'100%'}" placeholder="Select"
+                    appendTo="body" [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+                <div class="field-column add-circle-btn-wrapper">
+                  <button class="btn-add-circle" (click)="addReturnProduct()"
+                    [disabled]="!newReturnProduct.name || !newReturnProduct.qty || newReturnProduct.qty < 1">
+                    <i class="pi pi-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- List -->
+              <div class="added-items-list mt-20" formArrayName="stockReturnProducts">
+                <div *ngFor="let prodCtrl of stockReturnProductsControls; let i = index"
+                  class="stock-send-row-grid grid-return-row" [formGroupName]="i">
+                  <div class="list-text">
+                    <b>{{ prodCtrl.get('nameDisplay')?.value }}</b>
+                    <div class="expanded-details-text" *ngIf="prodCtrl.get('subtext')?.value"
+                      style="font-size: 11px; color: #999; margin-top: 5px;">{{ prodCtrl.get('subtext')?.value }}</div>
+                  </div>
+                  <div class="list-text">{{ prodCtrl.get('qty')?.value }} No's</div>
+                  <div class="list-text text-uppercase">{{ prodCtrl.get('condition')?.value }}</div>
+                  <button class="btn-icon-only" (click)="removeReturnProduct(i)"
+                    style="background: none; border: none; cursor: pointer;">
+                    <i class="pi pi-times" style="font-size: 14px; color: #000; font-weight: bold;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+
+        <!-- CLOSING STATEMENT MODE -->
+        <ng-container *ngIf="mode === 'closing-statement'">
+          <div class="closing-statement-container closing-statement-wrapper">
+            <div class="masters-view-grid">
+              <div class="view-field">
+                <label class="field-label">ITEM NAME</label>
+                <span class="field-value">{{ closingStatementData.itemName }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">START DATE</label>
+                <span class="field-value">{{ closingStatementData.startDate }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">AVAILABLE COUNT</label>
+                <span class="field-value">{{ closingStatementData.availableCount }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">END DATE</label>
+                <span class="field-value">{{ closingStatementData.endDate }}</span>
+              </div>
+            </div>
+
+            <!-- Transaction History (Matching Items Modal 'transaction-timeline') -->
+            <div class="transaction-timeline mt-20">
+              <div class="transaction-group transaction-group-item"
+                *ngFor="let group of closingStatementData.transactions">
+
+                <!-- Date Header -->
+                <div class="trans-date trans-date-header">
+                  <span>{{ group.date }}</span>
+                  <span>Available Count : {{
+                    group.availableCount
+                    }}</span>
+                </div>
+
+                <!-- Cards -->
+                <div class="trans-card trans-card-grid" *ngFor="let record of group.records">
+                  <!-- From -->
+                  <div class="trans-col">
+                    <label class="trans-label">From</label>
+                    <span class="trans-val">{{ record.from }}</span>
+                  </div>
+                  <!-- To -->
+                  <div class="trans-col">
+                    <label class="trans-label">To</label>
+                    <span class="trans-val">{{ record.to }}</span>
+                  </div>
+                  <!-- Status -->
+                  <div class="trans-col">
+                    <label class="trans-label">Status</label>
+                    <span class="trans-val">{{ record.status }}</span>
+                  </div>
+                  <!-- Count -->
+                  <div class="trans-col">
+                    <label class="trans-label">Count</label>
+                    <span class="trans-val">{{ record.count }}</span>
+                  </div>
+                  <!-- Badge -->
+                  <div class="trans-badge-col trans-badge-end">
+                    <span class="status-badge-sm" [ngClass]="{
+                      'badge-returned': record.type === 'Returned',
+                      'badge-issued': record.type === 'Issued',
+                      'badge-purchased': record.type === 'Purchased'
+                    }">{{ record.type }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- VIEW STOCK SEND MODE (Info View) -->
+        <ng-container *ngIf="mode === 'view-stock-send'">
+          <div class="view-purchase-container stock-info-view flex-col-gap-20">
+
+            <!-- Top Info Grid -->
+            <div class="masters-view-grid">
+              <!-- Col 1 -->
+              <div class="view-field">
+                <label class="field-label">Send From</label>
+                <span class="field-value">{{ viewStockSendData.sendFrom }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Transportation</label>
+                <span class="field-value">{{ viewStockSendData.transportation }}</span>
+              </div>
+
+              <!-- Col 2 -->
+              <div class="view-field">
+                <label class="field-label">Send to</label>
+                <span class="field-value">{{ viewStockSendData.sendTo }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Tracking ID</label>
+                <span class="field-value">{{ viewStockSendData.trackingId }}</span>
+              </div>
+
+              <!-- Col 3 -->
+              <div class="view-field">
+                <label class="field-label">Category</label>
+                <span class="field-value">{{ viewStockSendData.category }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Shipment Date</label>
+                <span class="field-value">{{ viewStockSendData.shipmentDate }}</span>
+              </div>
+
+              <!-- Col 4 -->
+              <div class="view-field">
+                <label class="field-label">Billing</label>
+                <span class="field-value">{{ viewStockSendData.billing }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Delivered Date</label>
+                <span class="field-value" *ngIf="!isEditingIssueStatus">{{ viewStockSendData.deliveredDate || '---'
+                  }}</span>
+                <div class="calendar-wrapper relative-position" *ngIf="isEditingIssueStatus">
+                  <p-calendar #deliveredCalendarEdit [(ngModel)]="viewStockSendData.deliveredDateObj"
+                    [ngModelOptions]="{standalone: true}" dateFormat="dd/mm/yy" placeholder="-- / -- / ----"
+                    styleClass="w-full date-picker-custom" inputStyleClass="field-input-text w-full" [showIcon]="false"
+                    [maxDate]="maxDate"></p-calendar>
+                  <img src="assets/calender.svg" class="calendar-icon-custom" alt="calendar"
+                    (click)="deliveredCalendarEdit.toggle()" />
+                </div>
+              </div>
+
+              <!-- Status -->
+              <div class="view-field">
+                <label class="field-label">Status</label>
+                <div class="status-edit-wrapper flex-align-center-gap-10" style="margin-top: 4px;"
+                  *ngIf="!isEditingIssueStatus">
+                  <span class="status-badge" [ngStyle]="getStatusColor(viewStockSendData?.status)">
+                    {{ viewStockSendData?.status }}
+                  </span>
+                  <button class="btn-edit-outline" (click)="isEditingIssueStatus = true"
+                    style="background: white; border: 1px solid #ddd; padding: 4px 12px; border-radius: 4px; display: flex; align-items: center; gap: 6px; font-weight: bold; color: #333; font-size: 11px;">
+                    <img src="assets/icons/pencil.svg" alt="Edit" style="width: 12px; height: 12px;"> EDIT
+                  </button>
+                </div>
+                <div *ngIf="isEditingIssueStatus" style="margin-top: 4px;">
+                  <p-dropdown [options]="['ISSUED', 'DELIVERED', 'RETURNED']" [(ngModel)]="viewStockSendData.status"
+                    appendTo="body" styleClass="w-full" [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEMS SECTION -->
+            <div class="items-section-container">
+              <div class="items-section-header"
+                style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">ITEMS</div>
+
+              <div class="view-items-table">
+                <!-- Header -->
+                <div class="view-items-header">
+                  <div>S.No.</div>
+                  <div>Item Name</div>
+                  <div>Quantity</div>
+                  <div>Units</div>
+                  <div>Billing Status</div>
+                  <!-- <div>Assign Site</div> -->
+                </div>
+
+                <!-- Rows -->
+                <div *ngFor="let item of viewStockSendData.items; let i = index"
+                  class="view-item-row grid-view-item-row">
+                  <div class="text-bold-black">{{ i + 1 }}</div>
+                  <div>
+                    <div class="item-name-text" style="font-weight: 500;">{{ item.name }}</div>
+                    <div class="item-sub-text">
+                      <span *ngIf="item.make" class="text-bold-black" style="color: black; font-weight: 600;">{{
+                        item.make }}</span>
+                      <span *ngIf="item.make && (item.model || item.serialNumber || item.barcode)"> | </span>
+                      <span *ngIf="item.model">{{ item.model }}</span>
+                      <span *ngIf="item.model && (item.serialNumber || item.barcode)"> | </span>
+                      <span *ngIf="item.serialNumber">Serial No.: <span class="text-bold-black"
+                          style="color: black; font-weight: 600;">{{ item.serialNumber }}</span></span>
+                      <span *ngIf="item.serialNumber && item.barcode"> | </span>
+                      <span *ngIf="item.barcode">Barcode: <span class="text-bold-black"
+                          style="color: black; font-weight: 600;">{{ item.barcode }}</span></span>
+                    </div>
+                  </div>
+                  <div style="color: #ed3237; font-weight: 500;">{{ item.qty }}</div>
+                  <div>{{ item.unit }}</div>
+                  <div>{{ item.billingStatus }}</div>
+                  <!-- <div>{{ item.assignSite }}</div> -->
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCTS SECTION -->
+            <div class="items-section-container">
+              <div class="items-section-header"
+                style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">PRODUCTS ({{
+                viewStockSendData.products.length }})</div>
+
+              <div class="view-items-table">
+                <!-- Rows -->
+                <ng-container *ngFor="let prod of viewStockSendData.products">
+                  <div class="view-item-row product-row-parent grid-view-item-row" style="padding: 15px 0;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="expand-toggle-btn" (click)="prod.expanded = !prod.expanded"
+                        style="color: #ed3237; font-size: 16px; cursor: pointer; user-select: none;">
+                        {{ prod.expanded ? '–' : '+' }}
+                      </span>
+                      <span style="color: #ed3237; font-weight: 500;">{{ prod.name }}</span>
+                    </div>
+                    <div style="color: #ed3237; font-weight: 500;">{{ prod.qty }}</div>
+                    <div>{{ prod.unit }}</div>
+                    <div>{{ prod.billingStatus }}</div>
+                    <!-- <div>{{ prod.assignSite }}</div> -->
+                  </div>
+
+                  <ng-container *ngIf="prod.expanded">
+                    <div *ngFor="let ing of prod.ingredients" class="view-item-row product-row-child grid-view-item-row"
+                      style="padding: 10px 0; border: none;">
+
+                      <div style="padding-left: 20px;">
+                        <div class="text-bold-12" style="font-weight: 500; font-size: 13px;">{{ ing.name }}</div>
+                        <div class="item-sub-text" style="color: #666; font-size: 11px; margin-top: 2px;"
+                          *ngIf="ing.make || ing.model">
+                          <span *ngIf="ing.make" class="text-bold-black" style="color: black; font-weight: 600;">{{
+                            ing.make }}</span>
+                          <span *ngIf="ing.make && ing.model"> | </span>
+                          <span *ngIf="ing.model">{{ ing.model }}</span>
+                        </div>
+                      </div>
+                      <div style="font-weight: 500;">{{ ing.count }}</div>
+                      <div>{{ ing.unit }}</div>
+                      <div></div>
+                      <div></div>
+                    </div>
+                  </ng-container>
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- VIEW RETURN MODE -->
+        <ng-container *ngIf="mode === 'view-return'">
+          <div class="view-purchase-container stock-info-view flex-col-gap-20">
+
+            <!-- Top Info Grid -->
+            <div class="masters-view-grid">
+              <div class="view-field">
+                <label class="field-label">Return From</label>
+                <span class="field-value">{{ viewReturnData?.header?.returnFrom || '---' }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Return To</label>
+                <span class="field-value">{{ viewReturnData?.header?.returnTo || '---' }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Return Date</label>
+                <span class="field-value">{{ viewReturnData?.header?.returnDate || '---' }}</span>
+              </div>
+              <div class="view-field">
+                <label class="field-label">Status</label>
+                <div class="status-edit-wrapper flex-align-center-gap-10" style="margin-top: 4px;"
+                  *ngIf="!isEditingReturnStatus">
+                  <span class="status-badge text-uppercase"
+                    [ngStyle]="getStatusColor(viewReturnData?.header?.status || 'RETURNED')">
+                    {{ viewReturnData?.header?.status || 'RETURNED' }}
+                  </span>
+                  <button class="btn-edit-outline" (click)="isEditingReturnStatus = true"
+                    *ngIf="viewReturnData?.header?.status !== 'RETURNED'"
+                    style="background: white; border: 1px solid #ddd; padding: 4px 12px; border-radius: 4px; display: flex; align-items: center; gap: 6px; font-weight: bold; color: #333; font-size: 11px;">
+                    <img src="assets/icons/pencil.svg" alt="Edit" style="width: 12px; height: 12px;"> EDIT
+                  </button>
+                </div>
+                <div *ngIf="isEditingReturnStatus" style="margin-top: 4px;">
+                  <p-dropdown [options]="['RETURNED', 'IN_TRANSIT', 'DELIVERED']"
+                    [(ngModel)]="viewReturnData!.header.status" appendTo="body" styleClass="w-full"
+                    [overlayOptions]="customOverlayOptions"></p-dropdown>
+                </div>
+              </div>
+            </div>
+            <div class="masters-view-grid mt-10" *ngIf="viewReturnData?.header?.remarks">
+              <div class="view-field" style="grid-column: span 4;">
+                <label class="field-label">Remarks</label>
+                <span class="field-value" *ngIf="!isEditingReturnStatus">{{ viewReturnData?.header?.remarks }}</span>
+                <div class="input-group-styled" *ngIf="isEditingReturnStatus">
+                  <input type="text" [(ngModel)]="viewReturnData!.header.remarks"
+                    style="width: 100%; border: none; outline: none;" />
+                </div>
+              </div>
+            </div>
+
+            <!-- ITEMS SECTION -->
+            <div class="items-section-container mt-20" *ngIf="viewReturnData?.items?.length">
+              <div class="items-section-header"
+                style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">ITEMS ({{
+                viewReturnData?.items?.length }})</div>
+              <div class="view-items-table">
+                <div class="view-items-header" style="grid-template-columns: 50px 2fr 1fr 1fr 1.5fr;">
+                  <div>S.No.</div>
+                  <div>Item Name</div>
+                  <div>Quantity</div>
+                  <div>Units</div>
+                  <div>Condition</div>
+                </div>
+                <div *ngFor="let item of viewReturnData?.items; let i = index" class="view-item-row grid-view-item-row"
+                  style="grid-template-columns: 50px 2fr 1fr 1fr 1.5fr;">
+                  <div class="text-bold-black">{{ i + 1 }}</div>
+                  <div>
+                    <div class="item-name-text" style="font-weight: 500;">{{ item.itemName }}</div>
+                    <div class="item-sub-text">
+                      <span *ngIf="item.serialNumber">Serial No.: <span class="text-bold-black">{{ item.serialNumber
+                          }}</span></span>
+                      <span *ngIf="item.serialNumber && item.barcode"> | </span>
+                      <span *ngIf="item.barcode">Barcode: <span class="text-bold-black">{{ item.barcode }}</span></span>
+                    </div>
+                  </div>
+                  <div style="color: #ed3237; font-weight: 500;">{{ item.quantity }}</div>
+                  <div>No's</div>
+                  <div>
+                    <span *ngIf="!isEditingReturnStatus" class="status-badge text-uppercase"
+                      [ngStyle]="getConditionColor(item.conditionType)" style="font-weight: 600;">{{ item.conditionType
+                      }}</span>
+                    <p-dropdown *ngIf="isEditingReturnStatus" [options]="['NEW', 'USED', 'SCRAP', 'DEFECTIVE']"
+                      [(ngModel)]="item.conditionType" appendTo="body" styleClass="w-full"
+                      [overlayOptions]="customOverlayOptions"></p-dropdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- PRODUCTS SECTION -->
+            <div class="items-section-container mt-20" *ngIf="viewReturnData?.products?.length">
+              <div class="items-section-header"
+                style="border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px;">PRODUCTS ({{
+                viewReturnData?.products?.length }})</div>
+              <div class="view-items-table">
+                <!-- Using same grid template for consistency -->
+                <div class="view-items-header" style="grid-template-columns: 50px 2fr 1fr 1fr 1.5fr;">
+                  <div>S.No.</div>
+                  <div>Product Name</div>
+                  <div>Quantity</div>
+                  <div>Units</div>
+                  <div>Condition</div>
+                </div>
+                <div *ngFor="let prod of viewReturnData?.products; let i = index"
+                  class="view-item-row grid-view-item-row"
+                  style="grid-template-columns: 50px 2fr 1fr 1fr 1.5fr; padding: 15px 0;">
+                  <div class="text-bold-black">{{ i + 1 }}</div>
+                  <div>
+                    <div class="item-name-text" style="font-weight: 500; color: #ed3237;">{{ prod.productName }}</div>
+                    <div class="item-sub-text">
+                      <span *ngIf="prod.make" class="text-bold-black">{{ prod.make }}</span>
+                      <span *ngIf="prod.make && prod.model"> | </span>
+                      <span *ngIf="prod.model">{{ prod.model }}</span>
+                      <span *ngIf="prod.model && (prod.serialNumber || prod.barCode)"> | </span>
+                      <span *ngIf="prod.serialNumber">Serial No.: <span class="text-bold-black">{{ prod.serialNumber
+                          }}</span></span>
+                      <span *ngIf="prod.serialNumber && prod.barCode"> | </span>
+                      <span *ngIf="prod.barCode">Barcode: <span class="text-bold-black">{{ prod.barCode }}</span></span>
+                    </div>
+                  </div>
+                  <div style="color: #ed3237; font-weight: 500;">{{ prod.quantity }}</div>
+                  <div>No's</div>
+                  <div>
+                    <span *ngIf="!isEditingReturnStatus" class="status-badge text-uppercase"
+                      [ngStyle]="getConditionColor(prod.conditionType)" style="font-weight: 600;">{{ prod.conditionType
+                      }}</span>
+                    <p-dropdown *ngIf="isEditingReturnStatus" [options]="['NEW', 'USED', 'SCRAP', 'DEFECTIVE']"
+                      [(ngModel)]="prod.conditionType" appendTo="body" styleClass="w-full"
+                      [overlayOptions]="customOverlayOptions"></p-dropdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </ng-container>
+      </div>
+
+      <!-- Footer Buttons (For non-purchase modes) -->
+      <div class="modal-footer"
+        *ngIf="mode !== 'add-purchase' && mode !== 'update-purchase' && mode !== 'view-purchase' && (isEditing || isEditingIssueStatus || isEditingReturnStatus)">
+        <button class="btn-secondary" (click)="close.emit()" [disabled]="isLoading">
+          CANCEL
+        </button>
+
+        <!-- Logic for Send/Submit Button -->
+        <button class="btn-primary" [disabled]="isLoading"
+          (click)="mode === 'view-stock-send' ? updateIssueStatus() : (mode === 'view-return' ? submitUpdateReturn() : handleSave())">
+          {{ getSubmitButtonLabel() }}
+        </button>
+      </div>
+    </div>
+  </div>

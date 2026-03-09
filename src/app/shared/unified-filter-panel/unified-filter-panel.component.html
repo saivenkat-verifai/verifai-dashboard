@@ -1,0 +1,38 @@
+<div class="unified-filter-panel">
+    <div class="filter-header">
+        <span class="filter-title">{{ title }}</span>
+        <button type="button" class="filter-close-btn" (click)="onClose()" aria-label="Close filters">
+            ×
+        </button>
+    </div>
+
+    <div class="filter-body">
+        <div *ngFor="let field of fields" class="filter-group">
+            <label class="filter-label">{{ field.label }}</label>
+
+            <ng-container [ngSwitch]="field.type">
+                <!-- Dropdown -->
+                <p-dropdown *ngSwitchCase="'dropdown'" [options]="field.options || []" [(ngModel)]="model[field.key]"
+                    (ngModelChange)="onModelChange()" [placeholder]="field.placeholder || 'Select'" [filter]="true"
+                    [showClear]="field.showClear !== false" appendTo="body" styleClass="w-full filter-dropdown">
+                </p-dropdown>
+
+                <!-- MultiSelect -->
+                <p-multiSelect *ngSwitchCase="'multiselect'" [options]="field.options || []"
+                    [(ngModel)]="model[field.key]" (ngModelChange)="onModelChange()"
+                    [placeholder]="field.placeholder || 'Select'" [filter]="true" display="chip" appendTo="body"
+                    styleClass="w-full filter-multiselect">
+                </p-multiSelect>
+
+                <!-- Text Input -->
+                <input *ngSwitchCase="'text'" type="text" class="filter-input-text" [(ngModel)]="model[field.key]"
+                    (ngModelChange)="onModelChange()" [placeholder]="field.placeholder || 'Enter search...'" />
+            </ng-container>
+        </div>
+    </div>
+
+    <div class="filter-actions">
+        <button type="button" class="filter-btn reset-btn" (click)="onReset()">RESET</button>
+        <button type="button" class="filter-btn apply-btn" (click)="onApply()">APPLY</button>
+    </div>
+</div>

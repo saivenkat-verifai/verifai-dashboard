@@ -1,0 +1,22 @@
+/* Force text truncation inside AG Grid cells for this component.
+   cellStyle only targets .ag-cell; the Quartz theme wraps text in inner divs
+   that need overflow:hidden too. */
+
+:host ::ng-deep .ag-cell {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+:host ::ng-deep .ag-cell-wrapper {
+    overflow: hidden !important;
+    width: 100%;
+}
+
+:host ::ng-deep .ag-cell-value {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+    width: 100%;
+}

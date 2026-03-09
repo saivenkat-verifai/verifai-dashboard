@@ -1,0 +1,130 @@
+:host {
+    display: block;
+    background-color: #f6f6f6;
+    min-height: 100%;
+}
+
+.detailed-view-container {
+    width: 100%;
+    padding: 20px 20px 60px 20px;
+    box-sizing: border-box;
+}
+
+.detail-section {
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 25px 30px;
+}
+
+.detail-section:last-child {
+    margin-bottom: 0;
+}
+
+.detail-header {
+    padding: 0 0 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.detail-date {
+    font-size: 14px;
+    font-family: 'Neometric Alt Bold', sans-serif;
+    font-weight: normal;
+    color: #000000;
+}
+
+.status-issued {
+    background-color: #53BF8B !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.items-table th {
+    text-align: left;
+    padding: 10px 20px;
+    font-size: 11px;
+    color: #999999;
+    background-color: #ffffff;
+    font-family: 'Neometric Medium', sans-serif;
+    font-weight: normal;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.items-table td {
+    padding: 15px 20px;
+    font-size: 12px;
+    color: #000000;
+    vertical-align: middle;
+    border-bottom: 1px solid #eeeeee;
+    background-color: #ffffff;
+}
+
+.product-name-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.product-name-main {
+    font-family: 'Neometric Alt Bold', sans-serif;
+    font-weight: normal;
+    color: #000000;
+    font-size: 12px;
+}
+
+.product-name-desc {
+    font-size: 11px;
+    color: #666;
+}
+
+.sno-col {
+    width: 60px;
+}
+
+.store-col,
+.online-col,
+.qty-col,
+.units-col {
+    text-align: center;
+}
+
+.items-table td:nth-child(3),
+.items-table td:nth-child(4),
+.items-table td:nth-child(5),
+.items-table td:nth-child(6) {
+    text-align: center;
+}
+
+.store-col {
+    width: 100px;
+}
+
+.online-col {
+    width: 100px;
+}
+
+.qty-col {
+    width: 100px;
+}
+
+.units-col {
+    width: 100px;
+}
+
+@media (max-width: 900px) {
+    .detailed-view-container {
+        padding: 10px !important;
+        overflow-x: auto;
+    }
+
+    .detail-header {
+        padding: 10px 15px;
+    }
+}

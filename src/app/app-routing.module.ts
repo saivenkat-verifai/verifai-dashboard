@@ -54,6 +54,36 @@ export const routes: Routes = [
         (m) => m.ClientsComponent,
       ),
   },
+  {
+    path: "inventory",
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import("./pages/inventory/inventory.component").then(
+        (m) => m.InventoryComponent,
+      ),
+  },
+  {
+    path: "invsites",
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import("./pages/invsites/invsites.component").then(
+        (m) => m.InvSitesComponent,
+      ),
+  },
+  {
+    path: "items",
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import("./pages/items/items.component").then((m) => m.ItemsComponent),
+  },
+  {
+    path: "products",
+    canActivate: [AuthGuard],
+    loadComponent: () =>
+      import("./pages/products/products.component").then(
+        (m) => m.ProductsComponent,
+      ),
+  },
 ];
 
 @NgModule({

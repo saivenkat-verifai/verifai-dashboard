@@ -1,0 +1,13 @@
+<div class="list-view-container">
+    <div class="table-wrapper">
+        <ag-grid-angular class="ag-theme-custom" [theme]="'legacy'" [columnDefs]="columnDefs" [rowData]="paginatedData"
+            [defaultColDef]="defaultColDef" [gridOptions]="gridOptions" [domLayout]="'autoHeight'"
+            (gridReady)="onGridReady($event)">
+        </ag-grid-angular>
+    </div>
+
+    <!-- Pagination -->
+    <app-pagination [currentPage]="currentPage" [totalItems]="totalItems" [pageSize]="pageSize"
+        (pageChange)="currentPage = $event; updateGridData()" (pageSizeChange)="onPageSizeChange($event)">
+    </app-pagination>
+</div>
